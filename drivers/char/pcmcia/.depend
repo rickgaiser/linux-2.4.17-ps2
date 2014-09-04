@@ -1,0 +1,21 @@
+memory_cs.o: memory_cs.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/map.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/mtd.h
+serial_cs.o: serial_cs.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ptrace.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/serial.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/major.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h

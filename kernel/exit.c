@@ -12,9 +12,12 @@
 #include <linux/completion.h>
 #include <linux/personality.h>
 #include <linux/tty.h>
+#include <linux/security.h>
 #ifdef CONFIG_BSD_PROCESS_ACCT
 #include <linux/acct.h>
 #endif
+
+#include <linux/trace.h>
 
 #include <asm/uaccess.h>
 #include <asm/pgtable.h>
@@ -46,6 +49,7 @@ static void release_task(struct task_struct * p)
 		task_unlock(p);
 #endif
 		atomic_dec(&p->user->processes);
+		security_task_free(p);
 		free_uid(p->user);
 		unhash_process(p);
 
@@ -190,6 +194,8 @@ static inline void close_files(struct files_struct * files)
 			}
 			i++;
 			set >>= 1;
+			debug_lock_break(1);
+			conditional_schedule();
 		}
 	}
 }
@@ -273,6 +279,10 @@ void exit_fs(struct task_struct *tsk)
 struct mm_struct * start_lazy_tlb(void)
 {
 	struct mm_struct *mm = current->mm;
+#ifdef CONFIG_PREEMPT
+	if (preempt_is_disabled() == 0)
+		BUG();
+#endif
 	current->mm = NULL;
 	/* active_mm is still 'mm' */
 	atomic_inc(&mm->mm_count);
@@ -284,6 +294,10 @@ void end_lazy_tlb(struct mm_struct *mm)
 {
 	struct mm_struct *active_mm = current->active_mm;
 
+#ifdef CONFIG_PREEMPT
+	if (preempt_is_disabled() == 0)
+		BUG();
+#endif
 	current->mm = mm;
 	if (mm != active_mm) {
 		current->active_mm = mm;
@@ -307,8 +321,8 @@ static inline void __exit_mm(struct task_struct * tsk)
 		/* more a memory barrier than a real lock */
 		task_lock(tsk);
 		tsk->mm = NULL;
-		task_unlock(tsk);
 		enter_lazy_tlb(mm, current, smp_processor_id());
+		task_unlock(tsk);
 		mmput(mm);
 	}
 }
@@ -337,7 +351,7 @@ static void exit_notify(void)
 	 * is about to become orphaned.
 	 */
 	 
-	t = current->p_pptr;
+	t = current->p_opptr;
 	
 	if ((t->pgrp != current->pgrp) &&
 	    (t->session == current->session) &&
@@ -435,6 +449,8 @@ fake_volatile:
 #endif
 	__exit_mm(tsk);
 
+	TRACE_PROCESS(TRACE_EV_PROCESS_EXIT, 0, 0);
+
 	lock_kernel();
 	sem_exit();
 	__exit_files(tsk);
@@ -491,6 +507,8 @@ asmlinkage long sys_wait4(pid_t pid,unsigned int * stat_addr, int options, struc
 	if (options & ~(WNOHANG|WUNTRACED|__WNOTHREAD|__WCLONE|__WALL))
 		return -EINVAL;
 
+	TRACE_PROCESS(TRACE_EV_PROCESS_WAIT, pid, 0);
+
 	add_wait_queue(&current->wait_chldexit,&wait);
 repeat:
 	flag = 0;
@@ -518,6 +536,10 @@ repeat:
 			if (((p->exit_signal != SIGCHLD) ^ ((options & __WCLONE) != 0))
 			    && !(options & __WALL))
 				continue;
+
+			if (security_task_wait(p))
+				continue;
+
 			flag = 1;
 			switch (p->state) {
 			case TASK_STOPPED:
@@ -549,7 +571,7 @@ repeat:
 					REMOVE_LINKS(p);
 					p->p_pptr = p->p_opptr;
 					SET_LINKS(p);
-					do_notify_parent(p, SIGCHLD);
+					do_notify_parent(p, p->exit_signal);
 					write_unlock_irq(&tasklist_lock);
 				} else
 					release_task(p);
@@ -580,7 +602,7 @@ end_wait4:
 	return retval;
 }
 
-#if !defined(__alpha__) && !defined(__ia64__)
+#if !defined(__alpha__) && !defined(__ia64__) && !defined(__arm__)
 
 /*
  * sys_waitpid() remains for compatibility. waitpid() should be

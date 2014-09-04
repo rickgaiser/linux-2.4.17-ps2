@@ -1,0 +1,282 @@
+adm1021.o: adm1021.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/adm1021/support/lm90.h)
+adm1024.o: adm1024.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+adm1025.o: adm1025.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+adm9240.o: adm9240.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+bt869.o: bt869.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+ddcmon.o: ddcmon.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+ds1621.o: ds1621.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+eeprom.o: eeprom.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+fscpos.o: fscpos.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+gl518sm.o: gl518sm.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+gl520sm.o: gl520sm.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+it87.o: it87.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+lm75.o: lm75.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+lm78.o: lm78.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+lm80.o: lm80.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+lm87.o: lm87.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+matorb.o: matorb.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+maxilife.o: maxilife.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ctype.h
+mtp008.o: mtp008.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+pcf8591t.o: pcf8591t.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+sensors.o: sensors.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/adm1021.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/adm1025.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/adm9240.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/bt869.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/ddcmon.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/ds1621.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/gl518sm.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/gl520sm.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/lm75.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/lm78.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/lm80.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/lm87.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/mtp008.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/sis5595.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/thmc50.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/via686a.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/w83781d.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/eeprom.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/ltc1710.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sensors/it87.h)
+sis5595.o: sis5595.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+thmc50.o: thmc50.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+via686a.o: via686a.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+w83781d.o: w83781d.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+x9221.o: x9221.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sensors.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h

@@ -63,10 +63,11 @@ typedef unsigned long int 		dword;
 
 #define	TCR 		0    	/* transmit control register */
 #define TCR_ENABLE	0x0001	/* if this is 1, we can transmit */ 
+#define	TCR_PAD_ENABLE	0x0080	/* pads short packets to 64 bytes */
+#define	TCR_MON_CNS	0x0400	/* monitors the carrier status */
 #define TCR_FDUPLX    	0x0800  /* receive packets sent out */
 #define TCR_STP_SQET	0x1000	/* stop transmitting if Signal quality error */
-#define	TCR_MON_CNS	0x0400	/* monitors the carrier status */
-#define	TCR_PAD_ENABLE	0x0080	/* pads short packets to 64 bytes */
+#define TCR_FDSE	0x8000	/* full duplex, switched ethernet */
 
 #define	TCR_CLEAR	0	/* do NOTHING */
 /* the normal settings for the TCR register : */ 
@@ -107,7 +108,10 @@ typedef unsigned long int 		dword;
 #define	CTL_CR_ENABLE		0x40
 #define	CTL_TE_ENABLE		0x0020
 #define CTL_AUTO_RELEASE	0x0800
-#define	CTL_EPROM_ACCESS	0x0003 /* high if Eprom is being read */
+#define CTL_EPROM_SELECT	0x0004
+#define CTL_EPROM_RELOAD	0x0002
+#define CTL_EPROM_STORE		0x0001
+#define	CTL_EPROM_ACCESS	(CTL_EPROM_RELOAD | CTL_EPROM_STORE) /* high if Eprom is being read */
 
 /* BANK 2 */
 #define MMU_CMD		0
@@ -130,7 +134,6 @@ typedef unsigned long int 		dword;
 #define PTR_READ	0x2000
 #define	PTR_RCV		0x8000
 #define	PTR_AUTOINC 	0x4000
-#define PTR_AUTO_INC	0x0040
 
 #define	DATA_1		8
 #define	DATA_2		10
@@ -162,17 +165,6 @@ typedef unsigned long int 		dword;
 #define CHIP_9195	5
 #define CHIP_91100	7
 
-static const char * chip_ids[ 15 ] =  { 
-	NULL, NULL, NULL, 
-	/* 3 */ "SMC91C90/91C92",
-	/* 4 */ "SMC91C94",
-	/* 5 */ "SMC91C95",
-	NULL,
-	/* 7 */ "SMC91C100", 
-	/* 8 */ "SMC91C100FD", 
-	NULL, NULL, NULL, 
-	NULL, NULL, NULL};  
-
 /* 
  . Transmit status bits 
 */
@@ -192,40 +184,20 @@ static const char * chip_ids[ 15 ] =  {
 #define RS_MULTICAST	0x0001
 #define RS_ERRORS	(RS_ALGNERR | RS_BADCRC | RS_TOOLONG | RS_TOOSHORT) 
 
-static const char * interfaces[ 2 ] = { "TP", "AUI" };
+/*
+ * SMC91C96 ethernet config and status registers.
+ * These are in the "attribute" space.
+ */
+#define ECOR		0x8000
+#define ECOR_RESET	0x80
+#define ECOR_LEVEL_IRQ	0x40
+#define ECOR_WR_ATTRIB	0x04
+#define ECOR_ENABLE	0x01
 
-/*-------------------------------------------------------------------------
- .  I define some macros to make it easier to do somewhat common
- . or slightly complicated, repeated tasks. 
- --------------------------------------------------------------------------*/
-
-/* select a register bank, 0 to 3  */
-
-#define SMC_SELECT_BANK(x)  { outw( x, ioaddr + BANK_SELECT ); } 
-
-/* define a small delay for the reset */
-#define SMC_DELAY() { inw( ioaddr + RCR );\
-			inw( ioaddr + RCR );\
-			inw( ioaddr + RCR );  }
-
-/* this enables an interrupt in the interrupt mask register */
-#define SMC_ENABLE_INT(x) {\
-		unsigned char mask;\
-		SMC_SELECT_BANK(2);\
-		mask = inb( ioaddr + INT_MASK );\
-		mask |= (x);\
-		outb( mask, ioaddr + INT_MASK ); \
-}
-
-/* this disables an interrupt from the interrupt mask register */
-
-#define SMC_DISABLE_INT(x) {\
-		unsigned char mask;\
-		SMC_SELECT_BANK(2);\
-		mask = inb( ioaddr + INT_MASK );\
-		mask &= ~(x);\
-		outb( mask, ioaddr + INT_MASK ); \
-}
+#define ECSR		0x8002
+#define ECSR_IOIS8	0x20
+#define ECSR_PWRDWN	0x04
+#define ECSR_INT	0x02
 
 /*----------------------------------------------------------------------
  . Define the interrupts that I want to receive from the card
@@ -236,6 +208,37 @@ static const char * interfaces[ 2 ] = { "TP", "AUI" };
  .  IM_RX_OVRN_INT, because I have to kick the receiver
  --------------------------------------------------------------------------*/
 #define SMC_INTERRUPT_MASK   (IM_EPH_INT | IM_RX_OVRN_INT | IM_RCV_INT) 
+
+/* store this information for the driver.. */
+struct smc_local {
+	/*
+ 	   these are things that the kernel wants me to keep, so users
+	   can find out semi-useless statistics of how well the card is
+	   performing
+ 	*/
+	struct net_device_stats stats;
+
+	/*
+	   If I have to wait until memory is available to send
+	   a packet, I will store the skbuff here, until I get the
+	   desired memory.  Then, I'll send it out and free it.
+	*/
+	struct sk_buff * saved_skb;
+
+	/*
+ 	 . This keeps track of how many packets that I have
+ 	 . sent out.  When an TX_EMPTY interrupt comes, I know
+	 . that all of these have been sent.
+	*/
+	int	packets_waiting;
+
+	/*
+	 . Interface status.  These correspond to the parameters
+	 . in the ethtool_cmd structure.
+	*/
+	u8	duplex;
+	u8	port;
+};
 
 #endif  /* _SMC_9194_H_ */
 

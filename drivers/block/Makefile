@@ -34,4 +34,11 @@ obj-$(CONFIG_BLK_DEV_NBD)	+= nbd.o
 
 subdir-$(CONFIG_PARIDE) += paride
 
+ifeq ($(CONFIG_ARCH_ACORN),y)
+mod-subdirs	+= ../acorn/block
+subdir-y	+= ../acorn/block
+obj-y		+= ../acorn/block/acorn-block.o
+endif
+
+
 include $(TOPDIR)/Rules.make

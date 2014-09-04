@@ -125,42 +125,11 @@ typedef enum {
 #define ACPI_INFINITE_LAT   (~0UL)
 
 /*
- * Sysctl declarations
+ * ACPI doesn't use sysctls.  If it did, they should be in linux/sysctl.h
+ * not here.
+ *
+ * CTL_ACPI was 10, which is now reserved for the cpufreq code.
  */
-
-enum
-{
-	CTL_ACPI = 10
-};
-
-enum
-{
-	ACPI_FADT = 1,
-	ACPI_DSDT,
-	ACPI_PM1_ENABLE,
-	ACPI_GPE_ENABLE,
-	ACPI_GPE_LEVEL,
-	ACPI_EVENT,
-	ACPI_P_BLK,
-	ACPI_ENTER_LVL2_LAT,
-	ACPI_ENTER_LVL3_LAT,
-	ACPI_P_LVL2_LAT,
-	ACPI_P_LVL3_LAT,
-	ACPI_C1_TIME,
-	ACPI_C2_TIME,
-	ACPI_C3_TIME,
-	ACPI_C1_COUNT,
-	ACPI_C2_COUNT,
-	ACPI_C3_COUNT,
-	ACPI_S0_SLP_TYP,
-	ACPI_S1_SLP_TYP,
-	ACPI_S5_SLP_TYP,
-	ACPI_SLEEP,
-	ACPI_FACS,
-	ACPI_XSDT,
-	ACPI_PMTIMER,
-	ACPI_BATT,
-};
 
 #define ACPI_SLP_TYP_DISABLED	(~0UL)
 

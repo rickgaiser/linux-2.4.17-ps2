@@ -12,6 +12,7 @@
 #include <linux/config.h>
 #include <linux/types.h>
 #include <linux/major.h>
+#include <asm/semaphore.h>
 
 enum {
 /* These three have identical behaviour; use the second one if DOS fdisk gets
@@ -57,11 +58,21 @@ struct partition {
 #ifdef __KERNEL__
 #  include <linux/devfs_fs_kernel.h>
 
+struct hd_seg_struct {
+	long start_sect;
+	long nr_sects;
+	long offset;
+};
+
 struct hd_struct {
 	unsigned long start_sect;
 	unsigned long nr_sects;
 	devfs_handle_t de;              /* primary (master) devfs entry  */
 	int number;                     /* stupid old code wastes space  */
+	int nr_segs;
+	struct hd_seg_struct *seg;
+	long hash_unit;
+	struct hd_seg_struct **hash;
 };
 
 #define GENHD_FL_REMOVABLE  1
@@ -83,6 +94,8 @@ struct gendisk {
 
 	devfs_handle_t *de_arr;         /* one per physical disc */
 	char *flags;                    /* one per physical disc */
+
+	struct semaphore *part_sem;	/* partition mutex */
 };
 
 /* drivers/block/genhd.c */

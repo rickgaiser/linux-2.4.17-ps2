@@ -1,0 +1,630 @@
+Last edit: <20020111.1200.49>
+This file has information specific to the i386 kgdb option.  Other
+platforms with the kgdb option may behave in a similar fashion.
+
+New features: 
+============
+20011220.0050.35
+Major enhancement with this version is the ability to hold one or more
+cpus in an SMP system while allowing the others to continue.  Also, by
+default only the current cpu is enabled on single step commands (please
+note that gdb issues single step commands at times other than when you
+use the si command).
+ 
+Another change is to collect some useful information in
+a global structure called "kgdb_info".  You should be able to just:
+
+p kgdb_info
+
+although I have seen cases where the first time this is done gdb just
+prints the first member but prints the whole structure if you then enter
+CR (carriage return or enter).  This also works:
+
+p *&kgdb_info
+
+Here is a sample:
+(gdb) p kgdb_info
+$4 = {called_from = 0xc010732c, entry_tsc = 32804123790856, errcode = 0, 
+  vector = 3, print_debug_info = 0}
+
+"Called_from" is the return address from the current entry into kgdb.  
+Sometimes it is useful to know why you are in kgdb, for example, was 
+it an NMI or a real break point?  The simple way to interrogate this 
+return address is:
+
+l *0xc010732c
+
+which will print the surrounding few lines of source code.
+
+"Entry_tsc" is the cpu TSC on entry to kgdb (useful to compare to the
+kgdb_ts entries).
+
+"errcode" and "vector" are other entry parameters which may be helpful on
+some traps.
+
+"print_debug_info" is the internal debugging kgdb print enable flag.  Yes,
+you can modify it.
+
+In SMP systems kgdb_info also includes the "cpus_waiting" structure and
+"hold_on_step": 
+
+(gdb) p kgdb_info
+$7 = {called_from = 0xc0112739, entry_tsc = 1034936624074, errcode = 0, 
+  vector = 2, print_debug_info = 0, hold_on_sstep = 1, cpus_waiting = {{
+      task = 0x0, hold = 0, regs = 0x0}, {task = 0xc71b8000, hold = 0, 
+      regs = 0xc71b9f70}, {task = 0x0, hold = 0, regs = 0x0}, {task = 0x0, 
+      hold = 0, regs = 0x0}, {task = 0x0, hold = 0, regs = 0x0}, {task = 0x0, 
+      hold = 0, regs = 0x0}, {task = 0x0, hold = 0, regs = 0x0}, {task = 0x0, 
+      hold = 0, regs = 0x0}}}
+
+"Cpus_waiting" has an entry for each cpu other than the current one that 
+has been stopped.  Each entry contains the task_struct address for that
+cpu, the address of the regs for that task and a hold flag.  All these
+have the proper typing so that, for example:
+
+p *kgdb_info.cpus_waiting[1].regs
+
+will print the registers for cpu 1.
+
+"Hold_on_sstep" is a new feature with this version and comes up set or
+true.  What is means is that whenever kgdb is asked to single step all
+other cpus are held (i.e. not allowed to execute).  The flag applies to
+all but the current cpu and, again, can be changed:
+
+p kgdb_info.hold_on_sstep=0
+
+restores the old behavior of letting all cpus run during single stepping.
+
+Likewise, each cpu has a "hold" flag, which if set, locks that cpu out
+of execution.  Note that this has some risk in cases where the cpus need
+to communicate with each other.  If kgdb finds no cpu available on exit,
+it will push a message thru gdb and stay in kgdb.  Note that it is legal
+to hold the current cpu as long as at least one cpu can execute.
+
+20010621.1117.09
+This version implements an event queue.  Events are signaled by calling
+a function in the kgdb stub and may be examined from gdb.  See EVENTS 
+below for details.  This version also tighten up the interrupt and SMP
+handling to not allow interrupts on the way to kgdb from a breakpoint 
+trap.  It is fine to allow these interrupts for user code, but not
+system debugging.
+
+Version
+=======
+
+This version of the kgdb package was developed and tested on
+kernel version 2.4.16.  It will not install on any earlier kernels.  
+It is possible that it will continue to work on later versions
+of 2.4 and then versions of 2.5 (I hope).
+
+
+Debugging Setup
+===============
+
+Designate one machine as the "development" machine.  This is the
+machine on which you run your compiles and which has your source
+code for the kernel.  Designate a second machine as the "target"
+machine.  This is the machine that will run your experimental
+kernel.
+
+The two machines will be connected together via a serial line out
+one or the other of the COM ports of the PC.  You will need a modem
+eliminator and the appropriate cables.
+
+Decide on which tty port you want the machines to communicate, then
+cable them up back-to-back using the null modem.  COM1 is /dev/ttyS0 and
+COM2 is /dev/ttyS1. You should test this connection with the two
+machines prior to trying to debug a kernel.  Once you have it working,
+on the TARGET machine, enter:
+
+setserial /dev/ttyS0 (or what ever tty you are using)
+
+and record the port and the irq addresses. 
+
+On the DEVELOPMENT machine you need to apply the patch for the kgdb
+hooks.  You have probably already done that if you are reading this
+file.
+
+On your DEVELOPMENT machine, go to your kernel source directory and do
+"make Xconfig" where X is one of "x", "menu", or "".  If you are
+configuring in the standard serial driver, it must not be a module.
+Either yes or no is ok, but making the serial driver a module means it
+will initialize after kgdb has set up the UART interrupt code and may
+cause a failure of the control C option discussed below.  The configure
+question for the serial driver is under the "Character devices" heading
+and is:
+
+"Standard/generic (8250/16550 and compatible UARTs) serial support"
+
+Go down to the kernel debugging menu item and open it up.  Enable the
+kernel kgdb stub code by selecting that item.  You can also choose to
+turn on the "-ggdb -O1" compile options.  The -ggdb causes the compiler
+to put more debug info (like local symbols) in the object file.  On the
+i386 -g and -ggdb are the same so this option just reduces to "O1".  The
+-O1 reduces the optimization level.  This may be helpful in some cases,
+be aware, however, that this may also mask the problem you are looking
+for.
+
+The baud rate.  Default is 115200.  What ever you choose be sure that
+the host machine is set to the same speed.  I recommend the default.
+
+The port.  This is the I/O address of the serial UART that you should
+have gotten using setserial as described above.  The standard com1 port
+(3f8) using irq 4 is default .  Com2 is 2f8 which by convention uses irq
+3.
+
+The port irq (see above).
+
+Stack overflow test.  This option makes a minor change in the trap,
+system call and interrupt code to detect stack overflow and transfer
+control to kgdb if it happens.  (Some platforms have this in the base
+line code, but the i386 does not.)
+
+You can also configure the system to recognize the boot option
+"console=kgdb" which if given will cause all console output during
+booting to be put thru gdb as well as other consoles.  This option
+requires that gdb and kgdb be connected prior to sending console output
+so, if they are not, a breakpoint is executed to force the connection.
+This will happen before any kernel output (it is going thru gdb, right),
+and will stall the boot until the connection is made.
+
+You can also configure in a patch to SysRq to enable the kGdb SysRq.
+This request generates a breakpoint.  Since the serial port irq line is
+set up after any serial drivers, it is possible that this command will
+work when the control C will not.
+
+Save and exit the Xconfig program.  Then do "make clean" , "make dep"
+and "make bzImage" (or whatever target you want to make).  This gets the
+kernel compiled with the "-g" option set -- necessary for debugging.
+
+You have just built the kernel on your DEVELOPMENT machine that you
+intend to run on your TARGET machine.
+
+To install this new kernel, use the following installation procedure.
+Remember, you are on the DEVELOPMENT machine patching the kernel source
+for the kernel that you intend to run on the TARGET machine.
+
+Copy this kernel to your target machine using your usual procedures.  I
+usually arrange to copy development:
+/usr/src/linux/arch/i386/boot/bzImage to /vmlinuz on the TARGET machine
+via a LAN based NFS access.  That is, I run the cp command on the target
+and copy from the development machine via the LAN.  Run Lilo (see "man
+lilo" for details on how to set this up) on the new kernel on the target
+machine so that it will boot!  Then boot the kernel on the target
+machine.
+
+On the DEVELOPMENT machine, create a file called .gdbinit in the
+directory /usr/src/linux.  An example .gdbinit file looks like this:
+
+shell echo -e "\003" >/dev/ttyS0
+set remotebaud 38400 (or what ever speed you have chosen)
+target remote /dev/ttyS0
+
+
+Change the "echo" and "target" definition so that it specifies the tty
+port that you intend to use.  Change the "remotebaud" definition to
+match the data rate that you are going to use for the com line.
+
+You are now ready to try it out.
+
+Boot your target machine with "kgdb" in the boot command i.e. something
+like:
+
+lilo> test kgdb
+
+or if you also want console output thru gdb:
+
+lilo> test kgdb console=kgdb
+
+You should see the lilo message saying it has loaded the kernel and then
+all output stops.  The kgdb stub is trying to connect with gdb.  Start
+gdb something like this:
+
+
+On your DEVELOPMENT machine, cd /usr/src/linux and enter "gdb vmlinux".
+When gdb gets the symbols loaded it will read your .gdbinit file and, if
+everything is working correctly, you should see gdb print out a few
+lines indicating that a breakpoint has been taken.  It will actually
+show a line of code in the target kernel inside the kgdb activation
+code.
+
+The gdb interaction should look something like this:
+
+    linux-dev:/usr/src/linux# gdb vmlinux
+    GDB is free software and you are welcome to distribute copies of it
+     under certain conditions; type "show copying" to see the conditions.
+    There is absolutely no warranty for GDB; type "show warranty" for details.
+    GDB 4.15.1 (i486-slackware-linux), 
+    Copyright 1995 Free Software Foundation, Inc...
+    breakpoint () at i386-stub.c:750
+    750     }
+    (gdb) 
+
+You can now use whatever gdb commands you like to set breakpoints.
+Enter "continue" to start your target machine executing again.  At this
+point the target system will run at full speed until it encounters
+your breakpoint or gets a segment violation in the kernel, or whatever.
+
+If you have the kgdb console enabled when you continue, gdb will print
+out all the console messages.
+
+The above example caused a breakpoint relatively early in the boot
+process.  For the i386 kgdb it is possible to code a break instruction
+as the first C-language point in init/main.c, i.e. as the first instruction
+in start_kernel().  This could be done as follows:
+
+#include <asm/kgdb.h>
+	 breakpoint();
+
+This breakpoint() is really a function that sets up the breakpoint and
+single-step hardware trap cells and then executes a breakpoint.  Any
+early hard coded breakpoint will need to use this function.  Once the
+trap cells are set up they need not be set again, but doing it again
+does not hurt anything, so you don't need to be concerned about which
+breakpoint is hit first.  Once the trap cells are set up (and the kernel
+sets them up in due course even if breakpoint() is never called) the
+macro:
+
+BREAKPOINT;
+
+will generate an inline breakpoint.  This may be more useful as it stops
+the processor at the instruction instead of in a function a step removed
+from the location of interest.  In either case <asm/kgdb.h> must be
+included to define both breakpoint() and BREAKPOINT.
+
+Triggering kgdbstub at other times
+==================================
+
+Often you don't need to enter the debugger until much later in the boot
+or even after the machine has been running for some time.  Once the
+kernel is booted and interrupts are on, you can force the system to
+enter the debugger by sending a control C to the debug port. This is
+what the first line of the recommended .gdbinit file does.  This allows
+you to start gdb any time after the system is up as well as when the
+system is already at a break point.  (In the case where the system is
+already at a break point the control C is not needed, however, it will
+be ignored by the target so no harm is done.  Also note the the echo
+command assumes that the port speed is already set.  This will be true
+once gdb has connected, but it is best to set the port speed before you
+run gdb.)
+
+Another simple way to do this is to put the following file in you ~/bin
+directory:
+
+#!/bin/bash
+echo  -e "\003"  > /dev/ttyS0 
+
+Here, the ttyS0 should be replaced with what ever port you are using.
+The "\003" is control-C.  Once you are connected with gdb, you can enter
+control-C at the command prompt.
+
+An alternative way to get control to the debugger is to enable the kGdb
+SysRq command.  Then you would enter Alt-SysRq-g (all three keys at the
+same time, but push them down in the order given).  To refresh your
+memory of the available SysRq commands try Alt-SysRq-=.  Actually any
+undefined command could replace the "=", but I like to KNOW that what I
+am pushing will never be defined.
+ 
+Debugging hints
+===============
+
+You can break into the target machine at any time from the development
+machine by typing ^C (see above paragraph).  If the target machine has
+interrupts enabled this will stop it in the kernel and enter the
+debugger.
+
+There is unfortunately no way of breaking into the kernel if it is
+in a loop with interrupts disabled, so if this happens to you then
+you need to place exploratory breakpoints or printk's into the kernel
+to find out where it is looping.  The exploratory breakpoints can be
+entered either thru gdb or hard coded into the source.  This is very
+handy if you do something like:
+
+if (<it hurts>) BREAKPOINT;
+
+
+There is a copy of an e-mail in the Documentation/i386/kgdb/ directory
+(debug-nmi.txt) which describes how to create an NMI on an ISA bus
+machine using a paper clip.  I have a sophisticated version of this made
+by wiring a push button switch into a PC104/ISA bus adapter card.  The
+adapter card nicely furnishes wire wrap pins for all the ISA bus
+signals.
+
+When you are done debugging the kernel on the target machine it is a
+good idea to leave it in a running state.  This makes reboots faster,
+bypassing the fsck.  So do a gdb "continue" as the last gdb command if
+this is possible.  To terminate gdb itself on the development machine
+and leave the target machine running, first clear all breakpoints and
+continue, then type ^Z to suspend gdb and then kill it with "kill %1" or
+something similar.
+
+If gdbstub Does Not Work
+========================
+
+If it doesn't work, you will have to troubleshoot it.  Do the easy
+things first like double checking your cabling and data rates.  You
+might try some non-kernel based programs to see if the back-to-back
+connection works properly.  Just something simple like cat /etc/hosts
+>/dev/ttyS0 on one machine and cat /dev/ttyS0 on the other will tell you
+if you can send data from one machine to the other.  Make sure it works
+in both directions.  There is no point in tearing out your hair in the
+kernel if the line doesn't work.
+
+All of the real action takes place in the file
+/usr/src/linux/arch/i386/kernel/kgdb_stub.c.  That is the code on the target
+machine that interacts with gdb on the development machine.  In gdb you can
+turn on a debug switch with the following command:
+
+	set remotedebug
+
+This will print out the protocol messages that gdb is exchanging with
+the target machine.
+
+Another place to look is /usr/src/arch/i386/lib/kgdb_serial.c This is
+the code that talks to the serial port on the target side.  There might
+be a problem there.  In particular there is a section of this code that
+tests the UART which will tell you what UART you have if you define
+"PRNT" (just remove "_off" from the #define PRNT_off).  To view this
+report you will need to boot the system without any beakpoints.  This
+allows the kernel to run to the point where it calls kgdb to set up
+interrupts.  At this time kgdb will test the UART and print out the type
+it finds.  (You need to wait so that the printks are actually being
+printed.  Early in the boot they are cached, waiting for the console to
+be enabled.  Also, if kgdb is entered thru a breakpoint it is possible
+to cause a dead lock by calling printk when the console is locked.  The
+stub, thus avoids doing printks from break points especially in the
+serial code.)  At this time, if the UART fails to do the expected thing,
+kgdb will print out (using printk) information on what failed.  (These
+messages will be buried in all the other boot up messages.  Look for
+lines that start with "gdb_hook_interrupt:".  You may want to use dmesg
+once the system is up to view the log.  If this fails or if you still
+don't connect, review your answers for the port address.  Use:
+
+setserial /dev/ttyS0 
+
+to get the current port and irq information.  This command will also
+tell you what the system found for the UART type. The stub recognizes
+the following UART types:
+
+16450, 16550, and 16550A
+
+If you are really desperate you can use printk debugging in the
+kgdbstub code in the target kernel until you get it working.  In particular,
+there is a global variable in /usr/src/linux/arch/i386/kernel/kgdb_stub.c
+named "remote_debug".  Compile your kernel with this set to 1, rather
+than 0 and the debug stub will print out lots of stuff as it does
+what it does.  Likewise there are debug printks in the kgdb_serial.c
+code that can be turned on with simple changes in the macro defines.
+
+
+Debugging Loadable Modules
+==========================
+
+This technique comes courtesy of Edouard Parmelan
+<Edouard.Parmelan@quadratec.fr>
+
+When you run gdb, enter the command
+
+source gdbinit-modules
+
+This will read in a file of gdb macros that was installed in your
+kernel source directory when kgdb was installed.  This file implements
+the following commands:
+
+mod-list
+    Lists the loaded modules in the form <module-address> <module-name>
+
+mod-print-symbols <module-address>
+    Prints all the symbols in the indicated module.
+
+mod-add-symbols <module-address> <object-file-path-name>
+    Loads the symbols from the object file and associates them
+    with the indicated module.
+
+After you have loaded the module that you want to debug, use the command
+mod-list to find the <module-address> of your module.  Then use that
+address in the mod-add-symbols command to load your module's symbols.
+From that point onward you can debug your module as if it were a part
+of the kernel.
+
+The file gdbinit-modules also contains a command named mod-add-lis as
+an example of how to construct a command of your own to load your
+favorite module.  The idea is to "can" the pathname of the module
+in the command so you don't have to type so much.
+
+Threads
+=======
+
+Each process in a target machine is seen as a gdb thread. gdb thread
+related commands (info threads, thread n) can be used.
+
+ia-32 hardware breakpoints
+==========================
+
+kgdb stub contains support for hardware breakpoints using debugging features
+of ia-32(x86) processors. These breakpoints do not need code modification.
+They use debugging registers. 4 hardware breakpoints are available in ia-32
+processors.
+
+Each hardware breakpoint can be of one of the following three types.
+
+1. Execution breakpoint - An Execution breakpoint is triggered when code
+	at the breakpoint address is executed.
+
+	As limited number of hardware breakpoints are available, it is
+	advisable to use software breakpoints ( break command ) instead
+	of execution hardware breakpoints, unless modification of code
+	is to be avoided.
+
+2. Write breakpoint - A write breakpoint is triggered when memory
+	location at the breakpoint address is written.
+
+	A write or can be placed for data of variable length. Length of
+	a write breakpoint indicates length of the datatype to be
+	watched. Length is 1 for 1 byte data , 2 for 2 byte data, 3 for
+	4 byte data.
+
+3. Access breakpoint - An access breakpoint is triggered when memory
+	location at the breakpoint address is either read or written.
+
+	Access breakpoints also have lengths similar to write breakpoints.
+
+IO breakpoints in ia-32 are not supported.
+
+Since gdb stub at present does not use the protocol used by gdb for hardware
+breakpoints, hardware breakpoints are accessed through gdb macros. gdb macros
+for hardware breakpoints are described below.
+
+hwebrk	- Places an execution breakpoint
+	hwebrk breakpointno address
+hwwbrk	- Places a write breakpoint
+	hwwbrk breakpointno length address
+hwabrk	- Places an access breakpoint
+	hwabrk breakpointno length address
+hwrmbrk	- Removes a breakpoint
+	hwrmbrk breakpointno
+exinfo	- Tells whether a software or hardware breakpoint has occurred.
+	Prints number of the hardware breakpoint if a hardware breakpoint has
+	occurred.
+
+Arguments required by these commands are as follows
+breakpointno	- 0 to 3
+length		- 1 to 3
+address		- Memory location in hex digits ( without 0x ) e.g c015e9bc
+
+SMP support
+==========
+
+When a breakpoint occurs or user issues a break ( Ctrl + C ) to gdb
+client, all the processors are forced to enter the debugger. Current
+thread corresponds to the thread running on the processor where
+breakpoint occurred.  Threads running on other processor(s) appear
+similar to other non running threads in the 'info threads' output.  With
+in the kgdb stub there is a structure "waiting_cpus" in which kgdb
+records the values of "current" and "regs" for each cpu other than the
+one that hit the breakpoint.  "current" is a pointer to the task
+structure for the task that cpu is running, while "regs" points to the
+saved registers for the task.  This structure can be examined with the
+gdb "p" command.
+
+ia-32 hardware debugging registers on all processors are set to same
+values.  Hence any hardware breakpoints may occur on any processor.
+
+gdb troubleshooting
+===================
+
+1. gdb hangs
+Kill it. restart gdb. Connect to target machine.
+
+2. gdb cannot connect to target machine (after killing a gdb and
+restarting another) If the target machine was not inside debugger when
+you killed gdb, gdb cannot connect because the target machine won't
+respond.  In this case echo "Ctrl+C"(ASCII 3) in the serial line.
+e.g. echo -e "\003" > /dev/ttyS1 This forces that target machine into
+debugger after which you can connect.
+
+3. gdb cannot connect even after echoing Ctrl+C into serial line
+Try changing serial line settings min to 1 and time to 0
+e.g. stty min 1 time 0 < /dev/ttyS1
+Try echoing again
+
+check serial line speed and set it to correct value if required
+e.g. stty ispeed 115200 ospeed 115200 < /dev/ttyS1
+
+EVENTS
+======
+
+Ever want to know the order of things happening?  Which cpu did what and
+when?  How did the spinlock get the way it is?  Then events are for
+you.  Events are defined by calls to an event collection interface and
+saved for later examination.  In this case, kgdb events are saved by a
+very fast bit of code in kgdb which is fully SMP and interrupt protected
+and they are examined by using gdb to display them.  Kgdb keeps only
+the last N events, where N must be a power of two and is defined at
+configure time.
+
+
+Events are signaled to kgdb by calling:
+
+kgdb_ts(data0,data1)
+
+For each call kgdb records each call in an array along with other info.
+Here is the array def:
+
+struct kgdb_and_then_struct {
+#ifdef CONFIG_SMP
+	int	on_cpu;
+#endif
+	long long at_time;
+	int  	from_ln;
+	char	* in_src;
+	void	*from;
+        int     with_if;
+	int	data0;
+	int	data1;
+};
+
+For SMP machines the cpu is recorded, for all machines the TSC is
+recorded (gets a time stamp) as well as the line number and source file
+the call was made from.  The address of the (from), the "if" (interrupt
+flag) and the two data items are also recorded.  The macro kgdb_ts casts
+the types to int, so you can put any 32-bit values here.  There is a
+configure option to select the number of events you want to keep.  A
+nice number might be 128, but you can keep up to 1024 if you want.  The
+number must be a power of two.  An "andthen" macro library is provided
+for gdb to help you look at these events.  It is also possible to define
+a different structure for the event storage and cast the data to this
+structure.  For example the following structure is defined in kgdb:
+
+struct kgdb_and_then_struct2 {
+#ifdef CONFIG_SMP
+	int	on_cpu;
+#endif
+	long long at_time;
+	int  	from_ln;
+	char	* in_src;
+	void	*from;
+        int     with_if;
+	struct task_struct *t1;
+	struct task_struct *t2;
+};
+
+If you use this for display, the data elements will be displayed as
+pointers to task_struct entries.  You may want to define your own
+structure to use in casting.  You should only change the last two items
+and you must keep the structure size the same.  Kgdb will handle these
+as 32-bit ints, but within that constraint you can define a structure to
+cast to any 32-bit quantity.  This need only be available to gdb and is
+only used for casting in the display code.
+
+Final Items
+===========
+
+I picked up this code from Amit S. Kale and enhanced it.
+
+If you make some really cool modification to this stuff, or if you 
+fix a bug, please let me know.
+
+George Anzinger
+<george@mvista.com>
+
+Amit S. Kale
+<akale@veritas.com>
+
+(First kgdb by David Grothe <dave@gcom.com>)
+
+(modified by Tigran Aivazian <tigran@sco.com>)
+    Putting gdbstub into the kernel config menu.
+
+(modified by Scott Foehner <sfoehner@engr.sgi.com>)
+    Hooks for entering gdbstub at boot time.
+
+(modified by Amit S. Kale <akale@veritas.com>)
+    Threads, ia-32 hw debugging, mp support, console support,
+    nmi watchdog handling.
+
+(modified by George Anzinger <george@mvista.com>)
+    Extended threads to include the idle threads.
+    Enhancements to allow breakpoint() at first C code.
+    Use of module_init() and __setup() to automate the configure.
+    Enhanced the cpu "collection" code to work in early bring up.

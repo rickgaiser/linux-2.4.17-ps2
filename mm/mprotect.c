@@ -7,6 +7,7 @@
 #include <linux/smp_lock.h>
 #include <linux/shm.h>
 #include <linux/mman.h>
+#include <linux/security.h>
 
 #include <asm/uaccess.h>
 #include <asm/pgalloc.h>
@@ -300,6 +301,23 @@ asmlinkage long sys_mprotect(unsigned long start, size_t len, unsigned long prot
 			goto out;
 		}
 
+		if ((error = security_file_mprotect(vma, prot)))
+			goto out;
+
+#ifdef	CONFIG_HAVE_XFS_DMAPI	/* Temporary until dmapi is in main kernel */
+		if((vma->vm_flags & VM_MAYSHARE) &&
+		   (newflags & PROT_WRITE) && !(vma->vm_flags & PROT_WRITE)){
+			if( vma->vm_file && vma->vm_file->f_op &&
+			   vma->vm_file->f_op->dmapi_map_event ){
+				struct file *filp = vma->vm_file;
+
+				error = filp->f_op->dmapi_map_event(filp, vma, VM_WRITE);
+				if( error < 0 )
+					goto out;
+			   }
+		}
+
+#endif	/* CONFIG_HAVE_XFS_DMAPI */
 		if (vma->vm_end > end) {
 			error = mprotect_fixup(vma, &prev, nstart, end, newflags);
 			goto out;

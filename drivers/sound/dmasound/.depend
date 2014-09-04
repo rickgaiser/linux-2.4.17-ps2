@@ -1,0 +1,107 @@
+dac3550a.o: dac3550a.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   dmasound.h
+dmasound.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/dmasound/atari.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/dmasound/atari/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/dmasound/paula.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/dmasound/paula/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/dmasound/q40.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/dmasound/q40/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/dmasound/pmac.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/dmasound/pmac/module.h)
+	@touch dmasound.h
+dmasound_atari.o: dmasound_atari.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/soundcard.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/pgalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   dmasound.h
+dmasound_awacs.o: dmasound_awacs.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/soundcard.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/adb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/nvram.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vt_kern.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/adb/cuda.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/cuda.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/adb/pmu.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pmu.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c-dev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   awacs_defs.h \
+   dmasound.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/pmac/pbook.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/kmod.h)
+dmasound_core.o: dmasound_core.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sound.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/soundcard.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   dmasound.h
+dmasound_paula.o: dmasound_paula.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/soundcard.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   dmasound.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/heartbeat.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/apus.h)
+dmasound_q40.o: dmasound_q40.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/soundcard.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   dmasound.h
+tas3001c.o: tas3001c.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/i2c.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   dmasound.h
+trans_16.o: trans_16.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/soundcard.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   dmasound.h
+.PRECIOUS:	dmasound.h \
+

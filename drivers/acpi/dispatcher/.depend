@@ -1,0 +1,74 @@
+dsfield.o: dsfield.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdispat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acparser.h
+dsmethod.o: dsmethod.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acparser.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdispat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/actables.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdebug.h
+dsmthdat.o: dsmthdat.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acparser.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdispat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h
+dsobject.o: dsobject.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acparser.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdispat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h
+dsopcode.o: dsopcode.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acparser.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdispat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acevents.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/actables.h
+dsutils.o: dsutils.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acparser.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdispat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdebug.h
+dswexec.o: dswexec.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acparser.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdispat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdebug.h
+dswload.o: dswload.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acparser.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdispat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acevents.h
+dswscope.o: dswscope.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdispat.h
+dswstate.o: dswstate.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acparser.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acdispat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h

@@ -1,0 +1,28 @@
+
+  Real Time Scheduler for Linux
+  =============================
+
+The Real Time scheduler patch gives you an option to choose to build a
+kernel with MontaVista's real time scheduler in it.  If you don't choose
+to enable the real time scheduler the kernel will be built the same as
+if you had not installed the patch.
+
+If you enable the real time scheduler, you may also choose a max
+priority for real time tasks.  The available range is 99 to 2047.
+Values outside this range are quietly moved to fall in the range.
+
+In order to enable the real time scheduler you must use one of the
+kernel configure tools to turn it on.  The question appears in the
+processor options section of the configuration.
+
+Currently the scheduler is supported on all UP and SMP machines.
+
+Warning: The Real Time scheduler does not honor the "allowed_cpus"
+member of the task_struct, thus it will not honor any attempt to define
+cpu affinity.  The latest preemption patch uses cpu affinity to prevent
+cpu switching during preemption.  This will not work with this scheduler
+and may cause failures in kernels using preemption.  In addition TUX
+is known to use cpu affinity.  It is believed that TUX will run with out
+cpu affinity, but may have degraded performance.  It is also known that
+some soft irq tasks may use cpu affinity to improve performance.  These
+tasks will still work, however, the affinity will not happen.

@@ -27,6 +27,7 @@ obj-		:=
 obj-$(CONFIG_BLK_DEV_IDECD)	+=              cdrom.o
 obj-$(CONFIG_BLK_DEV_SR)	+=              cdrom.o
 obj-$(CONFIG_PARIDE_PCD)	+=		cdrom.o
+obj-$(CONFIG_PS2_CDVD)		+=		cdrom.o
 
 obj-$(CONFIG_AZTCD)		+= aztcd.o
 obj-$(CONFIG_CDU31A)		+= cdu31a.o     cdrom.o
@@ -42,6 +43,7 @@ obj-$(CONFIG_SBPCD3)		+= sbpcd3.o     cdrom.o
 obj-$(CONFIG_SBPCD4)		+= sbpcd4.o     cdrom.o
 obj-$(CONFIG_SJCD)		+= sjcd.o
 obj-$(CONFIG_CDU535)		+= sonycd535.o
+obj-$(CONFIG_SEGA_GDROM)	+= gdrom.o	cdrom.o
 
 # Hand off to Rules.make.
 

@@ -179,11 +179,11 @@ struct sockaddr_in {
 
 #ifdef __KERNEL__
 /* Some random defines to make it easier in the kernel.. */
-#define LOOPBACK(x)	(((x) & htonl(0xff000000)) == htonl(0x7f000000))
-#define MULTICAST(x)	(((x) & htonl(0xf0000000)) == htonl(0xe0000000))
-#define BADCLASS(x)	(((x) & htonl(0xf0000000)) == htonl(0xf0000000))
-#define ZERONET(x)	(((x) & htonl(0xff000000)) == htonl(0x00000000))
-#define LOCAL_MCAST(x)	(((x) & htonl(0xFFFFFF00)) == htonl(0xE0000000))
+#define LOOPBACK(x)	(((x) & __constant_htonl(0xff000000)) == __constant_htonl(0x7f000000))
+#define MULTICAST(x)	(((x) & __constant_htonl(0xf0000000)) == __constant_htonl(0xe0000000))
+#define BADCLASS(x)	(((x) & __constant_htonl(0xf0000000)) == __constant_htonl(0xf0000000))
+#define ZERONET(x)	(((x) & __constant_htonl(0xff000000)) == __constant_htonl(0x00000000))
+#define LOCAL_MCAST(x)	(((x) & __constant_htonl(0xFFFFFF00)) == __constant_htonl(0xE0000000))
 
 #endif
 

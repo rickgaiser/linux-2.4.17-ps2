@@ -56,6 +56,7 @@ extern kmem_cache_t *kmem_cache_create(const char *, size_t, size_t, unsigned lo
 extern int kmem_cache_destroy(kmem_cache_t *);
 extern int kmem_cache_shrink(kmem_cache_t *);
 extern void *kmem_cache_alloc(kmem_cache_t *, int);
+extern void *kmem_cache_zalloc(kmem_cache_t *, int);
 extern void kmem_cache_free(kmem_cache_t *, void *);
 
 extern void *kmalloc(size_t, int);

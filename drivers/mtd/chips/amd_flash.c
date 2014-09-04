@@ -3,7 +3,7 @@
  *
  * Author: Jonas Holmberg <jonas.holmberg@axis.com>
  *
- * $Id: amd_flash.c,v 1.15 2001/10/02 15:05:11 dwmw2 Exp $
+ * $Id: amd_flash.c,v 1.18 2002/08/06 05:27:32 gerg Exp $
  *
  * Copyright (c) 2001 Axis Communications AB
  *
@@ -52,6 +52,7 @@
 
 /* Manufacturers */
 #define MANUFACTURER_AMD	0x0001
+#define MANUFACTURER_ATMEL	0x001F
 #define MANUFACTURER_FUJITSU	0x0004
 #define MANUFACTURER_ST		0x0020
 #define MANUFACTURER_SST	0x00BF
@@ -67,10 +68,14 @@
 #define AM29BDS323D     0x22D1
 #define AM29BDS643D	0x227E
 
+/* Atmel */
+#define AT49xV16x	0x00C0
+#define AT49xV16xT	0x00C2
 
 /* Fujitsu */
 #define MBM29LV160TE	0x22C4
 #define MBM29LV160BE	0x2249
+#define MBM29LV800BB	0x225B
 
 /* ST - www.st.com */
 #define M29W800T	0x00D7
@@ -84,6 +89,9 @@
 /* Toshiba */
 #define TC58FVT160	0x00C2
 #define TC58FVB160	0x0043
+
+#define TC58FVM6T2ATG65 0x0057
+#define TC58FVM6B2ATG65 0x0058
 
 #define D6_MASK	0x40
 
@@ -484,6 +492,32 @@ static struct mtd_info *amd_flash_probe(struct map_info *map)
 			{ offset: 0x010000, erasesize: 0x10000, numblocks: 31 }
 		}
 	}, {
+		mfr_id: MANUFACTURER_TOSHIBA,
+		dev_id: TC58FVM6T2ATG65,
+		name: "Toshiba TC58FVM6T2ATG65",
+		size: 0x00200000,
+		numeraseregions: 5,
+		regions: {
+			{ offset: 0x000000, erasesize: 0x10000, numblocks: 16 },
+			{ offset: 0x100000, erasesize: 0x10000, numblocks: 48 },
+			{ offset: 0x400000, erasesize: 0x10000, numblocks: 48 },
+			{ offset: 0x700000, erasesize: 0x10000, numblocks: 15 },
+			{ offset: 0x7F0000, erasesize: 0x02000, numblocks:  8 }
+		}
+	}, {
+		mfr_id: MANUFACTURER_TOSHIBA,
+		dev_id: TC58FVM6B2ATG65,
+		name: "Toshiba TC58FVM6B2ATG65",
+		size: 0x00200000,
+		numeraseregions: 5,
+		regions: {
+			{ offset: 0x000000, erasesize: 0x02000, numblocks:  8 },
+			{ offset: 0x010000, erasesize: 0x10000, numblocks: 15 },
+			{ offset: 0x100000, erasesize: 0x10000, numblocks: 48 },
+			{ offset: 0x400000, erasesize: 0x10000, numblocks: 48 },
+			{ offset: 0x700000, erasesize: 0x10000, numblocks: 16 }
+		}
+	}, {
 		mfr_id: MANUFACTURER_FUJITSU,
 		dev_id: MBM29LV160BE,
 		name: "Fujitsu MBM29LV160BE",
@@ -556,6 +590,18 @@ static struct mtd_info *amd_flash_probe(struct map_info *map)
 			{ offset: 0x0FC000, erasesize: 0x04000, numblocks:  1 }
 		}
 	}, {
+		mfr_id: MANUFACTURER_FUJITSU,
+		dev_id: MBM29LV800BB,
+		name: "Fujitsu MBM29LV800BB",
+		size: 0x00100000,
+		numeraseregions: 4,
+		regions: {
+			{ offset: 0x000000, erasesize: 0x04000, numblocks:  1 },
+			{ offset: 0x004000, erasesize: 0x02000, numblocks:  2 },
+			{ offset: 0x008000, erasesize: 0x08000, numblocks:  1 },
+			{ offset: 0x010000, erasesize: 0x10000, numblocks: 15 }
+		}
+	}, {
 		mfr_id: MANUFACTURER_ST,
 		dev_id: M29W800T,
 		name: "ST M29W800T",
@@ -612,6 +658,26 @@ static struct mtd_info *amd_flash_probe(struct map_info *map)
 			{ offset: 0x000000, erasesize: 0x10000, numblocks: 96 },
 			{ offset: 0x600000, erasesize: 0x10000, numblocks: 31 },
 			{ offset: 0x7f0000, erasesize: 0x02000, numblocks:  8 },
+		}
+	}, {
+		mfr_id: MANUFACTURER_ATMEL,
+		dev_id: AT49xV16x,
+		name: "Atmel AT49xV16x",
+		size: 0x00200000,
+		numeraseregions: 2,
+		regions: {
+			{ offset: 0x000000, erasesize: 0x02000, numblocks:  8 },
+			{ offset: 0x010000, erasesize: 0x10000, numblocks: 31 }
+		}
+	}, {
+		mfr_id: MANUFACTURER_ATMEL,
+		dev_id: AT49xV16xT,
+		name: "Atmel AT49xV16xT",
+		size: 0x00200000,
+		numeraseregions: 2,
+		regions: {
+			{ offset: 0x000000, erasesize: 0x10000, numblocks: 31 },
+			{ offset: 0x1F0000, erasesize: 0x02000, numblocks:  8 }
 		}
 	} 
 	};

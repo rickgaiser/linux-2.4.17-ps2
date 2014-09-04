@@ -41,6 +41,7 @@
 #include <linux/smp_lock.h>
 #include <net/sock.h>
 #include <net/scm.h>
+#include <linux/security.h>
 
 #define Nprintk(a...)
 
@@ -599,7 +600,11 @@ static int netlink_sendmsg(struct socket *sock, struct msghdr *msg, int len,
 	   check them, when this message will be delivered
 	   to corresponding kernel module.   --ANK (980802)
 	 */
-	NETLINK_CB(skb).eff_cap = current->cap_effective;
+
+	if ((err = security_netlink_send(skb))) {
+		kfree_skb(skb);
+		goto out;
+	}
 
 	err = -EFAULT;
 	if (memcpy_fromiovec(skb_put(skb,len), msg->msg_iov, len)) {

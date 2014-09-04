@@ -1377,6 +1377,7 @@ static int es1370_mmap(struct file *file, struct vm_area_struct *vma)
 		ret = -EAGAIN;
 		goto out;
 	}
+	vma->vm_flags &= ~VM_IO;
 	db->mapped = 1;
 out:
 	up(&s->sem);

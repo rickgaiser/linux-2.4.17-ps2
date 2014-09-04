@@ -15,6 +15,9 @@
 #include <linux/slab.h>
 #include <linux/tty.h>
 #include <linux/iobuf.h>
+#include <linux/security.h>
+
+#include <linux/trace.h>
 
 #include <asm/uaccess.h>
 
@@ -28,6 +31,8 @@ int vfs_statfs(struct super_block *sb, struct statfs *buf)
 		retval = -ENOSYS;
 		if (sb->s_op && sb->s_op->statfs) {
 			memset(buf, 0, sizeof(struct statfs));
+			if ((retval = security_sb_statfs(sb)))
+				return retval;
 			lock_kernel();
 			retval = sb->s_op->statfs(sb, buf);
 			unlock_kernel();
@@ -789,6 +794,10 @@ asmlinkage long sys_open(const char * filename, int flags, int mode)
 			error = PTR_ERR(f);
 			if (IS_ERR(f))
 				goto out_error;
+			TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_OPEN,
+					  fd,
+					  f->f_dentry->d_name.len,
+					  f->f_dentry->d_name.name); 
 			fd_install(fd, f);
 		}
 out:
@@ -855,6 +864,10 @@ asmlinkage long sys_close(unsigned int fd)
 	filp = files->fd[fd];
 	if (!filp)
 		goto out_unlock;
+	TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_CLOSE,
+			  fd,
+			  0,
+			  NULL);
 	files->fd[fd] = NULL;
 	FD_CLR(fd, files->close_on_exec);
 	__put_unused_fd(files, fd);

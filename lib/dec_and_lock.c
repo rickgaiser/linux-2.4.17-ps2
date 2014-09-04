@@ -1,5 +1,6 @@
 #include <linux/module.h>
 #include <linux/spinlock.h>
+#include <linux/sched.h>
 #include <asm/atomic.h>
 
 /*

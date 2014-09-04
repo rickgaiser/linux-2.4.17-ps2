@@ -60,6 +60,7 @@
 #include <linux/netfilter_ipv4.h>
 #include <net/ipip.h>
 #include <net/checksum.h>
+#include <linux/security.h>
 
 #if defined(CONFIG_IP_PIMSM_V1) || defined(CONFIG_IP_PIMSM_V2)
 #define CONFIG_IP_PIMSM	1
@@ -1100,6 +1101,7 @@ static void ip_encap(struct sk_buff *skb, u32 saddr, u32 daddr)
 	nf_conntrack_put(skb->nfct);
 	skb->nfct = NULL;
 #endif
+	security_ip_encapsulate(skb);
 }
 
 static inline int ipmr_forward_finish(struct sk_buff *skb)
@@ -1445,6 +1447,7 @@ int pim_rcv_v1(struct sk_buff * skb)
 	nf_conntrack_put(skb->nfct);
 	skb->nfct = NULL;
 #endif
+	security_ip_decapsulate(skb);
 	netif_rx(skb);
 	dev_put(reg_dev);
 	return 0;
@@ -1512,6 +1515,7 @@ int pim_rcv(struct sk_buff * skb)
 	nf_conntrack_put(skb->nfct);
 	skb->nfct = NULL;
 #endif
+	security_ip_decapsulate(skb);
 	netif_rx(skb);
 	dev_put(reg_dev);
 	return 0;

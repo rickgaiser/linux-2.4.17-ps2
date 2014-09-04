@@ -20,6 +20,15 @@ struct fs_struct {
 extern void exit_fs(struct task_struct *);
 extern void set_fs_altroot(void);
 
+struct fs_struct *copy_fs_struct(struct fs_struct *old);
+void put_fs_struct(struct fs_struct *fs);
+
+#endif
+#endif
+
+#if !defined(_LINUX_FS_STRUCT_H_INLINES) && defined(_TASK_STRUCT_DEFINED)
+#define _LINUX_FS_STRUCT_H_INLINES
+#ifdef __KERNEL__
 /*
  * Replace the fs->{rootmnt,root} with {mnt,dentry}. Put the old values.
  * It can block. Requires the big lock held.
@@ -65,9 +74,5 @@ static inline void set_fs_pwd(struct fs_struct *fs,
 		mntput(old_pwdmnt);
 	}
 }
-
-struct fs_struct *copy_fs_struct(struct fs_struct *old);
-void put_fs_struct(struct fs_struct *fs);
-
 #endif
 #endif

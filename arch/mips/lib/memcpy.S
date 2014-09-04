@@ -214,6 +214,9 @@ do_end_words:
 	 srl	t8, t8, 0x2
 
 end_words:
+#ifdef CONFIG_CPU_R5900	/* inhibit short loop */
+	nop
+#endif
 	EX(lw, t0, (a1), l_fixup)
 	subu	t8, t8, 0x1
 	EX(sw, t0, (a0), s_fixup)
@@ -229,6 +232,9 @@ small_memcpy:
 	 move	a2, t2
 
 end_bytes:
+#ifdef CONFIG_CPU_R5900	/* inhibit short loop */
+	nop
+#endif
 	EX(lb, t0, (a1), l_fixup)
 	subu	a2, a2, 0x1
 	EX(sb, t0, (a0), s_fixup)
@@ -351,6 +357,9 @@ u_cannot_optimize:
 	 move	a2, t2
 
 u_end_bytes:
+#ifdef CONFIG_CPU_R5900	/* inhibit short loop */
+	nop
+#endif
 	EX(lb, t0, (a1), l_fixup)
 	subu	a2, a2, 0x1
 	EX(sb, t0, (a0), s_fixup)
@@ -559,6 +568,9 @@ r_small_memcpy:
 #endif /* Horror fix */
 
 r_end_bytes:
+#ifdef CONFIG_CPU_R5900	/* inhibit short loop */
+	nop
+#endif
 	lb	t0, -1(a1)
 	subu	a2, a2, 0x1
 	sb	t0, -1(a0)
@@ -571,6 +583,9 @@ r_out:
 	 move	a2, zero
 
 r_end_bytes_up:
+#ifdef CONFIG_CPU_R5900	/* inhibit short loop */
+	nop
+#endif
 	lb	t0, (a1)
 	subu	a2, a2, 0x1
 	sb	t0, (a0)

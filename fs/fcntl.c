@@ -11,6 +11,7 @@
 #include <linux/smp_lock.h>
 #include <linux/slab.h>
 #include <linux/iobuf.h>
+#include <linux/security.h>
 
 #include <asm/poll.h>
 #include <asm/siginfo.h>
@@ -274,11 +275,11 @@ static long do_fcntl(unsigned int fd, unsigned int cmd,
 			unlock_kernel();
 			break;
 		case F_GETLK:
-			err = fcntl_getlk(fd, (struct flock *) arg);
+			err = fcntl_getlk(filp, (struct flock *) arg);
 			break;
 		case F_SETLK:
 		case F_SETLKW:
-			err = fcntl_setlk(fd, cmd, (struct flock *) arg);
+			err = fcntl_setlk(filp, cmd, (struct flock *) arg);
 			break;
 		case F_GETOWN:
 			/*
@@ -292,6 +293,12 @@ static long do_fcntl(unsigned int fd, unsigned int cmd,
 			break;
 		case F_SETOWN:
 			lock_kernel();
+
+			if ((err = security_file_set_fowner(filp))) {
+				unlock_kernel();
+				break;
+			}
+
 			filp->f_owner.pid = arg;
 			filp->f_owner.uid = current->uid;
 			filp->f_owner.euid = current->euid;
@@ -340,6 +347,11 @@ asmlinkage long sys_fcntl(unsigned int fd, unsigned int cmd, unsigned long arg)
 	if (!filp)
 		goto out;
 
+	if ((err = security_file_fcntl(filp, cmd, arg))) {
+		fput(filp);
+		return err;
+	}
+
 	err = do_fcntl(fd, cmd, arg, filp);
 
  	fput(filp);
@@ -358,15 +370,19 @@ asmlinkage long sys_fcntl64(unsigned int fd, unsigned int cmd, unsigned long arg
 	if (!filp)
 		goto out;
 
+	if ((err = security_file_fcntl(filp, cmd, arg))) {
+		fput(filp);
+		return err;
+	}
+	err = -EBADF;
+	
 	switch (cmd) {
 		case F_GETLK64:
-			err = fcntl_getlk64(fd, (struct flock64 *) arg);
+			err = fcntl_getlk64(filp, (struct flock64 *) arg);
 			break;
 		case F_SETLK64:
-			err = fcntl_setlk64(fd, cmd, (struct flock64 *) arg);
-			break;
 		case F_SETLKW64:
-			err = fcntl_setlk64(fd, cmd, (struct flock64 *) arg);
+			err = fcntl_setlk64(filp, cmd, (struct flock64 *) arg);
 			break;
 		default:
 			err = do_fcntl(fd, cmd, arg, filp);
@@ -398,6 +414,10 @@ static void send_sigio_to_task(struct task_struct *p,
 	    (fown->euid ^ p->suid) && (fown->euid ^ p->uid) &&
 	    (fown->uid ^ p->suid) && (fown->uid ^ p->uid))
 		return;
+
+	if (security_file_send_sigiotask(p, fown, fd, reason))
+		return;
+
 	switch (fown->signum) {
 		siginfo_t si;
 		default:

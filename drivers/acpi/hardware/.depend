@@ -1,0 +1,19 @@
+hwacpi.o: hwacpi.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/achware.h
+hwgpe.o: hwgpe.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/achware.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acevents.h
+hwregs.o: hwregs.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/achware.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h
+hwsleep.o: hwsleep.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/achware.h
+hwtimer.o: hwtimer.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/achware.h

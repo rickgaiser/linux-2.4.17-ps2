@@ -1,0 +1,344 @@
+datagram.o: datagram.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/rtnetlink.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/highmem.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/protocol.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/checksum.h
+dev.o: dev.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sockios.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_ether.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/notifier.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/brlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/rtnetlink.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/stat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_bridge.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/divert.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/dst.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/pkt_sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/profile.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/checksum.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/highmem.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/radio.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/pcmcia/radio.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wireless.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/trace.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/plip.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/hotplug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/fastroute.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/kmod.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/highmem.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/hw/flowcontrol.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bridge.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bridge/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/divert.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/profile.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/sched.h)
+dev_mcast.o: dev_mcast.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sockios.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_ether.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/route.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/arp.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+dst.o: dst.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/dst.h
+dv.o: dv.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/udp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/dst.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ipv6.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/checksum.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/divert.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sockios.h
+filter.o: filter.c \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/filter.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcntl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_packet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/protocol.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/filter.h
+iovec.o: iovec.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in6.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/checksum.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h
+neighbour.o: neighbour.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sysctl.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/neighbour.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/dst.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/rtnetlink.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/neigh/debug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/arpd.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/smp.h)
+netfilter.o: netfilter.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netfilter.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/protocol.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/brlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/unistd.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/netfilter/debug.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/route.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/tcp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netfilter_ipv4.h
+profile.o: profile.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/checksum.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/processor.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/profile.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/profile.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+rtnetlink.o: rtnetlink.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/major.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sockios.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcntl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/capability.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/protocol.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/route.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/tcp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/udp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/pkt_sched.h
+scm.o: scm.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/major.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/stat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcntl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/protocol.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/scm.h
+skbuff.o: skbuff.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/cache.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/rtnetlink.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/highmem.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/protocol.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/dst.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/checksum.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/netfilter.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/netfilter/debug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/sched.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/hippi.h)
+sock.o: sock.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/major.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sockios.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcntl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/protocol.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ipsec.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/filter.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/filter.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/inet.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/tcp.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/netdevices.h)
+sysctl_net_core.o: sysctl_net_core.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sysctl.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/divert.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/fastroute.h)
+utils.o: utils.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h

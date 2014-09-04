@@ -1,0 +1,27 @@
+iph5526.o: iph5526.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blk.h \
+   ../../scsi/sd.h \
+   ../../scsi/scsi.h \
+   ../../scsi/hosts.h \
+   ../../fc4/fcp.h \
+   tach.h \
+   tach_structs.h \
+   iph5526_ip.h \
+   iph5526_scsi.h \
+   iph5526_novram.c

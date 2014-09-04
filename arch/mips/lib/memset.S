@@ -107,10 +107,18 @@ small_memset:
 	beqz	a2, 2f
 	 addu	t1, a0, a2
 
+#ifdef CONFIG_CPU_R5900	/* inhibit short loop */
+1:	addiu	a0, 1				/* fill bytewise */
+	beq	t1, a0, 2f
+	 sb	a1, -1(a0)
+	addiu	a0, 1				/* fill bytewise */
+	bne	t1, a0, 1b
+	 sb	a1, -1(a0)
+#else
 1:	addiu	a0, 1				/* fill bytewise */
 	bne	t1, a0, 1b
 	 sb	a1, -1(a0)
-
+#endif
 2:	jr	ra				/* done */
 	 move	a2, zero
 	END(memset)

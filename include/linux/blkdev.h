@@ -131,6 +131,8 @@ struct blk_dev_struct {
 	request_queue_t		request_queue;
 	queue_proc		*queue;
 	void			*data;
+	/* for segmented partition */
+	struct gendisk	*gd;
 };
 
 struct sec_size {

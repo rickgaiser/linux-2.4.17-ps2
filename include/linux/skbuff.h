@@ -1,3 +1,5 @@
+/* $USAGI: skbuff.h,v 1.6 2001/11/06 14:46:50 yoshfuji Exp $ */
+
 /*
  *	Definitions for the 'struct sk_buff' memory handlers.
  *
@@ -142,6 +144,7 @@ struct sk_buff {
 		struct tcphdr	*th;
 		struct udphdr	*uh;
 		struct icmphdr	*icmph;
+		struct icmp6hdr	*icmp6h;
 		struct igmphdr	*igmph;
 		struct iphdr	*ipiph;
 		struct spxhdr	*spxh;
@@ -215,6 +218,8 @@ struct sk_buff {
 #ifdef CONFIG_NET_SCHED
        __u32           tc_index;               /* traffic control index */
 #endif
+
+	void		*lsm_security;		/* replaces the above security field */
 };
 
 #define SK_WMEM_MAX	65535

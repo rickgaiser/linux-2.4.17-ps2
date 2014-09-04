@@ -8,6 +8,13 @@ bool 'Virtual terminal' CONFIG_VT
 if [ "$CONFIG_VT" = "y" ]; then
    bool '  Support for console on virtual terminal' CONFIG_VT_CONSOLE
 fi
+if [ "$CONFIG_SNSC" = "y" ]; then
+   bool 'Support for NULL console' CONFIG_NULL_CONSOLE 
+   if [ "$CONFIG_DUMMY_KEYB" = "y" ]; then
+       bool 'Support for keycodes translation in DUMMY KEYB driver' CONFIG_DUMMY_KEYB_TRANS_SCANCODES
+   fi
+fi
+
 tristate 'Standard/generic (8250/16550 and compatible UARTs) serial support' CONFIG_SERIAL
 if [ "$CONFIG_SERIAL" = "y" ]; then
    bool '  Support for console on serial port' CONFIG_SERIAL_CONSOLE
@@ -69,9 +76,24 @@ if [ "$CONFIG_SERIAL_NONSTANDARD" = "y" ]; then
      if [ "$CONFIG_AU1000_UART" = "y" ]; then
          bool '        Enable Au1000 serial console' CONFIG_AU1000_SERIAL_CONSOLE
      fi
+     bool 'TXx927 SIO support' CONFIG_TXX927_SERIAL 
+     if [ "$CONFIG_TXX927_SERIAL" = "y" ]; then
+        bool 'TXx927 SIO Console support' CONFIG_TXX927_SERIAL_CONSOLE  
+     fi                             
+     if [ "$CONFIG_SIBYTE_SB1250" = "y" ]; then
+        bool '  Support for sb1250 onchip DUART' CONFIG_SIBYTE_SB1250_DUART
+        if [ "$CONFIG_SIBYTE_SB1250_DUART" = "y" ]; then
+  	  bool '  Console on SB1250 DUART' CONFIG_SIBYTE_SB1250_DUART_CONSOLE
+  	  if [ "$CONFIG_SIBYTE_SB1250_DUART_CONSOLE" = "y" ]; then
+  	    define_bool CONFIG_SERIAL_CONSOLE y
+  	  fi
+  	  int  '  Output buffers size (in bytes)' CONFIG_SB1250_DUART_OUTPUT_BUF_SIZE 1024
+  	  bool '  Leave port 1 alone (for kgdb or audio)' CONFIG_SIBYTE_SB1250_DUART_NO_PORT_1
+        fi
+     fi
    fi
 fi
-if [ "$CONFIG_IT8712" = "y" ]; then
+if [ "$CONFIG_MIPS_ITE8172" = "y" -o "$CONFIG_MIPS_SNSC_MPU210" = "y" ]; then
    bool 'Enable Qtronix 990P Keyboard Support' CONFIG_QTRONIX_KEYBOARD
    if [ "$CONFIG_QTRONIX_KEYBOARD" = "y" ]; then
      define_bool CONFIG_IT8172_CIR y
@@ -81,18 +103,47 @@ if [ "$CONFIG_IT8712" = "y" ]; then
    bool 'Enable Smart Card Reader 0 Support ' CONFIG_IT8172_SCR0
    bool 'Enable Smart Card Reader 1 Support ' CONFIG_IT8172_SCR1
 fi
+if [ "$CONFIG_MIPS_IVR" = "y" ]; then
+   bool 'Enable Qtronix 990P Keyboard Support' CONFIG_QTRONIX_KEYBOARD
+   if [ "$CONFIG_QTRONIX_KEYBOARD" = "y" ]; then
+     define_bool CONFIG_IT8172_CIR y
+   fi
+   bool 'Enable Smart Card Reader 0 Support ' CONFIG_IT8172_SCR0
+fi
+if [ "$CONFIG_VR4122" = "y" -o "$CONFIG_VR4131" = "y" ]; then
+   bool 'NEC VRC4173 support' CONFIG_VRC4173
+   if [ "$CONFIG_VRC4173" != "n" ]; then
+     bool '    Enable PS/2 Unit Support' CONFIG_VRC4173_PS2U
+     bool '    Enable Touch Panel Interface Unit Support' CONFIG_VRC4173_PIU
+   fi
+fi
+
+tristate 'Sony NSC keypad support' CONFIG_SNSC_KPAD
+if [ "$CONFIG_DRAGONBALL_SNSC_MPU110" = "y" ]; then
+    dep_tristate '  MPU-110 keypad support' CONFIG_SNSC_MPU110_KPAD $CONFIG_SNSC_KPAD
+fi
+
+if [ "$CONFIG_SNSC_MPU200" = "y" ]; then
+      bool 'MPU-200 KeyPad Support' CONFIG_SNSC_MPU200_KPAD
+      if [ "$CONFIG_SNSC_MPU200_KPAD" != "y" ]; then
+         bool 'PC Keyboard Support' CONFIG_PC_KEYB
+      fi
+fi
+
+if [ "$CONFIG_SNSC_MPU300" = "y" ]; then
+   tristate 'MPU-300 FAN control Support' CONFIG_SNSC_MPU300_FANCTL
+   tristate 'MPU-300 SuperIO GPIO Support' CONFIG_SNSC_MPU300_SIOGPIO
+   dep_tristate '  MPU-301 SuperIO GPIO keypad support' CONFIG_SNSC_MPU301_KPAD $CONFIG_SNSC_KPAD $CONFIG_SNSC_MPU300_SIOGPIO
+fi
+
 if [ "$CONFIG_EXPERIMENTAL" = "y" -a "$CONFIG_ZORRO" = "y" ]; then
    tristate 'Commodore A2232 serial support (EXPERIMENTAL)' CONFIG_A2232
 fi
-if [ "$CONFIG_FOOTBRIDGE" = "y" ]; then
-   bool 'DC21285 serial port support' CONFIG_SERIAL_21285
-   if [ "$CONFIG_SERIAL_21285" = "y" ]; then
-      if [ "$CONFIG_OBSOLETE" = "y" ]; then
-         bool '  Use /dev/ttyS0 device (OBSOLETE)' CONFIG_SERIAL_21285_OLD
-      fi
-      bool '  Console on DC21285 serial port' CONFIG_SERIAL_21285_CONSOLE
-   fi
+
+if [ "$CONFIG_SERIAL" = "n" ]; then
+   source drivers/serial/Config.in
 fi
+
 bool 'Unix98 PTY support' CONFIG_UNIX98_PTYS
 if [ "$CONFIG_UNIX98_PTYS" = "y" ]; then
    int 'Maximum number of Unix98 PTYs in use (0-2048)' CONFIG_UNIX98_PTY_COUNT 256
@@ -104,8 +155,28 @@ if [ "$CONFIG_PARPORT" != "n" ]; then
    fi
    dep_tristate 'Support for user-space parallel port device drivers' CONFIG_PPDEV $CONFIG_PARPORT
 fi
+if [ "$CONFIG_SA1100_PFS168" = "y" ]; then
+   dep_tristate 'PFS-168 SPI char device driver' CONFIG_PFS168_SPI $CONFIG_SA1100_PFS168
+   dep_tristate 'PFS-168 Miscellaneous I/O access via proc' CONFIG_PFS168_MISC $CONFIG_SA1100_PFS168
+fi
+if [ "$CONFIG_SA1100_H3XXX" = "y" ]; then
+   comment 'Compaq iPAQ H3600 support'
+   dep_tristate '  Toucnscreen support' CONFIG_TOUCHSCREEN_H3600 $CONFIG_H3600_HARDWARE
+   dep_tristate '  Backpaq FPGA driver interface' CONFIG_H3600_BACKPAQ_FPGA $CONFIG_MERCURY_BACKPAQ
+   dep_tristate '  Backpaq accelerometer interface' CONFIG_H3600_BACKPAQ_ACCEL $CONFIG_H3600_BACKPAQ_FPGA
+   dep_tristate '  Backpaq gasgauge interface' CONFIG_H3600_BACKPAQ_GASGAUGE $CONFIG_H3600_BACKPAQ_FPGA
+   tristate '  Stowaway keyboard support' CONFIG_H3600_STOWAWAY
+   tristate 'Linux Consumer IR Driver (LIRC) for iPAQ' CONFIG_SA1100_LIRC
+fi
 
 source drivers/i2c/Config.in
+
+if [ "$CONFIG_ARM" = "y" ]; then
+   # This has dependencies on I2C and therefore_must_ come after I2C.
+   source drivers/l3/Config.in
+fi
+
+source drivers/sensors/Config.in
 
 mainmenu_option next_comment
 comment 'Mice'
@@ -125,9 +196,14 @@ if [ "$CONFIG_MOUSE" != "n" ]; then
    tristate '  C&T 82C710 mouse port support (as on TI Travelmate)' CONFIG_82C710_MOUSE
    tristate '  PC110 digitizer pad support' CONFIG_PC110_PAD
 fi
+
+if [ "$CONFIG_PPC" = "y" ]; then
+	tristate 'Redwood IR mouse driver' CONFIG_RWMOUSE
+fi
 endmenu
 
 source drivers/char/joystick/Config.in
+source drivers/char/akmem/Config.in
 
 tristate 'QIC-02 tape support' CONFIG_QIC02_TAPE
 if [ "$CONFIG_QIC02_TAPE" != "n" ]; then
@@ -158,11 +234,10 @@ if [ "$CONFIG_WATCHDOG" != "n" ]; then
    tristate '  Berkshire Products PC Watchdog' CONFIG_PCWATCHDOG
    tristate '  Acquire SBC Watchdog Timer' CONFIG_ACQUIRE_WDT
    tristate '  Advantech SBC Watchdog Timer' CONFIG_ADVANTECH_WDT
-   if [ "$CONFIG_FOOTBRIDGE" = "y" ]; then
-      tristate '  DC21285 watchdog' CONFIG_21285_WATCHDOG
-      if [ "$CONFIG_ARCH_NETWINDER" = "y" ]; then
-         tristate '  NetWinder WB83C977 watchdog' CONFIG_977_WATCHDOG
-      fi
+   if [ "$CONFIG_ARM" = "y" ]; then
+      dep_tristate '  DC21285 watchdog' CONFIG_21285_WATCHDOG $CONFIG_FOOTBRIDGE
+      dep_tristate '  NetWinder WB83C977 watchdog' CONFIG_977_WATCHDOG $CONFIG_ARCH_NETWINDER
+      dep_tristate '  SA1100 watchdog' CONFIG_SA1100_WATCHDOG $CONFIG_ARCH_SA1100
    fi
    tristate '  Eurotech CPU-1220/1410 Watchdog Timer' CONFIG_EUROTECH_WDT
    tristate '  IB700 SBC Watchdog Timer' CONFIG_IB700_WDT
@@ -171,6 +246,11 @@ if [ "$CONFIG_WATCHDOG" != "n" ]; then
    tristate '  SBC-60XX Watchdog Timer' CONFIG_60XX_WDT
    tristate '  W83877F (EMACS) Watchdog Timer' CONFIG_W83877F_WDT
    tristate '  ZF MachZ Watchdog' CONFIG_MACHZ_WDT
+   if [ "$CONFIG_4xx" = "y" ]; then
+      tristate '  IBM PPC 405 Watchdog Timer' CONFIG_PPC405_WDT
+   fi
+   dep_tristate '  NEC VR41xx Watchdog (DSU)' CONFIG_VR41XX_WDT $CONFIG_CPU_VR41XX
+   dep_tristate '  Dragonball MX1 Watchdog Timer' CONFIG_DBMX1_WDT $CONFIG_ARCH_DRAGONBALL
 fi
 endmenu
 
@@ -192,12 +272,24 @@ fi
 if [ "$CONFIG_OBSOLETE" = "y" -a "$CONFIG_ALPHA_BOOK1" = "y" ]; then
    bool 'Tadpole ANA H8 Support'  CONFIG_H8
 fi
+if [ "$CONFIG_MIPS" = "y" -a "$CONFIG_NEW_TIME_C" = "y" ]; then
+   tristate 'Generic MIPS RTC Support' CONFIG_MIPS_RTC
+fi
+if [ "$CONFIG_ARCH_SA1100" = "y" ]; then
+   tristate 'SA1100 Real Time Clock' CONFIG_SA1100_RTC
+fi
+if [ "$CONFIG_ARCH_DRAGONBALL" = "y" ]; then
+   tristate 'Dragonball RTC Support' CONFIG_SNSC_MPU110_RTC
+fi
 
 tristate 'Double Talk PC internal speech card support' CONFIG_DTLK
 tristate 'Siemens R3964 line discipline' CONFIG_R3964
 tristate 'Applicom intelligent fieldbus card support' CONFIG_APPLICOM
 if [ "$CONFIG_EXPERIMENTAL" = "y" -a "$CONFIG_X86" = "y" ]; then
    dep_tristate 'Sony Vaio Programmable I/O Control Device support' CONFIG_SONYPI $CONFIG_PCI
+fi
+if [ "$CONFIG_405GP" = "y" ]; then
+   tristate 'IBM PPC 405 GPIO' CONFIG_PPC405_GPIO
 fi
 
 mainmenu_option next_comment
@@ -224,9 +316,41 @@ source drivers/char/drm/Config.in
 if [ "$CONFIG_HOTPLUG" = "y" -a "$CONFIG_PCMCIA" != "n" ]; then
    source drivers/char/pcmcia/Config.in
 fi
+if [ "$CONFIG_MIPS_AU1000" = "y" ]; then
+   tristate ' Alchemy Au1000 GPIO device support' CONFIG_AU1000_GPIO
+fi
+if [ "$CONFIG_MIPS_ITE8172" = "y" -o "$CONFIG_MIPS_SNSC_MPU210" = "y" ]; then
+  tristate ' ITE GPIO' CONFIG_ITE_GPIO
+fi
+if [ "$CONFIG_MIPS" = "y" -a "$CONFIG_CPU_HAS_LLSC" = "n" ]; then
+   tristate '  MIPS common fast test and set support' CONFIG_MIPS_TAS_DEV
+fi
 
 if [ "$CONFIG_X86" = "y" ]; then
    tristate 'ACP Modem (Mwave) support' CONFIG_MWAVE
+
+   if [ "$CONFIG_SNSC_MPU300" = "y" ]; then
+      tristate ' BU9929FV GPIO device support' CONFIG_SNSC_BU9929_GPIO
+        if [ "$CONFIG_SNSC_BU9929_GPIO" != "n" ]; then
+           bool '    enable I2C functions in interrupt time' CONFIG_SNSC_MPU300_INTRI2C
+        fi
+      tristate ' ICH2 GPIO device support' CONFIG_SNSC_ICH_GPIO
+      if [ "$CONFIG_SNSC_BU9929_GPIO" = "y" -a "$CONFIG_SNSC_ICH_GPIO" = "y" \
+	  -a "$CONFIG_I2C_I801" = "y" -a "$CONFIG_I2C" = "y" -a "$CONFIG_I2C_PROC" = "y" ]; then
+	 bool ' MPU-300 KeyPad Support' CONFIG_SNSC_MPU300_KPAD
+      fi
+   fi
 fi
+
+if [ "$CONFIG_ARCH_DRAGONBALL" = "y" ]; then
+    dep_tristate 'DragonBall Generic GPIO' CONFIG_DRAGONBALL_GENERIC_GPIO $CONFIG_ARCH_DRAGONBALL
+fi
+if [ "$CONFIG_DRAGONBALL_SNSC_MPU110" = "y" ]; then
+    tristate 'MPU-110 PWM support' CONFIG_SNSC_MPU110_PWM
+fi
+if [ "$CONFIG_SNSC" = "y" -a "$CONFIG_PM" = "y" ]; then
+    tristate 'Sony NSC Power Management support' CONFIG_NPM
+fi
+
 
 endmenu

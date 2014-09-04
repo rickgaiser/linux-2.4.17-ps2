@@ -42,6 +42,12 @@
     defined(CONFIG_PPC) || defined(__mc68000__) || defined(__hppa__) || \
     defined(__arm__)
 
+struct kbddev_device {
+	struct input_handle handle;
+	int down[256];
+};
+#define handle_to_kbddev(handle)	((struct kbddev_device *)(handle))
+
 static int x86_sysrq_alt = 0;
 #ifdef CONFIG_SPARC64
 static int sparc_l1_a_state = 0;
@@ -153,33 +159,42 @@ static int emulate_raw(unsigned int keycode, int down)
 #endif /* CONFIG_X86 || CONFIG_IA64 || __alpha__ || __mips__ || CONFIG_PPC */
 
 static struct input_handler keybdev_handler;
+static unsigned int keybdev_led;
+
+void keybdev_updateled(struct input_handle *handle)
+{
+	input_event(handle->dev, EV_LED, LED_SCROLLL, !!(keybdev_led & 0x01));
+	input_event(handle->dev, EV_LED, LED_NUML,    !!(keybdev_led & 0x02));
+	input_event(handle->dev, EV_LED, LED_CAPSL,   !!(keybdev_led & 0x04));
+}
 
 void keybdev_ledfunc(unsigned int led)
 {
 	struct input_handle *handle;	
 
+	keybdev_led = led;
 	for (handle = keybdev_handler.handle; handle; handle = handle->hnext) {
-
-		input_event(handle->dev, EV_LED, LED_SCROLLL, !!(led & 0x01));
-		input_event(handle->dev, EV_LED, LED_NUML,    !!(led & 0x02));
-		input_event(handle->dev, EV_LED, LED_CAPSL,   !!(led & 0x04));
-
+		keybdev_updateled(handle);
 	}
 }
 
 void keybdev_event(struct input_handle *handle, unsigned int type, unsigned int code, int down)
 {
+	struct kbddev_device *kbddev = handle_to_kbddev(handle);
+
 	if (type != EV_KEY) return;
 
 	if (emulate_raw(code, down))
 		printk(KERN_WARNING "keyboard.c: can't emulate rawmode for keycode %d\n", code);
+	else
+		kbddev->down[code] = down;
 
 	tasklet_schedule(&keyboard_tasklet);
 }
 
 static struct input_handle *keybdev_connect(struct input_handler *handler, struct input_dev *dev)
 {
-	struct input_handle *handle;
+	struct kbddev_device *kbddev;
 	int i;
 
 	if (!test_bit(EV_KEY, dev->evbit))
@@ -191,25 +206,32 @@ static struct input_handle *keybdev_connect(struct input_handler *handler, struc
 	if (i == BTN_MISC)
  		return NULL;
 
-	if (!(handle = kmalloc(sizeof(struct input_handle), GFP_KERNEL)))
+	if (!(kbddev = kmalloc(sizeof(struct kbddev_device), GFP_KERNEL)))
 		return NULL;
-	memset(handle, 0, sizeof(struct input_handle));
+	memset(kbddev, 0, sizeof(struct kbddev_device));
 
-	handle->dev = dev;
-	handle->handler = handler;
+	kbddev->handle.dev = dev;
+	kbddev->handle.handler = handler;
 
-	input_open_device(handle);
+	input_open_device(&kbddev->handle);
+	keybdev_updateled(&kbddev->handle);
 
 //	printk(KERN_INFO "keybdev.c: Adding keyboard: input%d\n", dev->number);
 
-	return handle;
+	return &kbddev->handle;
 }
 
 static void keybdev_disconnect(struct input_handle *handle)
 {
+	int i;
+	struct kbddev_device *kbddev = handle_to_kbddev(handle);
+
 //	printk(KERN_INFO "keybdev.c: Removing keyboard: input%d\n", handle->dev->number);
+	for (i = 0; i < sizeof(kbddev->down); i++)
+		if (kbddev->down[i])
+			emulate_raw(i, 0);
 	input_close_device(handle);
-	kfree(handle);
+	kfree(handle_to_kbddev(handle));
 }
 	
 static struct input_handler keybdev_handler = {

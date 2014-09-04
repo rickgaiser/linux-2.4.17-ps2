@@ -10,7 +10,7 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * $Id: jffs_fm.c,v 1.27 2001/09/20 12:29:47 dwmw2 Exp $
+ * $Id: jffs_fm.c,v 1.29 2002/01/22 09:48:16 cdavies Exp $
  *
  * Ported to Linux 2.3.x and MTD:
  * Copyright (C) 2000  Alexander Larsson (alex@cendio.se), Cendio Systems AB
@@ -20,7 +20,13 @@
 #include <linux/slab.h>
 #include <linux/blkdev.h>
 #include <linux/jffs.h>
+#include <linux/compatmac.h>
 #include "jffs_fm.h"
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,2)
+#define minor(x) MINOR(x)
+#define major(x) MAJOR(x)
+#endif
 
 #if defined(JFFS_MARK_OBSOLETE) && JFFS_MARK_OBSOLETE
 static int jffs_mark_obsolete(struct jffs_fmcontrol *fmc, __u32 fm_offset);
@@ -46,7 +52,7 @@ jffs_build_begin(struct jffs_control *c, kdev_t dev)
 	}
 	DJM(no_jffs_fmcontrol++);
 
-	mtd = get_mtd_device(NULL, MINOR(dev));
+	mtd = get_mtd_device(NULL, minor(dev));
 
 	if (!mtd) {
 		kfree(fmc);
@@ -89,8 +95,8 @@ jffs_build_begin(struct jffs_control *c, kdev_t dev)
 
 /* When the flash memory scan has completed, this function should be called
    before use of the control structure.  */
-void
-jffs_build_end(struct jffs_fmcontrol *fmc)
+int
+jffs_build_end(struct jffs_fmcontrol *fmc, __u32 head_offset)
 {
 	D3(printk("jffs_build_end()\n"));
 
@@ -99,13 +105,100 @@ jffs_build_end(struct jffs_fmcontrol *fmc)
 		fmc->tail = fmc->tail_extra;
 	}
 	else if (fmc->head_extra) {
-		fmc->tail_extra->next = fmc->head;
-		fmc->head->prev = fmc->tail_extra;
-		fmc->head = fmc->head_extra;
+		struct jffs_fm *fm, *cur;
+
+		if (head_offset == fmc->head->offset){
+			fmc->tail->next = fmc->head_extra;
+			fmc->head_extra->prev = fmc->tail;
+			fmc->tail = fmc->tail_extra;
+		}
+		else {
+			fmc->tail_extra->next = fmc->head;
+			fmc->head->prev = fmc->tail_extra;
+			fmc->head = fmc->head_extra;
+			while (fmc->head->offset != head_offset){
+				fmc->tail->next = fmc->head;
+				fmc->head = fmc->head->next;
+				fmc->head->prev = 0;
+				fmc->tail->next->prev = fmc->tail;
+				fmc->tail = fmc->tail->next;
+				fmc->tail->next = 0;
+			}
+		}
+				/* Make sure the only free space we have is between tail and head.
+				 */
+		for (cur = fmc->head; cur && cur != fmc->tail;) {
+			if (cur->offset + cur->size < cur->next->offset) {
+				if (!(fm = kmalloc(sizeof(struct jffs_fm), GFP_KERNEL))) {
+					D(printk("jffs_buid_end(): kmalloc failed!\n"));
+					return -ENOMEM;
+				}
+				DJM(no_jffs_fm++);
+				fm->size = cur->next->offset - cur->offset - cur->size;
+				fm->offset = cur->offset + cur->size;
+				fm->nodes = 0;
+				fm->next = cur->next;
+				fm->prev = cur;
+				cur->next->prev = fm;
+				cur->next = fm;
+				cur = fm->next;
+				fmc->free_size -= fm->size;
+				fmc->dirty_size += fm->size;
+			}
+			else if (cur->offset > cur->next->offset) {
+				if (cur->offset + cur->size < fmc->flash_size){
+					if (!(fm = kmalloc(sizeof(struct jffs_fm), GFP_KERNEL))){
+						
+						D(printk("jffs_buid_end(): kmalloc failed!\n"));
+						return -ENOMEM;
+					}
+					DJM(no_jffs_fm++);
+					fm->size = fmc->flash_size -
+					           cur->offset - cur->size;
+					fm->nodes = 0;
+					fm->offset = cur->offset + cur->size;
+					fm->next = cur->next;
+					fm->prev = cur;
+					cur->next->prev = fm;
+					cur->next = fm;
+					cur = fm->next;
+					fmc->free_size -= fm->size;
+					fmc->dirty_size += fm->size;
+				}
+				else {
+					cur = cur->next;
+				}
+				if (cur->offset > 0) {
+					
+					if (!(fm = kmalloc(sizeof(struct jffs_fm), GFP_KERNEL))) {
+						D(printk("jffs_buid_end(): kmalloc failed!\n"));
+						return -ENOMEM;
+					}
+					DJM(no_jffs_fm++);
+					fm->size = cur->offset;
+					fm->nodes = 0;
+					fm->offset = 0;
+					fm->next = cur;
+					fm->prev = cur->prev;
+					cur->prev->next = fm;
+					cur->prev = fm;
+					fmc->free_size -= fm->size;
+					fmc->dirty_size += fm->size;
+				}
+			}
+			else if (cur->offset + cur->size != cur->next->offset) {
+				printk("jffs_build_end(): Internal error.\n");
+				return -EINVAL;
+			}
+			else {
+				cur = cur->next;
+			}
+		}
 	}
 	fmc->head_extra = 0; /* These two instructions should be omitted.  */
 	fmc->tail_extra = 0;
 	D3(jffs_print_fmcontrol(fmc));
+	return 0;
 }
 
 

@@ -1,3 +1,5 @@
+/* $USAGI: af_inet.c,v 1.13 2001/12/22 18:37:42 yoshfuji Exp $ */
+
 /*
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
@@ -731,6 +733,7 @@ static int inet_getname(struct socket *sock, struct sockaddr *uaddr,
 		sin->sin_port = sk->sport;
 		sin->sin_addr.s_addr = addr;
 	}
+	memset(sin->sin_zero, 0, sizeof(sin->sin_zero));
 	*uaddr_len = sizeof(*sin);
 	return(0);
 }

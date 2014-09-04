@@ -1,0 +1,47 @@
+tpam.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdnif.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h
+	@touch tpam.h
+tpam_commands.o: tpam_commands.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tqueue.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn/tpam.h \
+   tpam.h
+tpam_crcpc.o: tpam_crcpc.c \
+   tpam.h
+tpam_hdlc.o: tpam_hdlc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   tpam.h
+tpam_main.o: tpam_main.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tqueue.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   tpam.h
+tpam_memory.o: tpam_memory.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   tpam.h
+tpam_nco.o: tpam_nco.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tqueue.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   tpam.h
+tpam_queues.o: tpam_queues.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tqueue.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   tpam.h
+.PRECIOUS:	tpam.h \
+

@@ -1,0 +1,302 @@
+fc-10.o: fc-10.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/fdc-io.h \
+   ../lowlevel/fc-10.h
+fdc-io.o: fdc-io.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dma.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/qic117.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/fdc-io.h \
+   ../lowlevel/fdc-isr.h \
+   ../lowlevel/ftape-io.h \
+   ../lowlevel/ftape-rw.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-calibr.h \
+   ../lowlevel/fc-10.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/fdc/base.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/fdc/irq.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/fdc/dma.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/fdc/thr.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/fdc/max/rate.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/probe/fc10.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/mach2.h)
+fdc-io.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fdreg.h \
+   ../lowlevel/ftape-bsm.h
+	@touch fdc-io.h
+fdc-isr.o: fdc-isr.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dma.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/qic117.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/fdc-isr.h \
+   ../lowlevel/fdc-io.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-rw.h \
+   ../lowlevel/ftape-io.h \
+   ../lowlevel/ftape-calibr.h \
+   ../lowlevel/ftape-bsm.h
+ftape-bsm.o: ftape-bsm.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/ftape-bsm.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-rw.h
+ftape-bsm.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape-header-segment.h
+	@touch ftape-bsm.h
+ftape-buffer.o: ftape-buffer.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mman.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dma.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   ../lowlevel/ftape-rw.h \
+   ../lowlevel/ftape-read.h \
+   ../lowlevel/ftape-tracing.h
+ftape-calibr.o: ftape-calibr.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timex.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/ftape-calibr.h \
+   ../lowlevel/fdc-io.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/alpha/clock.h)
+ftape-ctl.o: ftape-ctl.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mman.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/qic117.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/ftape-io.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-write.h \
+   ../lowlevel/ftape-read.h \
+   ../lowlevel/ftape-rw.h \
+   ../lowlevel/ftape-bsm.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/two/drives.h)
+ftape-ctl.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtio.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape-vendors.h \
+   ../lowlevel/ftape-rw.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape-header-segment.h
+	@touch ftape-ctl.h
+ftape-ecc.o: ftape-ecc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/ftape-ecc.h
+ftape-ecc.h: \
+   ../lowlevel/ftape-bsm.h
+	@touch ftape-ecc.h
+ftape-format.o: ftape-format.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/qic117.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/ftape-io.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-rw.h \
+   ../lowlevel/ftape-ecc.h \
+   ../lowlevel/ftape-bsm.h \
+   ../lowlevel/ftape-format.h
+ftape-init.o: ftape-init.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/major.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/qic117.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/zftape.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/zftape.h \
+   ../lowlevel/ftape-init.h \
+   ../lowlevel/ftape_syms.h \
+   ../lowlevel/ftape-io.h \
+   ../lowlevel/ftape-read.h \
+   ../lowlevel/ftape-write.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-rw.h \
+   ../lowlevel/fdc-io.h \
+   ../lowlevel/ftape-buffer.h \
+   ../lowlevel/ftape-proc.h \
+   ../lowlevel/ftape-tracing.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/nr/buffers.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/no/trace/at/all.h)
+ftape-init.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/linkage.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h
+	@touch ftape-init.h
+ftape-io.o: ftape-io.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtio.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/qic117.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/fdc-io.h \
+   ../lowlevel/ftape-io.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-rw.h \
+   ../lowlevel/ftape-write.h \
+   ../lowlevel/ftape-read.h \
+   ../lowlevel/ftape-init.h \
+   ../lowlevel/ftape-calibr.h
+ftape-io.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/qic117.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape-vendors.h
+	@touch ftape-io.h
+ftape-proc.o: ftape-proc.c \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/proc/fs.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/qic117.h \
+   ../lowlevel/ftape-io.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-proc.h \
+   ../lowlevel/ftape-tracing.h
+ftape-proc.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h
+	@touch ftape-proc.h
+ftape-read.o: ftape-read.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/qic117.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/ftape-read.h \
+   ../lowlevel/ftape-io.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-rw.h \
+   ../lowlevel/ftape-write.h \
+   ../lowlevel/ftape-ecc.h \
+   ../lowlevel/ftape-bsm.h
+ftape-rw.o: ftape-rw.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/qic117.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/ftape-rw.h \
+   ../lowlevel/fdc-io.h \
+   ../lowlevel/ftape-init.h \
+   ../lowlevel/ftape-io.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-read.h \
+   ../lowlevel/ftape-ecc.h \
+   ../lowlevel/ftape-bsm.h
+ftape-rw.h: \
+   ../lowlevel/fdc-io.h \
+   ../lowlevel/ftape-init.h \
+   ../lowlevel/ftape-bsm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h
+	@touch ftape-rw.h
+ftape-setup.o: ftape-setup.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/fdc-io.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/no/trace/at/all.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/fdc/base.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/fdc/irq.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/fdc/dma.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/fdc/thr.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/fdc/max/rate.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/probe/fc10.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/mach2.h)
+ftape-tracing.o: ftape-tracing.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   ../lowlevel/ftape-tracing.h
+ftape-tracing.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/no/trace/at/all.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/no/trace.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/full/debug.h)
+	@touch ftape-tracing.h
+ftape-write.o: ftape-write.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/qic117.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/ftape-write.h \
+   ../lowlevel/ftape-read.h \
+   ../lowlevel/ftape-io.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-rw.h \
+   ../lowlevel/ftape-ecc.h \
+   ../lowlevel/ftape-bsm.h \
+   ../lowlevel/fdc-isr.h
+ftape_syms.o: ftape_syms.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ftape.h \
+   ../lowlevel/ftape-tracing.h \
+   ../lowlevel/ftape-init.h \
+   ../lowlevel/fdc-io.h \
+   ../lowlevel/ftape-read.h \
+   ../lowlevel/ftape-write.h \
+   ../lowlevel/ftape-io.h \
+   ../lowlevel/ftape-ctl.h \
+   ../lowlevel/ftape-rw.h \
+   ../lowlevel/ftape-bsm.h \
+   ../lowlevel/ftape-buffer.h \
+   ../lowlevel/ftape-format.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ft/no/trace/at/all.h)
+ftape_syms.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h
+	@touch ftape_syms.h
+.PRECIOUS:	fdc-io.h \
+	ftape-bsm.h \
+	ftape-ctl.h \
+	ftape-ecc.h \
+	ftape-init.h \
+	ftape-io.h \
+	ftape-proc.h \
+	ftape-rw.h \
+	ftape-tracing.h \
+	ftape_syms.h \
+

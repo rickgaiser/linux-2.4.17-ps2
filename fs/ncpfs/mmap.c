@@ -119,5 +119,6 @@ int ncp_mmap(struct file *file, struct vm_area_struct *vma)
 	}
 
 	vma->vm_ops = &ncp_file_mmap;
+	vma->vm_flags &= ~VM_IO;
 	return 0;
 }

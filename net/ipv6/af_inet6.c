@@ -1,3 +1,5 @@
+/* $USAGI: af_inet6.c,v 1.23 2002/03/13 13:39:50 yoshfuji Exp $ */
+
 /*
  *	PF_INET6 socket protocol family
  *	Linux INET6 implementation 
@@ -41,6 +43,7 @@
 #include <linux/stat.h>
 #include <linux/init.h>
 #include <linux/version.h>
+#include <linux/usagi-version.h>
 
 #include <linux/inet.h>
 #include <linux/netdevice.h>
@@ -62,6 +65,10 @@
 #include <asm/uaccess.h>
 #include <asm/system.h>
 
+#ifdef CONFIG_IPV6_IPSEC
+#include <linux/ipsec6.h>
+#endif /*  CONFIG_IPV6_IPSEC */
+
 #ifdef MODULE
 static int unloadable = 0; /* XX: Turn to one when all is ok within the
 			      module for allowing unload */
@@ -76,11 +83,18 @@ MODULE_PARM(unloadable, "i");
 /* IPv6 procfs goodies... */
 
 #ifdef CONFIG_PROC_FS
+extern int afinet6_getversion(char *, char **, off_t, int);
+#ifdef CONFIG_IPV6_ANYCAST
+extern int anycast6_get_info(char *, char **, off_t, int);
+#endif
 extern int raw6_get_info(char *, char **, off_t, int);
 extern int tcp6_get_info(char *, char **, off_t, int);
 extern int udp6_get_info(char *, char **, off_t, int);
 extern int afinet6_get_info(char *, char **, off_t, int);
 extern int afinet6_get_snmp(char *, char **, off_t, int);
+extern int afinet6_read_devsnmp(char *, char **, off_t, int, int *, void *);
+extern int rt6_get_dfltrt(char *, char **, off_t, int);
+struct proc_dir_entry *proc_net_devsnmp6 = NULL;
 #endif
 
 #ifdef CONFIG_SYSCTL
@@ -172,6 +186,8 @@ static int inet6_create(struct socket *sock, int protocol)
 	sk->net_pinfo.af_inet6.mcast_hops = -1;
 	sk->net_pinfo.af_inet6.mc_loop	  = 1;
 	sk->net_pinfo.af_inet6.pmtudisc	  = IPV6_PMTUDISC_WANT;
+
+	sk->net_pinfo.af_inet6.ipv6only   = ipv6_devconf.bindv6only;
 
 	/* Init the ipv4 part of the socket since we can have sockets
 	 * using v6 API for ipv4.
@@ -286,11 +302,17 @@ static int inet6_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 			sk->bound_dev_if = addr->sin6_scope_id;
 		}
 
+#ifndef CONFIG_IPV6_LOOSE_SCOPE_ID
 		/* Binding to link-local address requires an interface */
 		if (sk->bound_dev_if == 0) {
 			release_sock(sk);
 			return -EINVAL;
 		}
+#endif
+	}
+	else if ((addr_type == IPV6_ADDR_MAPPED) && sk->net_pinfo.af_inet6.ipv6only) {
+		release_sock(sk);
+		return -EINVAL;
 	}
 
 	sk->rcv_saddr = v4addr;
@@ -319,6 +341,7 @@ static int inet6_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 	sk->sport = ntohs(sk->num);
 	sk->dport = 0;
 	sk->daddr = 0;
+
 	release_sock(sk);
 
 	return 0;
@@ -333,6 +356,11 @@ static int inet6_release(struct socket *sock)
 
 	/* Free mc lists */
 	ipv6_sock_mc_close(sk);
+
+#ifdef CONFIG_IPV6_ANYCAST
+	/* Free ac lists */
+	ipv6_sock_ac_close(sk);
+#endif
 
 	return inet_release(sock);
 }
@@ -383,19 +411,14 @@ static int inet6_getname(struct socket *sock, struct sockaddr *uaddr,
 		if (((1<<sk->state)&(TCPF_CLOSE|TCPF_SYN_SENT)) && peer == 1)
 			return -ENOTCONN;
 		sin->sin6_port = sk->dport;
-		memcpy(&sin->sin6_addr, &sk->net_pinfo.af_inet6.daddr,
-		       sizeof(struct in6_addr));
+		ipv6_addr_copy(&sin->sin6_addr, &sk->net_pinfo.af_inet6.daddr);
 		if (sk->net_pinfo.af_inet6.sndflow)
 			sin->sin6_flowinfo = sk->net_pinfo.af_inet6.flow_label;
 	} else {
 		if (ipv6_addr_type(&sk->net_pinfo.af_inet6.rcv_saddr) == IPV6_ADDR_ANY)
-			memcpy(&sin->sin6_addr, 
-			       &sk->net_pinfo.af_inet6.saddr,
-			       sizeof(struct in6_addr));
+			ipv6_addr_copy(&sin->sin6_addr, &sk->net_pinfo.af_inet6.saddr);
 		else
-			memcpy(&sin->sin6_addr, 
-			       &sk->net_pinfo.af_inet6.rcv_saddr,
-			       sizeof(struct in6_addr));
+			ipv6_addr_copy(&sin->sin6_addr, &sk->net_pinfo.af_inet6.rcv_saddr);
 
 		sin->sin6_port = sk->sport;
 	}
@@ -599,7 +622,11 @@ static int __init inet6_init(void)
 	__this_module.can_unload = &ipv6_unload;
 #endif
 
-	printk(KERN_INFO "IPv6 v0.8 for NET4.0\n");
+#ifdef CONFIG_IPV6_IPSEC
+	printk(KERN_INFO "IPv6 v0.8 (" USAGI_RELEASE "/IPsec6 based StS) for NET4.0\n");
+#else
+	printk(KERN_INFO "IPv6 v0.8 (" USAGI_RELEASE ") for NET4.0\n");
+#endif /* CONFIG_IPV6_IPSEC */
 
 	if (sizeof(struct inet6_skb_parm) > sizeof(dummy_skb->cb))
 	{
@@ -638,6 +665,8 @@ static int __init inet6_init(void)
 	/* Create /proc/foo6 entries. */
 #ifdef CONFIG_PROC_FS
 	err = -ENOMEM;
+	if (!proc_net_create("inet6_version", 0, afinet6_getversion))
+		goto proc_inet6version_fail;
 	if (!proc_net_create("raw6", 0, raw6_get_info))
 		goto proc_raw6_fail;
 	if (!proc_net_create("tcp6", 0, tcp6_get_info))
@@ -648,24 +677,53 @@ static int __init inet6_init(void)
 		goto proc_sockstat6_fail;
 	if (!proc_net_create("snmp6", 0, afinet6_get_snmp))
 		goto proc_snmp6_fail;
+#ifdef CONFIG_IPV6_ANYCAST
+	if (!proc_net_create("anycast6", 0, anycast6_get_info))
+		goto proc_anycast6_fail;
+#endif
+	if (!(proc_net_create("rt6_default", 0, rt6_get_dfltrt)))
+		goto proc_dfltrt6_fail;
+	if (!(proc_net_devsnmp6 = proc_mkdir("dev_snmp6", proc_net)))
+		goto proc_devsnmp6_fail;
 #endif
 	ipv6_netdev_notif_init();
 	ipv6_packet_init();
 	ip6_route_init();
 	ip6_flowlabel_init();
 	addrconf_init();
+#ifndef CONFIG_NET_IPIP_IPV6
 	sit_init();
+#endif
 
 	/* Init v6 transport protocols. */
 	udpv6_init();
 	tcpv6_init();
 
+#if !defined(CONFIG_IPV6) && defined(CONFIG_IPV6_IM)
+	inter_module_register(IM_ICMPV6_SEND, THIS_MODULE, &icmpv6_send);
+#endif
+
 	/* Now the userspace is allowed to create INET6 sockets. */
 	(void) sock_register(&inet6_family_ops);
+
+#ifdef CONFIG_IPV6_IPSEC
+	ipsec6_init();
+#endif
+#ifdef CONFIG_IPV6_IPV6_TUNNEL
+	ipv6_ipv6_tunnel_init();
+#endif
 	
 	return 0;
 
 #ifdef CONFIG_PROC_FS
+proc_devsnmp6_fail:
+	proc_net_remove("snmp6");
+ proc_dfltrt6_fail:
+	proc_net_remove("rt6_default");
+#ifdef CONFIG_IPV6_ANYCAST
+proc_anycast6_fail:
+	proc_net_remove("anycast6");
+#endif
 proc_snmp6_fail:
 	proc_net_remove("sockstat6");
 proc_sockstat6_fail:
@@ -675,6 +733,8 @@ proc_udp6_fail:
 proc_tcp6_fail:
         proc_net_remove("raw6");
 proc_raw6_fail:
+	proc_net_remove("inet6_version");
+proc_inet6version_fail:
 	igmp6_cleanup();
 #endif
 igmp_fail:
@@ -695,12 +755,28 @@ static void inet6_exit(void)
 {
 	/* First of all disallow new sockets creation. */
 	sock_unregister(PF_INET6);
+#if !defined(CONFIG_IPV6) && defined(CONFIG_IPV6_IM)
+	inter_module_unregister(IM_ICMPV6_SEND);
+#endif
 #ifdef CONFIG_PROC_FS
+	proc_net_remove("inet6_version");
 	proc_net_remove("raw6");
 	proc_net_remove("tcp6");
 	proc_net_remove("udp6");
 	proc_net_remove("sockstat6");
 	proc_net_remove("snmp6");
+#ifdef CONFIG_IPV6_ANYCAST
+	proc_net_remove("anycast6");
+#endif
+	proc_net_remove("rt6_default");
+	if (proc_net_devsnmp6)
+		remove_proc_entry("dev_snmp6", proc_net);
+#endif
+#ifdef CONFIG_IPV6_IPV6_TUNNEL
+	ipv6_ipv6_tunnel_exit();
+#endif
+#ifdef CONFIG_IPV6_IPSEC
+	ipsec6_cleanup();
 #endif
 	/* Cleanup code parts. */
 	sit_cleanup();

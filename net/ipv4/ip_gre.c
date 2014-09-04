@@ -1,3 +1,5 @@
+/* $USAGI: ip_gre.c,v 1.13 2001/11/06 14:46:56 yoshfuji Exp $ */
+
 /*
  *	Linux NET3:	GRE over IP protocol decoder. 
  *
@@ -28,6 +30,7 @@
 #include <linux/inetdevice.h>
 #include <linux/igmp.h>
 #include <linux/netfilter_ipv4.h>
+#include <linux/security.h>
 
 #include <net/sock.h>
 #include <net/ip.h>
@@ -38,7 +41,7 @@
 #include <net/checksum.h>
 #include <net/inet_ecn.h>
 
-#ifdef CONFIG_IPV6
+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
 #include <net/ipv6.h>
 #include <net/ip6_fib.h>
 #include <net/ip6_route.h>
@@ -193,11 +196,11 @@ static struct ip_tunnel * ipgre_tunnel_lookup(u32 remote, u32 local, u32 key)
 	return NULL;
 }
 
-static struct ip_tunnel **ipgre_bucket(struct ip_tunnel *t)
+static __inline__ struct ip_tunnel **__ipgre_bucket(struct ip_tunnel_parm *parms)
 {
-	u32 remote = t->parms.iph.daddr;
-	u32 local = t->parms.iph.saddr;
-	u32 key = t->parms.i_key;
+	u32 remote = parms->iph.daddr;
+	u32 local = parms->iph.saddr;
+	u32 key = parms->i_key;
 	unsigned h = HASH(key);
 	int prio = 0;
 
@@ -209,6 +212,11 @@ static struct ip_tunnel **ipgre_bucket(struct ip_tunnel *t)
 	}
 
 	return &tunnels[prio][h];
+}
+
+static struct ip_tunnel **ipgre_bucket(struct ip_tunnel *t)
+{
+	return __ipgre_bucket(&t->parms);
 }
 
 static void ipgre_tunnel_link(struct ip_tunnel *t)
@@ -242,16 +250,8 @@ static struct ip_tunnel * ipgre_tunnel_locate(struct ip_tunnel_parm *parms, int 
 	u32 key = parms->i_key;
 	struct ip_tunnel *t, **tp, *nt;
 	struct net_device *dev;
-	unsigned h = HASH(key);
-	int prio = 0;
 
-	if (local)
-		prio |= 1;
-	if (remote && !MULTICAST(remote)) {
-		prio |= 2;
-		h ^= HASH(remote);
-	}
-	for (tp = &tunnels[prio][h]; (t = *tp) != NULL; tp = &t->next) {
+	for (tp = __ipgre_bucket(parms); (t = *tp) != NULL; tp = &t->next) {
 		if (local == t->parms.iph.saddr && remote == t->parms.iph.daddr) {
 			if (key == t->parms.i_key)
 				return t;
@@ -651,6 +651,7 @@ int ipgre_rcv(struct sk_buff *skb)
 		skb->nf_debug = 0;
 #endif
 #endif
+		security_ip_decapsulate(skb);
 		ipgre_ecn_decapsulate(iph, skb);
 		netif_rx(skb);
 		read_unlock(&ipgre_lock);
@@ -713,24 +714,18 @@ static int ipgre_tunnel_xmit(struct sk_buff *skb, struct net_device *dev)
 			if ((dst = rt->rt_gateway) == 0)
 				goto tx_error_icmp;
 		}
-#ifdef CONFIG_IPV6
+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
 		else if (skb->protocol == __constant_htons(ETH_P_IPV6)) {
 			struct in6_addr *addr6;
-			int addr_type;
 			struct neighbour *neigh = skb->dst->neighbour;
 
 			if (neigh == NULL)
 				goto tx_error;
 
 			addr6 = (struct in6_addr*)&neigh->primary_key;
-			addr_type = ipv6_addr_type(addr6);
-
-			if (addr_type == IPV6_ADDR_ANY) {
+			if (IN6_IS_ADDR_UNSPECIFIED(addr6))
 				addr6 = &skb->nh.ipv6h->daddr;
-				addr_type = ipv6_addr_type(addr6);
-			}
-
-			if ((addr_type & IPV6_ADDR_COMPATv4) == 0)
+			if (!IN6_IS_ADDR_V4COMPAT(addr6))
 				goto tx_error_icmp;
 
 			dst = addr6->s6_addr32[3];
@@ -775,9 +770,17 @@ static int ipgre_tunnel_xmit(struct sk_buff *skb, struct net_device *dev)
 			goto tx_error;
 		}
 	}
-#ifdef CONFIG_IPV6
+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
 	else if (skb->protocol == __constant_htons(ETH_P_IPV6)) {
 		struct rt6_info *rt6 = (struct rt6_info*)skb->dst;
+#if defined(CONFIG_IPV6_MODULE_IP_GRE) && !defined(CONFIG_IPV6)
+		void (*icmpv6_send)(struct sk_buff *skb,
+					int type, int code,
+					__u32 info,
+					struct net_device *dev) = inter_module_get(IM_ICMPV6_SEND);
+		if (!icmpv6_send)
+			goto skip_ipv6;
+#endif
 
 		if (rt6 && mtu < rt6->u.dst.pmtu && mtu >= IPV6_MIN_MTU) {
 			if ((tunnel->parms.iph.daddr && !MULTICAST(tunnel->parms.iph.daddr)) ||
@@ -788,10 +791,19 @@ static int ipgre_tunnel_xmit(struct sk_buff *skb, struct net_device *dev)
 		}
 
 		if (mtu >= IPV6_MIN_MTU && mtu < skb->len - tunnel->hlen + gre_hlen) {
+#ifdef CONFIG_IPV6
 			icmpv6_send(skb, ICMPV6_PKT_TOOBIG, 0, mtu, dev);
+#elif defined(CONFIG_IPV6_MODULE_IP_GRE)
+			(*icmpv6_send)(skb, ICMPV6_PKT_TOOBIG, 0, mtu, dev);
+			inter_module_put(IM_ICMPV6_SEND);
+#endif
 			ip_rt_put(rt);
 			goto tx_error;
 		}
+#if defined(CONFIG_IPV6_MODULE_IP_GRE) && !defined(CONFIG_IPV6)
+		inter_module_put(IM_ICMPV6_SEND);
+skip_ipv6:
+#endif
 	}
 #endif
 
@@ -844,7 +856,7 @@ static int ipgre_tunnel_xmit(struct sk_buff *skb, struct net_device *dev)
 	if ((iph->ttl = tiph->ttl) == 0) {
 		if (skb->protocol == __constant_htons(ETH_P_IP))
 			iph->ttl = old_iph->ttl;
-#ifdef CONFIG_IPV6
+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
 		else if (skb->protocol == __constant_htons(ETH_P_IPV6))
 			iph->ttl = ((struct ipv6hdr*)old_iph)->hop_limit;
 #endif
@@ -880,6 +892,7 @@ static int ipgre_tunnel_xmit(struct sk_buff *skb, struct net_device *dev)
 	skb->nf_debug = 0;
 #endif
 #endif
+	security_ip_encapsulate(skb);
 
 	IPTUNNEL_XMIT();
 	tunnel->recursion--;

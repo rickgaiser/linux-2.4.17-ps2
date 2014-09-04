@@ -10,7 +10,7 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * $Id: intrep.c,v 1.102 2001/09/23 23:28:36 dwmw2 Exp $
+ * $Id: intrep.c,v 1.104 2002/03/05 14:07:39 dwmw2 Exp $
  *
  * Ported to Linux 2.3.x and MTD:
  * Copyright (C) 2000  Alexander Larsson (alex@cendio.se), Cendio Systems AB
@@ -772,6 +772,9 @@ jffs_scan_flash(struct jffs_control *c)
 	__u32 free_chunk_size1;
 	__u32 free_chunk_size2;
 
+	__u32 largest_hole         = 0;
+	__u32 hole_end_offset      = 0;
+	__u32 head_offset;
 	
 #define NUMFREEALLOWED     2        /* 2 chunks of at least erase size space allowed */
 	int num_free_space = 0;       /* Flag err if more than TWO
@@ -884,6 +887,21 @@ jffs_scan_flash(struct jffs_control *c)
 							  (unsigned int) start,
 							  (unsigned int)(test_start - start)));
 
+						D1(printk("Reducing start to 0x%x from 0x%x\n",
+						          test_start, start));
+						if (largest_hole < test_start - start){
+							
+							D3(printk("was hole = %x end_offset = %x\n",
+							          largest_hole, hole_end_offset));
+							if (fmc->head) {
+								largest_hole    = test_start - start;
+								hole_end_offset = test_start;
+							}
+						}
+
+						D3(printk("now = %x end_offset = %x\n",
+					        	largest_hole, hole_end_offset));
+
 						/* below, space from "start" to "pos" will be marked dirty. */
 						start = test_start; 
 						
@@ -956,6 +974,19 @@ jffs_scan_flash(struct jffs_control *c)
 				           num_free_space++;
 				           D1(printk("Free space accepted: Starting 0x%x for 0x%x bytes\n",
 						     (unsigned int) start, (unsigned int) (pos - start)));
+
+					   if (largest_hole < pos - start) {
+						   
+						   D3(printk("was hole = %x end_offset = %x\n",
+						          largest_hole, hole_end_offset));
+						   if (fmc->head){
+							   largest_hole    = pos - start;
+							   hole_end_offset = pos;
+							}
+
+						   D3(printk("now = %x end_offset = %x\n",
+						          largest_hole, hole_end_offset));
+						}
 				 }else{
 				         num_free_spc_not_accp++;
 					 D1(printk("Free space (#%i) found but *Not* accepted: Starting "
@@ -968,7 +999,7 @@ jffs_scan_flash(struct jffs_control *c)
 						   (unsigned int) start, (unsigned int) (pos - start)));
 					 jffs_fmalloced(fmc, (__u32) start,
 							(__u32) (pos - start), 0);				           
-				 }
+				}
 				 
 			}
 			if(num_free_space > NUMFREEALLOWED){
@@ -1002,9 +1033,11 @@ jffs_scan_flash(struct jffs_control *c)
 			   to scan for the magic pattern.  */
 			D1(printk("*************** Dirty flash memory or "
 				  "bad inode: "
-				  "hexdump(pos = 0x%lx, len = 128):\n",
-				  (long)pos));
-			D1(jffs_hexdump(fmc->mtd, pos, 128));
+				  "hexdump(pos = 0x%lx, len = %d):\n",
+				  (long)pos,
+				  end - pos > 128 ? 128 : end - pos));
+			D1(jffs_hexdump(fmc->mtd, pos,
+			                end - pos > 128 ? 128 : end - pos));
 
 			for (pos += 4; pos < end; pos += 4) {
 				switch (flash_read_u32(fmc->mtd, pos)) {
@@ -1197,12 +1230,6 @@ jffs_scan_flash(struct jffs_control *c)
 
 				return -ENOMEM;
 			}
-			if ((err = jffs_insert_node(c, 0, &raw_inode,
-						    name, node)) < 0) {
-				printk("JFFS: Failed to handle raw inode. "
-				       "(err = %d)\n", err);
-				break;
-			}
 			if (raw_inode.rename) {
 				struct jffs_delete_list *dl
 				= (struct jffs_delete_list *)
@@ -1226,6 +1253,12 @@ jffs_scan_flash(struct jffs_control *c)
 				c->delete_list = dl;
 				node->data_size = 0;
 			}
+			if ((err = jffs_insert_node(c, 0, &raw_inode,
+						    name, node)) < 0) {
+				printk("JFFS: Failed to handle raw inode. "
+				       "(err = %d)\n", err);
+				break;
+			}
 			D3(jffs_print_node(node));
 			node = 0; /* Don't free the node!  */
 		}
@@ -1242,7 +1275,19 @@ jffs_scan_flash(struct jffs_control *c)
 		jffs_free_node(node);
 		DJM(no_jffs_node--);
 	}
-	jffs_build_end(fmc);
+	if (fmc->head && fmc->tail_extra &&
+	    fmc->head->offset + fmc->flash_size -
+			fmc->tail_extra->offset - fmc->tail_extra->size > largest_hole) {
+		head_offset = fmc->head->offset;
+	}
+	else {
+		head_offset = hole_end_offset;
+	}
+	
+	if (jffs_build_end(fmc, head_offset) < 0) {
+		D(printk("jffs_build_end() failed\n"));
+		return -ENOMEM;
+	}
 
 	/* Free read buffer */
 	kfree (read_buf);
@@ -3352,7 +3397,7 @@ jffs_garbage_collect_thread(void *ptr)
 	init_completion(&c->gc_thread_comp); /* barrier */ 
 	spin_lock_irq(&current->sigmask_lock);
 	siginitsetinv (&current->blocked, sigmask(SIGHUP) | sigmask(SIGKILL) | sigmask(SIGSTOP) | sigmask(SIGCONT));
-	recalc_sigpending(current);
+	recalc_sigpending();
 	spin_unlock_irq(&current->sigmask_lock);
 	strcpy(current->comm, "jffs_gcd");
 

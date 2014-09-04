@@ -1,0 +1,11 @@
+bt.o: bt.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/ospm/include/bt.h
+bt_osl.o: bt_osl.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/ospm/include/bt.h

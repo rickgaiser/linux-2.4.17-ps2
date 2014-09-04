@@ -1,3 +1,5 @@
+/* $USAGI: raw.c,v 1.10 2001/07/24 08:52:38 yoshfuji Exp $ */
+
 /*
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
@@ -520,6 +522,7 @@ int raw_recvmsg(struct sock *sk, struct msghdr *msg, int len,
 	if (sin) {
 		sin->sin_family = AF_INET;
 		sin->sin_addr.s_addr = skb->nh.iph->saddr;
+		sin->sin_port = 0;
 		memset(&sin->sin_zero, 0, sizeof(sin->sin_zero));
 	}
 	if (sk->protinfo.af_inet.cmsg_flags)

@@ -1,0 +1,717 @@
+CDCEther.o: CDCEther.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   CDCEther.h
+acm.o: acm.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcntl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty_driver.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty_flip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+audio.o: audio.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sound.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/soundcard.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   audio.h
+bluetooth.o: bluetooth.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcntl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty_driver.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty_flip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+catc.o: catc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+dabusb.o: dabusb.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/miscdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   dabusb.h \
+   dabfirmware.h
+dc2xx.o: dc2xx.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/miscdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/random.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/devfs_fs_kernel.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/debug.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+devices.o: devices.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usbdevice_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h
+devio.o: devio.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usbdevice_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h
+drivers.o: drivers.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usbdevice_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h
+dsbr100.o: dsbr100.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/input.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/videodev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+hid-core.o: hid-core.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/input.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   hid.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/hiddev.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hiddev.h
+hid-input.o: hid-input.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/input.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   hid.h
+hid.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   hid-debug.h
+	@touch hid.h
+hiddev.o: hiddev.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/input.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   hid.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hiddev.h
+hpusbscsi.o: hpusbscsi.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blk.h \
+   ../scsi/scsi.h \
+   ../scsi/hosts.h \
+   ../scsi/sd.h \
+   hpusbscsi.h
+hub.o: hub.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/completion.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/debug.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usbdevice_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   hub.h
+hub.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h
+	@touch hub.h
+ibmcam.o: ibmcam.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   usbvideo.h
+ibmcam.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h
+	@touch ibmcam.h
+inode.o: inode.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usbdevice_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+kaweth.o: kaweth.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   kawethfw.h
+m8xxhci.o: m8xxhci.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/pgtable.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rpxlite.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rpxclassic.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bseip.h) \
+   m8xxhci.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rpxlite/cw.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rpxlite/dw.h)
+m8xxhci.h: \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rpxlite/cw.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rpxlite/dw.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h
+	@touch m8xxhci.h
+mdc800.o: mdc800.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/random.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+microtek.o: microtek.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/random.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blk.h \
+   ../scsi/scsi.h \
+   ../scsi/hosts.h \
+   ../scsi/sd.h \
+   microtek.h
+ov511.o: ov511.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ctype.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pagemap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wrapper.h \
+   ov511.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/video/proc/fs.h)
+ov511.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/videodev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+	@touch ov511.h
+pegasus.o: pegasus.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h \
+   pegasus.h \
+   pegasus.h \
+   pegasus.h
+printer.o: printer.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/lp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/devfs_fs_kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+pwc-ctrl.o: pwc-ctrl.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   pwc.h \
+   pwc-ioctl.h \
+   pwc-uncompress.h \
+   pwc_nala.h \
+   pwc_timon.h \
+   pwc_kiara.h
+pwc-if.o: pwc-if.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   pwc.h \
+   pwc-ioctl.h \
+   pwc-uncompress.h
+pwc-misc.o: pwc-misc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   pwc.h
+pwc-uncompress.o: pwc-uncompress.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/types.h \
+   pwc.h \
+   pwc-uncompress.h
+pwc-uncompress.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   pwc.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/pwcx.h)
+	@touch pwc-uncompress.h
+pwc.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/videodev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h
+	@touch pwc.h
+rio500.o: rio500.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/miscdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/random.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/devfs_fs_kernel.h \
+   rio500_usb.h
+scanner.o: scanner.c \
+   scanner.h
+scanner.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/devfs_fs_kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+	@touch scanner.h
+se401.o: se401.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pagemap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wrapper.h \
+   se401.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/video/proc/fs.h)
+se401.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/videodev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+	@touch se401.h
+uhci-debug.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   uhci.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+	@touch uhci-debug.h
+uhci.o: uhci.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/unistd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/debug.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   uhci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pm.h \
+   uhci-debug.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/pm.h)
+uhci.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+	@touch uhci.h
+ultracam.o: ultracam.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   usbvideo.h
+usb-debug.o: usb-debug.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/debug.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+usb-ohci-nonpci.o: usb-ohci-nonpci.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   usb-ohci.h
+usb-ohci-pci.o: usb-ohci-pci.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   usb-ohci.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/pmac/pbook.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/pm.h)
+usb-ohci-ps2.o: usb-ohci-ps2.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/irq.h \
+   usb-ohci.h
+usb-ohci-sa1111.o: usb-ohci-sa1111.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   usb-ohci.h
+usb-ohci.o: usb-ohci.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h \
+   usb-ohci.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/ohci/ps2.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/pci.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/ohci/sa1111.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/non/pci/ohci.h) \
+   usb-ohci-pci.c
+usb-ohci.h: \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/pci.h)
+	@touch usb-ohci.h
+usb-skeleton.o: usb-skeleton.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcntl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/devfs_fs_kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/debug.h)
+usb-uhci.o: usb-uhci.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/unistd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   usb-uhci.h \
+   usb-uhci-debug.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/uhci/high/bandwidth.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/uhci/controlfirst.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/pm.h)
+usb.o: usb.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/devfs_fs_kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/debug.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/bandwidth.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/hotplug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/devicefs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/long/timeout.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+usbkbd.o: usbkbd.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/input.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+usbmouse.o: usbmouse.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/input.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+usbnet.o: usbnet.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/random.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/debug.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/net1080.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/an2720.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/belkin.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/genesys.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/linuxdev.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/pl2301.h)
+usbpd.o: usbpd.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/miscdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/random.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   usbpd.h
+usbvideo.o: usbvideo.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   usbvideo.h
+usbvideo.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/videodev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/video/proc/fs.h)
+	@touch usbvideo.h
+uss720.o: uss720.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/parport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+wacom.o: wacom.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/input.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h
+.PRECIOUS:	hid.h \
+	hub.h \
+	ibmcam.h \
+	m8xxhci.h \
+	ov511.h \
+	pwc-uncompress.h \
+	pwc.h \
+	scanner.h \
+	se401.h \
+	uhci-debug.h \
+	uhci.h \
+	usb-ohci.h \
+	usbvideo.h \
+

@@ -1,0 +1,47 @@
+msg.o: msg.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/msg.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   util.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/trace.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+sem.o: sem.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   util.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/trace.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+shm.o: shm.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/shm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mman.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   util.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/trace.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/compat/kernel22.h)
+util.o: util.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/shm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/msg.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/highuid.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sysvipc.h) \
+   util.h

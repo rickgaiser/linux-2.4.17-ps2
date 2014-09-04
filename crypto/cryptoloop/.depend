@@ -1,0 +1,10 @@
+cryptoloop.o: cryptoloop.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/kmod.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/crypto.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/loop.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blk.h

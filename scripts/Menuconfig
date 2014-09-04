@@ -106,7 +106,7 @@ function set_x_info () {
     if [ -z "$x" ]; then
 	eval `sed -n -e 's/# \(.*\) is not set.*/\1=n/' -e "/^$1=/p" arch/$ARCH/defconfig`
 	eval x=\${$1:-"$2"}
-	eval $1=$x
++	eval $1=\"$x\"
 	eval INFO_$1="' (NEW)'"
     fi
     eval info="\$INFO_$1"

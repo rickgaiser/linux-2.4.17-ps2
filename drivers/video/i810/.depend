@@ -1,0 +1,130 @@
+i810_accel.o: i810_accel.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/malloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   i810_regs.h \
+   i810_common.h \
+   i810_accel.h
+i810_accel.h: \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/fb/i810/iface.h)
+	@touch i810_accel.h
+i810_common.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/agp_backend.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/snsc.h)
+	@touch i810_common.h
+i810_discrete.o: i810_discrete.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   i810_regs.h \
+   i810_common.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/snsc.h)
+i810_fbcon.o: i810_fbcon.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/console.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon-cfb8.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon-cfb16.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon-cfb24.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon-cfb32.h \
+   i810_regs.h \
+   i810_common.h \
+   i810_fbcon.h
+i810_fbcon_accel.o: i810_fbcon_accel.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/console.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon.h \
+   i810_regs.h \
+   i810_common.h \
+   i810_fbcon_accel.h
+i810_fbcon_rotate.o: i810_fbcon_rotate.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/console.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon.h \
+   i810_regs.h \
+   i810_common.h \
+   i810_fbcon_rotate.h
+i810_iface.o: i810_iface.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/malloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   i810_regs.h \
+   i810_common.h \
+   i810_iface.h
+i810_main.o: i810_main.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/malloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci_ids.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/resource.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/selection.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/console.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vt_kern.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/unistd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/div64.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/page.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mtrr.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon-cfb8.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon-cfb16.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon-cfb24.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/video/fbcon-cfb32.h \
+   i810_regs.h \
+   i810_common.h \
+   i810_main.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/snsc.h)
+i810_main.h: \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/snsc.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/fb/i810/iface.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/fb/i810/accel.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mtrr.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/fb/i810/rotate.h)
+	@touch i810_main.h
+i810_nondiscrete.o: i810_nondiscrete.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   i810_regs.h \
+   i810_common.h
+i810_sarea.o: i810_sarea.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/malloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   i810_regs.h \
+   i810_common.h \
+   i810_sarea.h
+.PRECIOUS:	i810_accel.h \
+	i810_common.h \
+	i810_main.h \
+

@@ -33,10 +33,15 @@ struct e8390_pkt_hdr {
   unsigned short count; /* header + packet length in bytes */
 };
 
+
 #ifdef notdef
 extern int ei_debug;
 #else
+#ifdef  CONFIG_REDWOOD_4
+#define ei_debug 0
+#else
 #define ei_debug 1
+#endif
 #endif
 
 #ifndef HAVE_AUTOIRQ
@@ -119,6 +124,8 @@ struct ei_device {
     defined(CONFIG_HYDRA) || defined(CONFIG_HYDRA_MODULE) || \
     defined(CONFIG_ARM_ETHERH) || defined(CONFIG_ARM_ETHERH_MODULE)
 #define EI_SHIFT(x)	(ei_local->reg_offset[x])
+#elif	CONFIG_STB03xxx
+#define EI_SHIFT(x)	(2 * (x))
 #else
 #define EI_SHIFT(x)	(x)
 #endif

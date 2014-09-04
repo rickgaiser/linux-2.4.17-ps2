@@ -208,6 +208,7 @@ int video_mmap(struct file *file, struct vm_area_struct *vma)
 		lock_kernel();
 		ret = vfl->mmap(vfl, (char *)vma->vm_start, 
 				(unsigned long)(vma->vm_end-vma->vm_start));
+		vma->vm_flags &= ~VM_IO;
 		unlock_kernel();
 	}
 	return ret;

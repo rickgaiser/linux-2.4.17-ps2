@@ -119,10 +119,12 @@ struct it8172_cir_regs {
 	char pad11;
 	unsigned char rfsr;     /* rx fifo status              */
 	char pad12;
-	unsigned char wcl;      /* wakeup code length          */
 	char pad13;
-	unsigned char wcr;      /* wakeup code read/write      */
 	char pad14;
+	unsigned char wcl;      /* wakeup code length          */
+	char pad15;
+	unsigned char wcr;      /* wakeup code read/write      */
+	char pad16;
 	unsigned char wps;      /* wakeup power control/status */
 };
 

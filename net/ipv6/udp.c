@@ -1,3 +1,5 @@
+/* $USAGI: udp.c,v 1.44 2001/11/15 13:29:30 yoshfuji Exp $ */
+
 /*
  *	UDP over IPv6
  *	Linux INET6 implementation 
@@ -11,6 +13,16 @@
  *
  *	Fixes:
  *	Hideaki YOSHIFUJI	:	sin6_scope_id support
+ *	yoshfuji@USAGI		:	Reworked bind(2) behavior, including:
+ *					- Allow ipv6 and ipv4 bind(2) to the
+ *					  same port.
+ *					- Don't allow narrow binding unless
+ *					  later uid is the same as before:
+ *					  CONFIG_NET_MODERATE_REUSE
+ *					- Don't allow binding to the same
+ *					  address unless it is one of multi-
+ *					  cast address even if SO_REUSEADDR 
+ *					  is set.
  *
  *	This program is free software; you can redistribute it and/or
  *      modify it under the terms of the GNU General Public License
@@ -26,6 +38,9 @@
 #include <linux/sched.h>
 #include <linux/net.h>
 #include <linux/in6.h>
+#ifdef CONFIG_IPV6_DEBUG
+#include <linux/inet.h>
+#endif
 #include <linux/netdevice.h>
 #include <linux/if_arp.h>
 #include <linux/ipv6.h>
@@ -98,23 +113,107 @@ gotit:
 		udp_port_rover = snum = result;
 	} else {
 		struct sock *sk2;
-		int addr_type = ipv6_addr_type(&sk->net_pinfo.af_inet6.rcv_saddr);
+		int sk_reuse, sk2_reuse;
+		int addr_type = ipv6_addr_type(&sk->net_pinfo.af_inet6.rcv_saddr),
+		    addr_type2;
+#if defined(CONFIG_NET_MODERATE_REUSE) || defined(CONFIG_IPV6_MODERATE_DOUBLE_BIND)
+		uid_t sk_uid = sock_i_uid_t(sk),
+		      sk2_uid;
+#endif
+
+		sk_reuse = 0;
+#ifdef SO_REUSEPORT
+		if (sk->reuseport)
+			sk_reuse |= 2;
+#endif
+		if (sk->reuse)
+			sk_reuse |= addr_type != IPV6_ADDR_MAPPED ?
+					((addr_type & IPV6_ADDR_MULTICAST) ? 3 : 1) :
+					(MULTICAST(sk->rcv_saddr) ? 3 : 1);
 
 		for (sk2 = udp_hash[snum & (UDP_HTABLE_SIZE - 1)];
 		     sk2 != NULL;
 		     sk2 = sk2->next) {
-			if (sk2->num == snum &&
-			    sk2 != sk &&
-			    sk2->bound_dev_if == sk->bound_dev_if &&
-			    (!sk2->rcv_saddr ||
-			     addr_type == IPV6_ADDR_ANY ||
-			     !ipv6_addr_cmp(&sk->net_pinfo.af_inet6.rcv_saddr,
-					    &sk2->net_pinfo.af_inet6.rcv_saddr) ||
-			     (addr_type == IPV6_ADDR_MAPPED &&
-			      sk2->family == AF_INET &&
-			      sk->rcv_saddr == sk2->rcv_saddr)) &&
-			    (!sk2->reuse || !sk->reuse))
-				goto fail;
+#if defined(CONFIG_NET_MODERATE_REUSE) || defined(CONFIG_IPV6_MODERATE_DOUBLE_BIND)
+			int uid_ok;
+#endif
+			int both_specified = 0;
+
+			if (sk2->num != snum ||
+			    sk2 == sk ||
+			    (sk2->bound_dev_if && sk->bound_dev_if &&
+			     sk2->bound_dev_if != sk->bound_dev_if))
+				continue;
+#if 0
+			if (sk2->family != AF_INET6 && sk2->family != AF_INET)
+				continue;
+#endif
+
+			addr_type2 = sk2->family == AF_INET6 ? ipv6_addr_type(&sk2->net_pinfo.af_inet6.rcv_saddr) : IPV6_ADDR_MAPPED;
+#if defined(CONFIG_NET_MODERATE_REUSE) || defined(CONFIG_IPV6_MODERATE_DOUBLE_BIND)
+			sk2_uid = sock_i_uid_t(sk2);
+#endif
+
+			if ((addr_type2 != IPV6_ADDR_MAPPED ? addr_type2 != IPV6_ADDR_ANY : sk2->rcv_saddr) &&
+			    (addr_type != IPV6_ADDR_MAPPED ? addr_type != IPV6_ADDR_ANY : sk->rcv_saddr)) {
+				if (addr_type2 == IPV6_ADDR_MAPPED || addr_type == IPV6_ADDR_MAPPED) {
+					if (addr_type2 != addr_type ||
+					    sk2->rcv_saddr != sk->rcv_saddr)
+						continue;
+				} else {
+					if (ipv6_addr_cmp(&sk2->net_pinfo.af_inet6.rcv_saddr,
+							  &sk->net_pinfo.af_inet6.rcv_saddr))
+						continue;
+				}
+				both_specified = 1;
+			}
+
+#if defined(CONFIG_NET_MODERATE_REUSE) || defined(CONFIG_IPV6_MODERATE_DOUBLE_BIND)
+			uid_ok = sk2_uid == (uid_t) -1 || sk_uid == sk2_uid;
+#endif
+
+			if ((addr_type2 == IPV6_ADDR_MAPPED && 
+			     addr_type != IPV6_ADDR_MAPPED && sk->net_pinfo.af_inet6.ipv6only) ||
+			    (addr_type == IPV6_ADDR_MAPPED &&
+			     addr_type2 != IPV6_ADDR_MAPPED && sk2->net_pinfo.af_inet6.ipv6only)) {
+#ifdef CONFIG_IPV6_MODERATE_DOUBLE_BIND
+				if (uid_ok)
+					continue;
+#else
+				continue;
+#endif
+			}
+
+			sk2_reuse = 0;
+#ifdef SO_REUSEPORT
+			if (sk2->reuseport)
+				sk2_reuse |= 2;
+#endif
+			if (sk2->reuse)
+				sk2_reuse |= addr_type2 != IPV6_ADDR_MAPPED ?
+						((addr_type2 & IPV6_ADDR_MULTICAST) ? 3 : 1) :
+						(MULTICAST(sk2->rcv_saddr) ? 3 : 1);
+
+			if (sk2_reuse & sk_reuse) {	/* NOT && */
+#ifdef CONFIG_NET_MODERATE_REUSE
+				if (!uid_ok)
+					goto fail;
+#endif
+				if (sk2_reuse & sk_reuse & 2) {
+					continue;
+				} else {
+					if (both_specified) {
+						int addr_type2d = sk2->family == AF_INET6 ? ipv6_addr_type(&sk2->net_pinfo.af_inet6.daddr) : IPV6_ADDR_MAPPED;
+						if (addr_type2d != IPV6_ADDR_MAPPED ? addr_type2d != IPV6_ADDR_ANY : sk2->daddr)
+							continue;
+					} else {
+						if ((addr_type2 != IPV6_ADDR_MAPPED ? addr_type2 != IPV6_ADDR_ANY : sk2->rcv_saddr) || 
+						    (addr_type != IPV6_ADDR_MAPPED ? addr_type != IPV6_ADDR_ANY : sk->rcv_saddr))
+							continue;
+					}
+				}
+			}
+			goto fail;
 		}
 	}
 
@@ -294,9 +393,13 @@ ipv4_connected:
 			sk->bound_dev_if = usin->sin6_scope_id;
 		}
 
+#ifndef CONFIG_IPV6_LOOSE_SCOPE_ID
 		/* Connect to link-local address requires an interface */
-		if (sk->bound_dev_if == 0)
+		if (sk->bound_dev_if == 0){
+			fl6_sock_release(flowlabel);
 			return -EINVAL;
+		}
+#endif
 	}
 
 	ipv6_addr_copy(&np->daddr, daddr);
@@ -421,8 +524,7 @@ int udpv6_recvmsg(struct sock *sk, struct msghdr *msg, int len,
 			if (sk->protinfo.af_inet.cmsg_flags)
 				ip_cmsg_recv(msg, skb);
 		} else {
-			memcpy(&sin6->sin6_addr, &skb->nh.ipv6h->saddr,
-			       sizeof(struct in6_addr));
+			ipv6_addr_copy(&sin6->sin6_addr, &skb->nh.ipv6h->saddr);
 
 			if (sk->net_pinfo.af_inet6.rxopt.all)
 				datagram_recv_ctl(sk, msg, skb);
@@ -496,11 +598,14 @@ out:
 
 static inline int udpv6_queue_rcv_skb(struct sock * sk, struct sk_buff *skb)
 {
+	struct inet6_dev *idev = in6_dev_get(skb->dev);
 #if defined(CONFIG_FILTER)
 	if (sk->filter && skb->ip_summed != CHECKSUM_UNNECESSARY) {
 		if ((unsigned short)csum_fold(csum_partial(skb->h.raw, skb->len, skb->csum))) {
 			UDP6_INC_STATS_BH(UdpInErrors);
-			IP6_INC_STATS_BH(Ip6InDiscards);
+			IP6_INC_STATS_BH(idev,Ip6InDiscards);
+			if (idev)
+				in6_dev_put(idev);
 			kfree_skb(skb);
 			return 0;
 		}
@@ -509,12 +614,17 @@ static inline int udpv6_queue_rcv_skb(struct sock * sk, struct sk_buff *skb)
 #endif
 	if (sock_queue_rcv_skb(sk,skb)<0) {
 		UDP6_INC_STATS_BH(UdpInErrors);
-		IP6_INC_STATS_BH(Ip6InDiscards);
+		IP6_INC_STATS_BH(idev,Ip6InDiscards);
+		if (idev)
+			in6_dev_put(idev);
 		kfree_skb(skb);
 		return 0;
 	}
-  	IP6_INC_STATS_BH(Ip6InDelivers);
+  	IP6_INC_STATS_BH(idev,Ip6InDelivers);
 	UDP6_INC_STATS_BH(UdpInDatagrams);
+
+	if (idev)
+		in6_dev_put(idev);
 	return 0;
 }
 
@@ -596,16 +706,14 @@ int udpv6_rcv(struct sk_buff *skb)
 	struct sock *sk;
   	struct udphdr *uh;
 	struct net_device *dev = skb->dev;
-	struct in6_addr *saddr, *daddr;
+	struct in6_addr *saddr = &skb->nh.ipv6h->saddr;
+	struct in6_addr *daddr = &skb->nh.ipv6h->daddr;
 	u32 ulen = 0;
 
 	if (!pskb_may_pull(skb, sizeof(struct udphdr)))
 		goto short_packet;
 
-	saddr = &skb->nh.ipv6h->saddr;
-	daddr = &skb->nh.ipv6h->daddr;
 	uh = skb->h.uh;
-
 	ulen = ntohs(uh->len);
 
 	/* Check for jumbo payload */
@@ -677,8 +785,16 @@ int udpv6_rcv(struct sk_buff *skb)
 	return(0);
 
 short_packet:	
-	if (net_ratelimit())
-		printk(KERN_DEBUG "UDP: short packet: %d/%u\n", ulen, skb->len);
+	if (net_ratelimit()) {
+#ifdef CONFIG_IPV6_DEBUG
+		char sbuf[128], dbuf[128];
+		in6_ntop(saddr, sbuf);
+		in6_ntop(daddr, dbuf);
+		printk(KERN_DEBUG "UDPv6: short packet: %u/%u (%s->%s)\n", ulen, skb->len, sbuf, dbuf);
+#else
+		printk(KERN_DEBUG "UDPv6: short packet: %u/%u\n", ulen, skb->len);
+#endif
+	}
 
 discard:
 	UDP6_INC_STATS_BH(UdpInErrors);
@@ -765,6 +881,7 @@ static int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, int ulen)
 	int len = ulen + sizeof(struct udphdr);
 	int addr_type;
 	int hlimit = -1;
+	int tclass = -1;
 	
 	int err;
 	
@@ -779,7 +896,8 @@ static int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, int ulen)
 
 	if (sin6) {
 		if (sin6->sin6_family == AF_INET)
-			return udp_sendmsg(sk, msg, ulen);
+			return !sk->net_pinfo.af_inet6.ipv6only ? 
+				udp_sendmsg(sk, msg, ulen) : -ENETUNREACH;
 
 		if (addr_len < SIN6_LEN_RFC2133)
 			return -EINVAL;
@@ -826,6 +944,9 @@ static int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, int ulen)
 	if (addr_type == IPV6_ADDR_MAPPED) {
 		struct sockaddr_in sin;
 
+		if (sk->net_pinfo.af_inet6.ipv6only)
+			return -ENETUNREACH;
+
 		sin.sin_family = AF_INET;
 		sin.sin_addr.s_addr = daddr->s6_addr32[3];
 		sin.sin_port = udh.uh.dest;
@@ -845,7 +966,7 @@ static int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, int ulen)
 		opt = &opt_space;
 		memset(opt, 0, sizeof(struct ipv6_txoptions));
 
-		err = datagram_send_ctl(msg, &fl, opt, &hlimit);
+		err = datagram_send_ctl(msg, &fl, opt, &hlimit, &tclass);
 		if (err < 0) {
 			fl6_sock_release(flowlabel);
 			return err;
@@ -862,8 +983,12 @@ static int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, int ulen)
 		opt = np->opt;
 	if (flowlabel)
 		opt = fl6_merge_options(&opt_space, flowlabel, opt);
+#ifdef MIPL_NO_PATCH
 	if (opt && opt->srcrt)
 		udh.daddr = daddr;
+#else
+	udh.daddr = daddr;
+#endif
 
 	udh.uh.source = sk->sport;
 	udh.uh.len = len < 0x10000 ? htons(len) : 0;
@@ -880,6 +1005,7 @@ static int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, int ulen)
 	fl.uli_u.ports.sport = udh.uh.source;
 
 	err = ip6_build_xmit(sk, udpv6_getfrag, &udh, &fl, len, opt, hlimit,
+			     tclass,
 			     msg->msg_flags);
 
 	fl6_sock_release(flowlabel);

@@ -82,6 +82,10 @@ static struct mousedev mousedev_mix;
 static int xres = CONFIG_INPUT_MOUSEDEV_SCREEN_X;
 static int yres = CONFIG_INPUT_MOUSEDEV_SCREEN_Y;
 
+#ifdef CONFIG_MAC_EMUMOUSEBTN
+extern int mac_hid_mouse_emulate_buttons(int caller, unsigned int keycode, int down);
+#endif
+
 static void mousedev_event(struct input_handle *handle, unsigned int type, unsigned int code, int value)
 {
 	struct mousedev *mousedevs[3] = { handle->private, &mousedev_mix, NULL };
@@ -137,6 +141,11 @@ static void mousedev_event(struct input_handle *handle, unsigned int type, unsig
 						case BTN_MIDDLE: index = 2; break;	
 						default: return;
 					}
+
+#ifdef CONFIG_MAC_EMUMOUSEBTN
+				        index = mac_hid_mouse_emulate_buttons(2, index, 0);
+#endif
+
 					switch (value) {
 						case 0: clear_bit(index, &list->buttons); break;
 						case 1: set_bit(index, &list->buttons); break;

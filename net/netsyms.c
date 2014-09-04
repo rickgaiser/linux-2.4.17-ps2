@@ -1,3 +1,5 @@
+/* $USAGI: netsyms.c,v 1.32 2002/02/28 10:26:43 takamiya Exp $ */
+
 /*
  *  linux/net/netsyms.c
  *
@@ -63,11 +65,19 @@ extern struct net_proto_family inet_family_ops;
 #include <net/ndisc.h>
 #include <net/transp_v6.h>
 #include <net/addrconf.h>
+#include <net/ip6_route.h>
+#include <net/mipglue.h>
 
 extern int sysctl_local_port_range[2];
 extern int tcp_port_rover;
 extern int udp_port_rover;
 #endif
+
+#ifdef CONFIG_IPSEC
+#include <net/sadb.h>
+#include <net/spd.h>
+#include <linux/ipsec.h>
+#endif 
 
 #endif
 
@@ -170,6 +180,10 @@ EXPORT_SYMBOL(neigh_table_clear);
 EXPORT_SYMBOL(neigh_resolve_output);
 EXPORT_SYMBOL(neigh_connected_output);
 EXPORT_SYMBOL(neigh_update);
+EXPORT_SYMBOL(__neigh_update);
+#ifdef CONFIG_ARPD
+EXPORT_SYMBOL(neigh_app_notify);
+#endif
 EXPORT_SYMBOL(neigh_create);
 EXPORT_SYMBOL(neigh_lookup);
 EXPORT_SYMBOL(__neigh_event_send);
@@ -183,11 +197,17 @@ EXPORT_SYMBOL(neigh_sysctl_register);
 #endif
 EXPORT_SYMBOL(pneigh_lookup);
 EXPORT_SYMBOL(pneigh_enqueue);
+EXPORT_SYMBOL(pneigh_delete);
 EXPORT_SYMBOL(neigh_destroy);
 EXPORT_SYMBOL(neigh_parms_alloc);
 EXPORT_SYMBOL(neigh_parms_release);
 EXPORT_SYMBOL(neigh_rand_reach_time);
 EXPORT_SYMBOL(neigh_compat_output); 
+
+#ifdef CONFIG_IPV6
+EXPORT_SYMBOL(ndisc_next_option);
+EXPORT_SYMBOL(ndisc_parse_options);
+#endif
 
 /*	dst_entry	*/
 EXPORT_SYMBOL(dst_alloc);
@@ -285,6 +305,26 @@ extern int (*dlci_ioctl_hook)(unsigned int, void *);
 EXPORT_SYMBOL(dlci_ioctl_hook);
 #endif
 
+#ifdef CONFIG_IPSEC
+/* sa_index */
+EXPORT_SYMBOL(sa_index_init);
+EXPORT_SYMBOL(sa_index_copy);
+EXPORT_SYMBOL(sa_index_compare);
+/* sadb */
+EXPORT_SYMBOL(ipsec_sa_put);
+EXPORT_SYMBOL(sadb_find_by_sa_index);
+EXPORT_SYMBOL(ipsec_sa_mod_timer);
+/* spd */
+EXPORT_SYMBOL(ipsec_sp_put);
+EXPORT_SYMBOL(spd_find_by_selector);
+/* sysctl */
+#ifdef CONFIG_SYSCTL
+EXPORT_SYMBOL(sysctl_ipsec_replay_window);
+#ifdef CONFIG_IPSEC_DEBUG
+EXPORT_SYMBOL(sysctl_ipsec_debug_ipv6);
+#endif 
+#endif
+#endif
 
 #ifdef CONFIG_IPV6
 EXPORT_SYMBOL(ipv6_addr_type);
@@ -292,6 +332,43 @@ EXPORT_SYMBOL(icmpv6_send);
 EXPORT_SYMBOL(ndisc_mc_map);
 EXPORT_SYMBOL(register_inet6addr_notifier);
 EXPORT_SYMBOL(unregister_inet6addr_notifier);
+EXPORT_SYMBOL(addrconf_add_ifaddr);
+EXPORT_SYMBOL(addrconf_del_ifaddr);
+#if defined(CONFIG_IPV6_MOBILITY) || defined(CONFIG_IPV6_MOBILITY_MODULE)
+extern struct inet6_ifaddr *inet6_addr_lst[];
+extern rwlock_t addrconf_hash_lock;
+EXPORT_SYMBOL(inet6_addr_lst);
+EXPORT_SYMBOL(addrconf_hash_lock);
+EXPORT_SYMBOL(addrconf_lock);
+EXPORT_SYMBOL(ipv6_dev_ac_inc);
+EXPORT_SYMBOL(ipv6_dev_ac_dec);
+#endif
+EXPORT_SYMBOL(ipv6_get_saddr);
+EXPORT_SYMBOL(ipv6_chk_addr);
+EXPORT_SYMBOL(nd_tbl);
+EXPORT_SYMBOL(ndisc_send_na);
+EXPORT_SYMBOL(ndisc_send_rs);
+EXPORT_SYMBOL(ipv6_get_lladdr);
+EXPORT_SYMBOL(in6_dev_finish_destroy);
+EXPORT_SYMBOL(icmpv6_statistics);
+EXPORT_SYMBOL(ipv6_skip_exthdr);
+EXPORT_SYMBOL(ipv6_rcv);
+EXPORT_SYMBOL(ip6_build_xmit);
+EXPORT_SYMBOL(rt6_get_dflt_router);
+EXPORT_SYMBOL(ip6_routing_table);
+EXPORT_SYMBOL(rt6_lookup);
+EXPORT_SYMBOL(ip6_route_output);
+#ifdef CONFIG_IPV6_MOBILITY_MODULE
+EXPORT_SYMBOL(rt6_lock);
+#endif
+EXPORT_SYMBOL(fib6_clean_tree);
+EXPORT_SYMBOL(ipv6_dev_mc_inc);
+EXPORT_SYMBOL(ipv6_dev_mc_dec);
+EXPORT_SYMBOL(inet6_add_protocol);
+EXPORT_SYMBOL(inet6_del_protocol);
+EXPORT_SYMBOL(inet6_family_ops);
+EXPORT_SYMBOL(mipv6_functions);
+EXPORT_SYMBOL(mipv6_invalidate_calls);
 #endif
 #if defined (CONFIG_IPV6_MODULE) || defined (CONFIG_KHTTPD) || defined (CONFIG_KHTTPD_MODULE)
 /* inet functions common to v4 and v6 */
@@ -446,6 +523,10 @@ EXPORT_SYMBOL(dev_open);
 
 /* Used by other modules */
 EXPORT_SYMBOL(in_ntoa);
+EXPORT_SYMBOL(in_ntop);
+#ifdef CONFIG_IPV6
+EXPORT_SYMBOL(in6_ntop);
+#endif
 EXPORT_SYMBOL(xrlim_allow);
 
 EXPORT_SYMBOL(ip_rcv);
@@ -474,6 +555,8 @@ EXPORT_SYMBOL(dev_get_by_index);
 EXPORT_SYMBOL(__dev_get_by_index);
 EXPORT_SYMBOL(dev_get_by_name);
 EXPORT_SYMBOL(__dev_get_by_name);
+EXPORT_SYMBOL(dev_get_by_flags);
+EXPORT_SYMBOL(__dev_get_by_flags);
 EXPORT_SYMBOL(netdev_finish_unregister);
 EXPORT_SYMBOL(netdev_set_master);
 EXPORT_SYMBOL(eth_type_trans);
@@ -577,5 +660,49 @@ EXPORT_SYMBOL(register_gifconf);
 
 EXPORT_SYMBOL(net_call_rx_atomic);
 EXPORT_SYMBOL(softnet_data);
+
+#ifdef CONFIG_IPV6_MOBILITY_MODULE
+int home_preferred = 0;
+EXPORT_SYMBOL(home_preferred);
+#endif
+
+#ifdef CONFIG_IPV6
+#ifdef CONFIG_IPV6_MOBILITY_MODULE
+#include <net/ipv6_tunnel.h>
+#include <linux/icmpv6.h>
+extern int icmpv6_rcv(struct sk_buff *skb);
+
+#ifdef CONFIG_IPV6_IPV6_TUNNEL
+extern int ip6_del_rt(struct rt6_info *rt);
+extern struct inet6_ifaddr * ipv6_get_ifaddr(struct in6_addr *addr, struct net_device *dev);
+extern int ip6_rt_addr_add(struct in6_addr *addr, struct net_device *dev);
+extern void inet6_ifa_finish_destroy(struct inet6_ifaddr *ifp);
+
+EXPORT_SYMBOL(ipv6_ipv6_tunnel_lookup);
+EXPORT_SYMBOL(ipv6_ipv6_kernel_tunnel_add);
+EXPORT_SYMBOL(ipv6_ipv6_tunnel_register_hook);
+EXPORT_SYMBOL(ipv6_ipv6_kernel_tunnel_del);
+EXPORT_SYMBOL(ipv6_ipv6_tunnel_unregister_hook);
+#endif
+
+#if defined(CONFIG_IPV6) && defined(CONFIG_IPV6_IPV6_TUNNEL_MODULE)
+EXPORT_SYMBOL(fl6_sock_lookup);
+EXPORT_SYMBOL(ipv6_tunnel_addr_del);
+EXPORT_SYMBOL(ipv6_ext_hdr);
+EXPORT_SYMBOL(ipv6_tunnel_addr_add);
+#endif
+
+
+EXPORT_SYMBOL(ip6_rt_addr_del);
+EXPORT_SYMBOL(ip6_route_add);
+EXPORT_SYMBOL(icmpv6_rcv);
+EXPORT_SYMBOL(ip6_del_rt);
+EXPORT_SYMBOL(ipv6_get_ifaddr);
+EXPORT_SYMBOL(ip6_rt_addr_add);
+EXPORT_SYMBOL(inet6_ifa_finish_destroy);
+EXPORT_SYMBOL(ndisc_send_ns);
+#endif
+#endif
+
 
 #endif  /* CONFIG_NET */

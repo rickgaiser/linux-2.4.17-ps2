@@ -43,13 +43,17 @@ struct pll_ct {
     u8 pll_ref_div;
     u8 pll_gen_cntl;
     u8 mclk_fb_div;
+    u8 mclk_fb_mult;    /* 2 or 4 */
+    u8 sclk_fb_div;
     u8 pll_vclk_cntl;
     u8 vclk_post_div;
     u8 vclk_fb_div;
     u8 pll_ext_cntl;
+    u8 spll_cntl2;
     u32 dsp_config;	/* Mach64 GTB DSP */
     u32 dsp_on_off;	/* Mach64 GTB DSP */
     u8 mclk_post_div_real;
+    u8 xclk_post_div_real;
     u8 vclk_post_div_real;
 };
 
@@ -94,6 +98,7 @@ struct fb_info_aty {
     unsigned long frame_buffer_phys;
     unsigned long frame_buffer;
     unsigned long clk_wr_offset;
+    struct pci_dev *pdev;
     struct pci_mmap_map *mmap_map;
     struct aty_cursor *cursor;
     struct aty_cmap_regs *aty_cmap_regs;
@@ -105,6 +110,7 @@ struct fb_info_aty {
     u32 ref_clk_per;
     u32 pll_per;
     u32 mclk_per;
+    u32 xclk_per;
     u8 bus_type;
     u8 ram_type;
     u8 mem_refresh_rate;
@@ -163,6 +169,7 @@ struct fb_info_aty {
 #define M64F_EXTRA_BRIGHT	0x00020000
 #define M64F_LT_SLEEP		0x00040000
 #define M64F_XL_DLL		0x00080000
+#define M64F_MFB_TIMES_4	0x00100000
 
 
     /*
@@ -197,6 +204,34 @@ static inline void aty_st_le32(int regindex, u32 val,
 #endif
 }
 
+static inline u16 aty_ld_le16(int regindex,
+			      const struct fb_info_aty *info)
+{
+    /* Hack for bloc 1, should be cleanly optimized by compiler */
+    if (regindex >= 0x400)
+    	regindex -= 0x800;
+
+#if defined(__mc68000__)
+    return le16_to_cpu(*((volatile u16 *)(info->ati_regbase+regindex)));
+#else
+    return readw (info->ati_regbase + regindex);
+#endif
+}
+
+static inline void aty_st_le16(int regindex, u16 val,
+			       const struct fb_info_aty *info)
+{
+    /* Hack for bloc 1, should be cleanly optimized by compiler */
+    if (regindex >= 0x400)
+    	regindex -= 0x800;
+
+#if defined(__mc68000__)
+    *((volatile u16 *)(info->ati_regbase+regindex)) = cpu_to_le16(val);
+#else
+    writew (val, info->ati_regbase + regindex);
+#endif
+}
+
 static inline u8 aty_ld_8(int regindex,
 			  const struct fb_info_aty *info)
 {
@@ -226,6 +261,19 @@ static inline u8 aty_ld_pll(int offset, const struct fb_info_aty *info)
     /* read the register value */
     res = aty_ld_8(CLOCK_CNTL + 2, info);
     return res;
+}
+
+/*
+ * CT family only.
+ */
+static inline void aty_st_pll(int offset, u8 val,
+			      const struct fb_info_aty *info)
+{
+    /* write addr byte */
+    aty_st_8(CLOCK_CNTL + 1, (offset << 2) | PLL_WR_EN, info);
+    /* write the register value */
+    aty_st_8(CLOCK_CNTL + 2, val, info);
+    aty_st_8(CLOCK_CNTL + 1, (offset << 2) & ~PLL_WR_EN, info);
 }
 
 

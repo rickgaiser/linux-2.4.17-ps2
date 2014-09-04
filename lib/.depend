@@ -1,0 +1,51 @@
+brlock.o: brlock.c \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/smp.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/brlock.h
+bust_spinlocks.o: bust_spinlocks.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vt_kern.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/vt.h)
+cmdline.o: cmdline.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h
+ctype.o: ctype.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ctype.h
+dec_and_lock.o: dec_and_lock.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h
+md5.o: md5.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/md5.h
+rbtree.o: rbtree.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/rbtree.h
+rwsem-spinlock.o: rwsem-spinlock.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/rwsem.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h
+rwsem.o: rwsem.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/rwsem.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h
+string.o: string.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ctype.h
+vsprintf.o: vsprintf.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ctype.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/div64.h
+zlib.o: zlib.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/zlib.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h

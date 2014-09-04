@@ -415,6 +415,7 @@ struct net_device
 	/* this will get initialized at each interface type init routine */
 	struct divert_blk	*divert;
 #endif /* CONFIG_NET_DIVERT */
+	void			*security;
 };
 
 
@@ -457,6 +458,11 @@ extern int		dev_new_index(void);
 extern struct net_device	*dev_get_by_index(int ifindex);
 extern struct net_device	*__dev_get_by_index(int ifindex);
 extern int		dev_restart(struct net_device *dev);
+
+extern struct net_device	*dev_get_by_flags(unsigned short flags,
+						  unsigned short mask);
+extern struct net_device	*__dev_get_by_flags(unsigned short flags,
+						    unsigned short mask);
 
 typedef int gifconf_func_t(struct net_device * dev, char * bufptr, int len);
 extern int		register_gifconf(unsigned int family, gifconf_func_t * gifconf);

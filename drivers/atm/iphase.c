@@ -3,7 +3,7 @@
                     Author: Peter Wang  <pwang@iphase.com>            
 		   Some fixes: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
                    Interphase Corporation  <www.iphase.com>           
-                               Version: 1.0                           
+                               Version: 1.2                           
 *******************************************************************************
       
       This software may be used and distributed according to the terms
@@ -1777,8 +1777,9 @@ static int open_tx(struct atm_vcc *vcc)
         memset((caddr_t)ia_vcc, 0, sizeof(*ia_vcc));
         if (vcc->qos.txtp.max_sdu > 
                          (iadev->tx_buf_sz - sizeof(struct cpcs_trailer))){
-           printk("IA:  SDU size over the configured SDU size %d\n",
-                                                          iadev->tx_buf_sz);
+           printk("IA:  SDU size over (%d) the configured SDU size %d\n",
+		  vcc->qos.txtp.max_sdu,iadev->tx_buf_sz);
+	   INPH_IA_VCC(vcc) = NULL;  
            kfree(ia_vcc);
            return -EINVAL; 
         }
@@ -2874,9 +2875,11 @@ static int ia_pkt_tx (struct atm_vcc *vcc, struct sk_buff *skb) {
         int desc;
         int comp_code;
         unsigned int addr;
-        int total_len, pad, last;
+        int total_len;
         struct cpcs_trailer *trailer;
         struct ia_vcc *iavcc;
+        int adjust_val, i;
+        char *data_ptr;
         iadev = INPH_IA_DEV(vcc->dev);  
         iavcc = INPH_IA_VCC(vcc);
         if (!iavcc->txing) {
@@ -2897,12 +2900,39 @@ static int ia_pkt_tx (struct atm_vcc *vcc, struct sk_buff *skb) {
           return 0;
         }
         if ((u32)skb->data & 3) {
-           printk("Misaligned SKB\n");
-           if (vcc->pop)
+           adjust_val = ((u32)skb->data & 3);
+           if (skb_headroom(skb) >= adjust_val)
+           {
+              skb->data = (unsigned char *)((u32)skb->data - adjust_val);
+              skb->tail = (unsigned char *)((u32)skb->tail - adjust_val);
+
+              data_ptr = skb->data;
+              for (i = 0; i < skb->len; i++)
+              {
+                *data_ptr = *(char *)((u32)data_ptr + adjust_val);
+                 data_ptr++;
+              }
+           }
+           else if (skb_tailroom(skb) >= adjust_val)
+           {
+              skb->data = (unsigned char *)((u32)skb->data + adjust_val);
+              skb->tail = (unsigned char *)((u32)skb->tail + adjust_val);
+
+              data_ptr = skb->tail;
+              for (i = 0; i < skb->len; i++)
+              {
+                 *data_ptr = *(char *)((u32)data_ptr - adjust_val);
+                 data_ptr--;
+              }
+           }
+           else {
+              printk("Unable to fix misaligned buffer\n");
+              if (vcc->pop)
                  vcc->pop(vcc, skb);
-           else
+              else
                  dev_kfree_skb_any(skb);
-           return 0;
+              return 0;
+           }
         }       
 	/* Get a descriptor number from our free descriptor queue  
 	   We get the descr number from the TCQ now, since I am using  
@@ -2955,10 +2985,7 @@ static int ia_pkt_tx (struct atm_vcc *vcc, struct sk_buff *skb) {
 	/* Figure out the exact length of the packet and padding required to 
            make it  aligned on a 48 byte boundary.  */
 	total_len = skb->len + sizeof(struct cpcs_trailer);  
-	last = total_len - (total_len/48)*48;  
-	pad = 48 - last;  
-	total_len = pad + total_len;  
-	IF_TX(printk("ia packet len:%d padding:%d\n", total_len, pad);)  
+	total_len = ((total_len + 47) / 48) * 48;
  
 	/* Put the packet in a tx buffer */   
 	if (!iadev->tx_buf[desc-1])  
@@ -2999,9 +3026,6 @@ static int ia_pkt_tx (struct atm_vcc *vcc, struct sk_buff *skb) {
 	/* wr_ptr->bytes = swap(total_len);	didn't seem to affect ?? */  
 	wr_ptr->bytes = skb->len;  
 
-        /* hw bug - DLEs of 0x2d, 0x2e, 0x2f cause DMA lockup */
-        if ((wr_ptr->bytes >> 2) == 0xb)
-           wr_ptr->bytes = 0x30;
 
 	wr_ptr->mode = TX_DLE_PSI; 
 	wr_ptr->prq_wr_ptr_data = 0;

@@ -3147,6 +3147,7 @@ static int cs4281_mmap(struct file *file, struct vm_area_struct *vma)
 	if (remap_page_range
 	    (vma->vm_start, virt_to_phys(db->rawbuf), size,
 	     vma->vm_page_prot)) return -EAGAIN;
+	vma->vm_flags &= ~VM_IO;
 	db->mapped = 1;
 
 	CS_DBGOUT(CS_FUNCTION | CS_PARMS | CS_OPEN, 4,

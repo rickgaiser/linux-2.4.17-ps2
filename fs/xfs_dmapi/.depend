@@ -1,0 +1,51 @@
+dmapi_attr.o: dmapi_attr.c \
+   dmapi_private.h
+dmapi_bulkattr.o: dmapi_bulkattr.c \
+   dmapi_private.h
+dmapi_config.o: dmapi_config.c \
+   dmapi_private.h
+dmapi_dmattr.o: dmapi_dmattr.c \
+   dmapi_private.h
+dmapi_event.o: dmapi_event.c \
+   dmapi_private.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h
+dmapi_handle.o: dmapi_handle.c \
+   dmapi_private.h
+dmapi_hole.o: dmapi_hole.c \
+   dmapi_private.h
+dmapi_io.o: dmapi_io.c \
+   dmapi_private.h
+dmapi_mountinfo.o: dmapi_mountinfo.c \
+   dmapi_private.h
+dmapi_private.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+	@touch dmapi_private.h
+dmapi_region.o: dmapi_region.c \
+   dmapi_private.h
+dmapi_register.o: dmapi_register.c \
+   dmapi_private.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+dmapi_right.o: dmapi_right.c \
+   dmapi_private.h
+dmapi_session.o: dmapi_session.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   dmapi_private.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+dmapi_sysent.o: dmapi_sysent.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/miscdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   dmapi_private.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+xfsjunk.o: xfsjunk.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h
+.PRECIOUS:	dmapi_private.h \
+

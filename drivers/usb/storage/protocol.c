@@ -77,6 +77,32 @@ void fix_inquiry_data(Scsi_Cmnd *srb)
 
 	/* Change the SCSI revision number */
 	data_ptr[2] |= 0x2;
+
+#ifdef CONFIG_USB_STORAGE_REUSE_HOST
+	/* Set Removable flag because USB device could be reassigned */
+	if (!(data_ptr[1] & 0x80)) {
+		US_DEBUGP("Fixing INQUIRY data to show Removable device\n");
+		data_ptr[1] |= 0x80;
+	}
+#endif
+}
+
+/* Fix INQUIRY command length */
+static void fix_inquiry_command_length(Scsi_Cmnd *srb, struct us_data *us)
+{
+	if (srb->cmnd[0] != INQUIRY)
+		return;
+
+	if (us->flags & US_FL_INQUIRY_LENGTH) {
+		srb->cmnd[4] = 36;
+		US_DEBUGP("Fixing INQUIRY length to %d\n", srb->cmnd[4]);
+	}
+
+	/* for SONY devices, set INQUIRY length to 56 */
+	if (us->pusb_dev->descriptor.idVendor == 0x054c && srb->cmnd[4] < 56) {
+		srb->cmnd[4] = 56;
+		US_DEBUGP("Fixing INQUIRY length to %d\n", srb->cmnd[4]);
+	}
 }
 
 /***********************************************************************
@@ -94,6 +120,9 @@ void usb_stor_qic157_command(Scsi_Cmnd *srb, struct us_data *us)
 
 	/* set command length to 12 bytes */
 	srb->cmd_len = 12;
+
+	/* fix the INQUIRY length if necessary */
+	fix_inquiry_command_length(srb, us);
 
 	/* send the command to the transport layer */
 	usb_stor_invoke_transport(srb, us);
@@ -165,6 +194,9 @@ void usb_stor_ATAPI_command(Scsi_Cmnd *srb, struct us_data *us)
 	/* convert MODE_SELECT data here */
 	if (old_cmnd == MODE_SELECT)
 		usb_stor_scsiSense6to10(srb);
+
+	/* fix the INQUIRY length if necessary */
+	fix_inquiry_command_length(srb, us);
 
 	/* send the command to the transport layer */
 	usb_stor_invoke_transport(srb, us);
@@ -261,6 +293,9 @@ void usb_stor_ufi_command(Scsi_Cmnd *srb, struct us_data *us)
 	if (old_cmnd == MODE_SELECT)
 		usb_stor_scsiSense6to10(srb);
 
+	/* fix the INQUIRY length if necessary */
+	fix_inquiry_command_length(srb, us);
+
 	/* send the command to the transport layer */
 	usb_stor_invoke_transport(srb, us);
 
@@ -327,6 +362,9 @@ void usb_stor_transparent_scsi_command(Scsi_Cmnd *srb, struct us_data *us)
 	/* convert MODE_SELECT data here */
 	if ((us->flags & US_FL_MODE_XLATE) && (old_cmnd == MODE_SELECT))
 		usb_stor_scsiSense6to10(srb);
+
+	/* fix the INQUIRY length if necessary */
+	fix_inquiry_command_length(srb, us);
 
 	/* send the command to the transport layer */
 	usb_stor_invoke_transport(srb, us);

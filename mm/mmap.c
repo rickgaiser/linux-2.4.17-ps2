@@ -14,6 +14,7 @@
 #include <linux/file.h>
 #include <linux/fs.h>
 #include <linux/personality.h>
+#include <linux/security.h>
 
 #include <asm/uaccess.h>
 #include <asm/pgalloc.h>
@@ -477,6 +478,9 @@ unsigned long do_mmap_pgoff(struct file * file, unsigned long addr, unsigned lon
 		}
 	}
 
+	if ((error = security_file_mmap(file, prot, flags)))
+		return error;
+		
 	/* Clear old maps */
 	error = -ENOMEM;
 munmap_back:
@@ -534,6 +538,11 @@ munmap_back:
 		}
 		vma->vm_file = file;
 		get_file(file);
+		/*
+		 * Subdrivers can clear VM_IO if their mappings are
+		 * valid pages inside mem_map[]
+		 */
+		vma->vm_flags |= VM_IO;
 		error = file->f_op->mmap(file, vma);
 		if (error)
 			goto unmap_and_free_vma;
@@ -569,7 +578,7 @@ unmap_and_free_vma:
 	fput(file);
 
 	/* Undo any partial mapping done by a device driver. */
-	zap_page_range(mm, vma->vm_start, vma->vm_end - vma->vm_start);
+	zap_page_range(mm, vma->vm_start, vma->vm_end - vma->vm_start, ZPR_NORMAL);
 free_vma:
 	kmem_cache_free(vm_area_cachep, vma);
 	return error;
@@ -882,6 +891,8 @@ no_mmaps:
 	 * old method of shifting the VA >> by PGDIR_SHIFT doesn't work.
 	 */
 	start_index = pgd_index(first);
+	if (start_index < FIRST_USER_PGD_NR)
+		start_index = FIRST_USER_PGD_NR;
 	end_index = pgd_index(last);
 	if (end_index > start_index) {
 		clear_page_tables(mm, start_index, end_index - start_index);
@@ -967,7 +978,7 @@ int do_munmap(struct mm_struct *mm, unsigned long addr, size_t len)
 		remove_shared_vm_struct(mpnt);
 		mm->map_count--;
 
-		zap_page_range(mm, st, size);
+		zap_page_range(mm, st, size, ZPR_PARTITION);
 
 		/*
 		 * Fix the mapping, and free the old area if it wasn't reused.
@@ -1127,7 +1138,7 @@ void exit_mmap(struct mm_struct * mm)
 		}
 		mm->map_count--;
 		remove_shared_vm_struct(mpnt);
-		zap_page_range(mm, start, size);
+		zap_page_range(mm, start, size, ZPR_PARTITION);
 		if (mpnt->vm_file)
 			fput(mpnt->vm_file);
 		kmem_cache_free(vm_area_cachep, mpnt);

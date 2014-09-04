@@ -130,6 +130,8 @@ void agp_backend_release(void)
 	if (agp_bridge.type == NOT_SUPPORTED) {
 		return;
 	}
+	if (atomic_read(&agp_bridge.agp_in_use) != 1) 
+		return;
 	atomic_dec(&agp_bridge.agp_in_use);
 	MOD_DEC_USE_COUNT;
 }
@@ -4155,10 +4157,25 @@ static const drm_agp_t drm_agp = {
 	&agp_copy_info
 };
 
+#ifdef CONFIG_FB_I810
+static int gart_initialized = 0;
+static int __init agp_init(void);
+
+int i810fb_agp_init(void)
+{
+        if (gart_initialized) return 0;
+	return agp_init();
+}
+#endif
+
 static int __init agp_init(void)
 {
 	int ret_val;
 
+#ifdef CONFIG_FB_I810  
+	if (gart_initialized) return 0;
+	gart_initialized = 1;
+#endif
 	printk(KERN_INFO "Linux agpgart interface v%d.%d (c) Jeff Hartmann\n",
 	       AGPGART_VERSION_MAJOR, AGPGART_VERSION_MINOR);
 

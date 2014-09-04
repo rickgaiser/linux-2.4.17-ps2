@@ -1,3 +1,5 @@
+/* $USAGI: dev.c,v 1.18 2002/02/27 12:12:57 yoshfuji Exp $ */
+
 /*
  * 	NET3	Protocol independent device support routines.
  *
@@ -100,9 +102,13 @@
 #include <linux/init.h>
 #include <linux/kmod.h>
 #include <linux/module.h>
+#include <linux/security.h>
 #if defined(CONFIG_NET_RADIO) || defined(CONFIG_NET_PCMCIA_RADIO)
 #include <linux/wireless.h>		/* Note : will define WIRELESS_EXT */
 #endif	/* CONFIG_NET_RADIO || CONFIG_NET_PCMCIA_RADIO */
+
+#include <linux/trace.h>
+
 #ifdef CONFIG_PLIP
 extern int plip_init(void);
 #endif
@@ -543,6 +549,49 @@ struct net_device *dev_getbyhwaddr(unsigned short type, char *ha)
 			return dev;
 	}
 	return NULL;
+}
+
+/**
+ *	__dev_get_by_flags - find any device with given flags
+ *	@flags: IFF_* values
+ *	@mask: bitmask of bits in flags to check
+ *
+ *	Search for any interface with the given flags. Returns NULL if a
+ *	device is not found or a pointer to the device. The caller must
+ *	hold either the RTNL semaphore or @dev_base_lock.
+ */
+
+struct net_device *__dev_get_by_flags(unsigned short flags, unsigned short mask)
+{
+	struct net_device *dev;
+	for (dev = dev_base; dev != NULL; dev = dev->next) {
+		if (((dev->flags ^ flags) & mask) == 0)
+			return dev;
+	}
+	return NULL;
+}
+
+/**
+ *  dev_get_by_flags - find any device with given flags
+ *  @flags: IFF_* values
+ *  @mask: bitmask of bits in flags to check
+ *
+ *  Search for any interface with the given flags. Returns NULL if a
+ *  device is not found or a pointer to the device. The device returned
+ *  has had a reference added and the pointer is safe until the user
+ *  calls dev_put to indicate they have finished with it.
+ */
+
+struct net_device * dev_get_by_flags(unsigned short flags, unsigned short mask)
+{
+	struct net_device *dev;
+
+	read_lock(&dev_base_lock);
+	dev = __dev_get_by_flags(flags, mask);
+	if (dev)
+		dev_hold(dev);
+	read_unlock(&dev_base_lock);
+	return dev;
 }
 
 /**
@@ -1006,6 +1055,8 @@ int dev_queue_xmit(struct sk_buff *skb)
 			return -ENOMEM;
 	}
 
+	TRACE_NETWORK(TRACE_EV_NETWORK_PACKET_OUT, skb->protocol);
+
 	/* Grab device queue */
 	spin_lock_bh(&dev->queue_lock);
 	q = dev->qdisc;
@@ -1033,9 +1084,15 @@ int dev_queue_xmit(struct sk_buff *skb)
 		int cpu = smp_processor_id();
 
 		if (dev->xmit_lock_owner != cpu) {
+                        /*
+                         * The spin_lock effectivly does a preempt lock, but 
+                         * we are about to drop that...
+                         */
+                        preempt_disable();
 			spin_unlock(&dev->queue_lock);
 			spin_lock(&dev->xmit_lock);
 			dev->xmit_lock_owner = cpu;
+                        preempt_enable();
 
 			if (!netif_queue_stopped(dev)) {
 				if (netdev_nit)
@@ -1182,6 +1239,7 @@ static void get_sample_stats(int cpu)
 static void sample_queue(unsigned long dummy)
 {
 /* 10 ms 0r 1ms -- i dont care -- JHS */
+/* run from timer interrupt, preemption is always off here */
 	int next_tick = 1;
 	int cpu = smp_processor_id();
 
@@ -1439,6 +1497,8 @@ static void net_rx_action(struct softirq_action *h)
 		skb_bond(skb);
 
 		rx_dev = skb->dev;
+
+		TRACE_NETWORK(TRACE_EV_NETWORK_PACKET_IN, skb->protocol);
 
 #ifdef CONFIG_NET_FASTROUTE
 		if (skb->pkt_type == PACKET_FASTROUTE) {
@@ -2127,7 +2187,10 @@ static int dev_ifsioc(struct ifreq *ifr, unsigned int cmd)
 			return err;
 
 		case SIOCGIFHWADDR:
-			memcpy(ifr->ifr_hwaddr.sa_data,dev->dev_addr, MAX_ADDR_LEN);
+			if (dev->addr_len < sizeof(ifr->ifr_hwaddr.sa_data))
+				memcpy(ifr->ifr_hwaddr.sa_data, dev->dev_addr, dev->addr_len);
+			else
+				memcpy(ifr->ifr_hwaddr.sa_data, dev->dev_addr, sizeof(ifr->ifr_hwaddr.sa_data));
 			ifr->ifr_hwaddr.sa_family=dev->type;
 			return 0;
 				
@@ -2142,11 +2205,24 @@ static int dev_ifsioc(struct ifreq *ifr, unsigned int cmd)
 			if (!err)
 				notifier_call_chain(&netdev_chain, NETDEV_CHANGEADDR, dev);
 			return err;
-			
+
+#ifdef SIOCGIFHWBROADCAST
+		case SIOCGIFHWBROADCAST:
+			if (dev->addr_len < sizeof(ifr->ifr_hwaddr.sa_data))
+				memcpy(ifr->ifr_hwaddr.sa_data, dev->broadcast, dev->addr_len);
+			else
+				memcpy(ifr->ifr_hwaddr.sa_data, dev->broadcast, sizeof(ifr->ifr_hwaddr.sa_data));
+			ifr->ifr_hwaddr.sa_family=dev->type;
+			return 0;
+#endif
+
 		case SIOCSIFHWBROADCAST:
 			if (ifr->ifr_hwaddr.sa_family!=dev->type)
 				return -EINVAL;
-			memcpy(dev->broadcast, ifr->ifr_hwaddr.sa_data, MAX_ADDR_LEN);
+			if (dev->addr_len < sizeof(ifr->ifr_hwaddr.sa_data))
+				memcpy(dev->broadcast, ifr->ifr_hwaddr.sa_data, dev->addr_len);
+			else
+				memcpy(dev->broadcast, ifr->ifr_hwaddr.sa_data, sizeof(ifr->ifr_hwaddr.sa_data));
 			notifier_call_chain(&netdev_chain, NETDEV_CHANGEADDR, dev);
 			return 0;
 
@@ -2664,6 +2740,8 @@ int unregister_netdevice(struct net_device *dev)
 #ifdef CONFIG_NET_DIVERT
 	free_divert_blk(dev);
 #endif
+
+	security_netdev_unregister(dev);
 
 	if (dev->features & NETIF_F_DYNALLOC) {
 #ifdef NET_REFCNT_DEBUG

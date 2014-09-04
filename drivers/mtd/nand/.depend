@@ -1,0 +1,74 @@
+autcpu12.o: autcpu12.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/mtd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/nand.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/partitions.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h
+ebook-nand.o: ebook-nand.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/mtd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/nand.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/partitions.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mtd/sdm/partition.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/sdmparse.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mtd/nand/ebook/48.h)
+edb7312.o: edb7312.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/mtd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/nand.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/partitions.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mtd/partitions.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mtd/cmdline/parts.h)
+nand.o: nand.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/mtd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/nand.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/nand_ids.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/nand_ecc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mpu110/led/api.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mtd/nand/verify/write.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mtd/nand/force/erase.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mtd/nand/ecc.h)
+nand_ecc.o: nand_ecc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h
+snsc_mpu110-nand.o: snsc_mpu110-nand.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/mtd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/nand.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/partitions.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mtd/sdm/partition.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/sdmparse.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/dragonball/snsc/mpu110/1.h)
+snsc_mpu210-nand.o: snsc_mpu210-nand.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/mtd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/nand.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/partitions.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/it8172/it8172.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/it8172/snsc_mpu210.h
+spia.o: spia.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/mtd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/nand.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mtd/partitions.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h

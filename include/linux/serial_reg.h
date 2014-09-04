@@ -119,6 +119,14 @@
 #define UART_IERX_SLEEP  0x10	/* Enable sleep mode */
 
 /*
+ * The Intel PXA250/210 chip defines those bits
+ */
+#define UART_IER_DMAE	0x80	/* DMA Requests Enable */
+#define UART_IER_UUE	0x40	/* UART Unit Enable */
+#define UART_IER_NRZE	0x20	/* NRZ coding Enable */
+#define UART_IER_RTOIE	0x10	/* Receiver Time Out Interrupt Enable */
+
+/*
  * These are the definitions for the Modem Control Register
  */
 #define UART_MCR_LOOP	0x10	/* Enable loopback test mode */

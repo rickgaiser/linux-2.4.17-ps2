@@ -48,7 +48,7 @@ asmlinkage int sys_pipe(struct pt_regs regs)
 		res = error;
 		goto out;
 	}
-	regs.regs[3] = fd[1];
+	set_gpreg(&regs, 3, fd[1]);
 	res = fd[0];
 out:
 	return res;
@@ -82,7 +82,16 @@ out:
 asmlinkage unsigned long old_mmap(unsigned long addr, size_t len, int prot,
                                   int flags, int fd, off_t offset)
 {
-	return do_mmap2(addr, len, prot, flags, fd, offset >> PAGE_SHIFT);
+	int result;
+
+	result = -EINVAL;
+	if (offset & ~PAGE_MASK)
+		goto out;
+
+	result = do_mmap2(addr, len, prot, flags, fd, offset >> PAGE_SHIFT);
+
+out:
+	return result;
 }
 
 asmlinkage long
@@ -97,7 +106,7 @@ static_unused int _sys_fork(struct pt_regs regs)
 {
 	int res;
 
-	res = do_fork(SIGCHLD, regs.regs[29], &regs, 0);
+	res = do_fork(SIGCHLD, get_gpreg(&regs, 29), &regs, 0);
 	return res;
 }
 
@@ -109,10 +118,10 @@ static_unused int _sys_clone(struct pt_regs regs)
 	unsigned long newsp;
 	int res;
 
-	clone_flags = regs.regs[4];
-	newsp = regs.regs[5];
+	clone_flags = get_gpreg(&regs, 4);
+	newsp = get_gpreg(&regs, 5);
 	if (!newsp)
-		newsp = regs.regs[29];
+		newsp = get_gpreg(&regs, 29);
 	res = do_fork(clone_flags, newsp, &regs, 0);
 	return res;
 }
@@ -125,12 +134,12 @@ asmlinkage int sys_execve(struct pt_regs regs)
 	int error;
 	char * filename;
 
-	filename = getname((char *) (long)regs.regs[4]);
+	filename = getname((char *) (long)get_gpreg(&regs, 4));
 	error = PTR_ERR(filename);
 	if (IS_ERR(filename))
 		goto out;
-	error = do_execve(filename, (char **) (long)regs.regs[5],
-	                  (char **) (long)regs.regs[6], &regs);
+	error = do_execve(filename, (char **) (long)get_gpreg(&regs, 5),
+	                  (char **) (long)get_gpreg(&regs, 6), &regs);
 	putname(filename);
 
 out:
@@ -183,7 +192,7 @@ asmlinkage int sys_olduname(struct oldold_utsname * name)
 asmlinkage int sys_syscall(struct pt_regs regs)
 {
 	syscall_t syscall;
-	unsigned long syscallnr = regs.regs[4];
+	unsigned long syscallnr = get_gpreg(&regs, 4);
 	unsigned long a0, a1, a2, a3, a4, a5, a6;
 	int nargs, errno;
 
@@ -205,7 +214,7 @@ asmlinkage int sys_syscall(struct pt_regs regs)
 	}
 
 	if(nargs > 3) {
-		unsigned long usp = regs.regs[29];
+		unsigned long usp = get_gpreg(&regs, 29);
 		unsigned long *sp = (unsigned long *) usp;
 		if(usp & 3) {
 			printk("unaligned usp -EFAULT\n");
@@ -238,7 +247,7 @@ asmlinkage int sys_syscall(struct pt_regs regs)
 	} else {
 		a3 = a4 = a5 = a6 = 0;
 	}
-	a0 = regs.regs[5]; a1 = regs.regs[6]; a2 = regs.regs[7];
+	a0 = get_gpreg(&regs, 5); a1 = get_gpreg(&regs, 6); a2 = get_gpreg(&regs, 7);
 	if(nargs == 0)
 		a0 = (unsigned long) &regs;
 	return syscall((void *)a0, a1, a2, a3, a4, a5, a6);

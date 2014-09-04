@@ -99,9 +99,44 @@ void __init pcibios_init(void)
 	pcibios_fixup_irqs();
 }
 
+/*
+ * pciauto_assign_resources() will enable all devices found, so
+ * pcibios_enable_device() appears redundant. However, there
+ * are platforms that intentionally make pci_auto skip some
+ * devices that have default power-up resource assignments that
+ * can't be modified, so we still need to enable those.
+ */
 int pcibios_enable_device(struct pci_dev *dev)
 {
-	/* pciauto_assign_resources() will enable all devices found */
+	/* fixme: this function should be present for all boards.
+	 * However, it was too late in the release cycle to enable
+	 * it. We'll enable it later ...
+	 */
+#if defined(CONFIG_MIPS_ITE8172) || defined(CONFIG_MIPS_IVR) || defined(CONFIG_MIPS_SNSC_MPU210)
+	u16 cmd, old_cmd;
+	int fn;
+	struct resource *r;
+
+	pci_read_config_word(dev, PCI_COMMAND, &cmd);
+	old_cmd = cmd;
+	for (fn = 0; fn < 6; fn++) {
+		r = &dev->resource[fn];
+		if (!r->start && r->end) {
+			printk(KERN_ERR "PCI: Device %s not available because "
+			       "of resource collisions\n", dev->slot_name);
+			return -EINVAL;
+		}
+		if (r->flags & IORESOURCE_IO)
+			cmd |= PCI_COMMAND_IO;
+		if (r->flags & IORESOURCE_MEM)
+			cmd |= PCI_COMMAND_MEMORY;
+	}
+	if (cmd != old_cmd) {
+		printk("PCI: Enabling device %s (%04x -> %04x)\n",
+		       dev->slot_name, old_cmd, cmd);
+		pci_write_config_word(dev, PCI_COMMAND, cmd);
+	}
+#endif
 	return 0;
 }
 
@@ -170,5 +205,21 @@ void
 pcibios_update_resource(struct pci_dev *dev, struct resource *root,
 			struct resource *res, int resource)
 {
+#ifndef CONFIG_MIPS_SNSC_MPU210
 	/* this should not be called */
+#else	/* CONFIG_MIPS_SNSC_MPU210 */
+	u8	ofs;
+
+	/* called from drivers/pci/pci.c */
+	if ((0 <= resource) && (resource < PCI_ROM_RESOURCE)) {
+		ofs = PCI_BASE_ADDRESS_0 + 4 * resource;
+		pci_write_config_dword(dev, ofs,
+			res->start | (res->flags & PCI_REGION_FLAG_MASK));
+	} else if (resource == PCI_ROM_RESOURCE) {
+		ofs = dev->rom_base_reg;
+		res->flags |= PCI_ROM_ADDRESS_ENABLE;
+		pci_write_config_dword(dev, ofs,
+			res->start | (res->flags & PCI_REGION_FLAG_MASK));
+	}
+#endif	/* CONFIG_MIPS_SNSC_MPU210 */
 }

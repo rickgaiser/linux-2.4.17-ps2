@@ -1,3 +1,5 @@
+/* $USAGI: ksyms.c,v 1.27 2002/02/27 12:12:56 yoshfuji Exp $ */
+
 /*
  * Herein lies all the functions/variables that are "exported" for linkage
  * with dynamically loaded kernel modules.
@@ -44,10 +46,14 @@
 #include <linux/brlock.h>
 #include <linux/fs.h>
 #include <linux/tty.h>
+#include <linux/md5.h>
 #include <linux/in6.h>
 #include <linux/completion.h>
 #include <linux/seq_file.h>
 #include <asm/checksum.h>
+#ifdef CONFIG_ILATENCY
+#include <linux/ilatency.h>
+#endif
 
 #if defined(CONFIG_PROC_FS)
 #include <linux/proc_fs.h>
@@ -90,6 +96,7 @@ EXPORT_SYMBOL(exit_fs);
 EXPORT_SYMBOL(exit_sighand);
 
 /* internal kernel memory management */
+EXPORT_SYMBOL(start_aggressive_readahead);
 EXPORT_SYMBOL(_alloc_pages);
 EXPORT_SYMBOL(__alloc_pages);
 EXPORT_SYMBOL(alloc_pages_node);
@@ -104,6 +111,7 @@ EXPORT_SYMBOL(kmem_cache_create);
 EXPORT_SYMBOL(kmem_cache_destroy);
 EXPORT_SYMBOL(kmem_cache_shrink);
 EXPORT_SYMBOL(kmem_cache_alloc);
+EXPORT_SYMBOL(kmem_cache_zalloc);
 EXPORT_SYMBOL(kmem_cache_free);
 EXPORT_SYMBOL(kmalloc);
 EXPORT_SYMBOL(kfree);
@@ -111,6 +119,7 @@ EXPORT_SYMBOL(vfree);
 EXPORT_SYMBOL(__vmalloc);
 EXPORT_SYMBOL(mem_map);
 EXPORT_SYMBOL(remap_page_range);
+EXPORT_SYMBOL(remap_page_array);
 EXPORT_SYMBOL(max_mapnr);
 EXPORT_SYMBOL(high_memory);
 EXPORT_SYMBOL(vmtruncate);
@@ -137,6 +146,8 @@ EXPORT_SYMBOL(fget);
 EXPORT_SYMBOL(igrab);
 EXPORT_SYMBOL(iunique);
 EXPORT_SYMBOL(iget4);
+EXPORT_SYMBOL(icreate);
+EXPORT_SYMBOL(unlock_new_inode);
 EXPORT_SYMBOL(iput);
 EXPORT_SYMBOL(force_delete);
 EXPORT_SYMBOL(follow_up);
@@ -205,6 +216,7 @@ EXPORT_SYMBOL(block_write_full_page);
 EXPORT_SYMBOL(block_read_full_page);
 EXPORT_SYMBOL(block_prepare_write);
 EXPORT_SYMBOL(block_sync_page);
+EXPORT_SYMBOL(generic_cont_expand);
 EXPORT_SYMBOL(cont_prepare_write);
 EXPORT_SYMBOL(generic_commit_write);
 EXPORT_SYMBOL(block_truncate_page);
@@ -237,6 +249,7 @@ EXPORT_SYMBOL(shrink_dcache_parent);
 EXPORT_SYMBOL(find_inode_number);
 EXPORT_SYMBOL(is_subdir);
 EXPORT_SYMBOL(get_unused_fd);
+EXPORT_SYMBOL(put_unused_fd);
 EXPORT_SYMBOL(vfs_create);
 EXPORT_SYMBOL(vfs_mkdir);
 EXPORT_SYMBOL(vfs_mknod);
@@ -269,6 +282,9 @@ EXPORT_SYMBOL(lease_get_mtime);
 EXPORT_SYMBOL(lock_may_read);
 EXPORT_SYMBOL(lock_may_write);
 EXPORT_SYMBOL(dcache_readdir);
+#ifdef CONFIG_REISERFS_IMMUTABLE_HACK
+EXPORT_SYMBOL(update_suidimmu);
+#endif
 
 /* for stackable file systems (lofs, wrapfs, cryptfs, etc.) */
 EXPORT_SYMBOL(default_llseek);
@@ -279,6 +295,10 @@ EXPORT_SYMBOL(filemap_fdatasync);
 EXPORT_SYMBOL(filemap_fdatawait);
 EXPORT_SYMBOL(lock_page);
 EXPORT_SYMBOL(unlock_page);
+
+/* for page_buf cache */
+EXPORT_SYMBOL(add_to_page_cache_unique);
+EXPORT_SYMBOL(balance_dirty);
 
 /* device registration */
 EXPORT_SYMBOL(register_chrdev);
@@ -303,6 +323,7 @@ EXPORT_SYMBOL(blkdev_open);
 EXPORT_SYMBOL(blkdev_get);
 EXPORT_SYMBOL(blkdev_put);
 EXPORT_SYMBOL(ioctl_by_bdev);
+EXPORT_SYMBOL(flush_hardwarebuf);
 EXPORT_SYMBOL(grok_partitions);
 EXPORT_SYMBOL(register_disk);
 EXPORT_SYMBOL(tq_disk);
@@ -407,9 +428,11 @@ EXPORT_SYMBOL(brw_kiovec);
 EXPORT_SYMBOL(kiobuf_wait_for_io);
 
 /* dma handling */
+#ifdef CONFIG_GENERIC_ISA_DMA
 EXPORT_SYMBOL(request_dma);
 EXPORT_SYMBOL(free_dma);
 EXPORT_SYMBOL(dma_spin_lock);
+#endif
 #ifdef HAVE_DISABLE_HLT
 EXPORT_SYMBOL(disable_hlt);
 EXPORT_SYMBOL(enable_hlt);
@@ -436,6 +459,19 @@ EXPORT_SYMBOL(sleep_on_timeout);
 EXPORT_SYMBOL(interruptible_sleep_on);
 EXPORT_SYMBOL(interruptible_sleep_on_timeout);
 EXPORT_SYMBOL(schedule);
+#ifdef CONFIG_ILATENCY
+EXPORT_SYMBOL(intr_sti);
+EXPORT_SYMBOL(intr_cli);
+EXPORT_SYMBOL(intr_restore_flags); 
+#endif
+#ifdef CONFIG_PREEMPT
+EXPORT_SYMBOL(preempt_schedule);
+#endif
+#ifdef CONFIG_PREEMPT_TIMES
+EXPORT_SYMBOL(latency_start);
+EXPORT_SYMBOL(latency_end);
+EXPORT_SYMBOL(latency_check);
+#endif
 EXPORT_SYMBOL(schedule_timeout);
 EXPORT_SYMBOL(jiffies);
 EXPORT_SYMBOL(xtime);
@@ -463,6 +499,10 @@ EXPORT_SYMBOL(cdevname);
 EXPORT_SYMBOL(simple_strtoul);
 EXPORT_SYMBOL(system_utsname);	/* UTS data */
 EXPORT_SYMBOL(uts_sem);		/* UTS semaphore */
+#ifdef CONFIG_IPV6_NODEINFO
+EXPORT_SYMBOL(icmpv6_sethostname_hook);
+EXPORT_SYMBOL(icmpv6_sethostname_hook_sem);
+#endif
 #ifndef __mips__
 EXPORT_SYMBOL(sys_call_table);
 #endif
@@ -509,6 +549,7 @@ EXPORT_SYMBOL(get_empty_inode);
 EXPORT_SYMBOL(insert_inode_hash);
 EXPORT_SYMBOL(remove_inode_hash);
 EXPORT_SYMBOL(buffer_insert_inode_queue);
+EXPORT_SYMBOL(buffer_insert_inode_data_queue);
 EXPORT_SYMBOL(make_bad_inode);
 EXPORT_SYMBOL(is_bad_inode);
 EXPORT_SYMBOL(event);
@@ -537,6 +578,10 @@ EXPORT_SYMBOL(get_fast_time);
 EXPORT_SYMBOL(strnicmp);
 EXPORT_SYMBOL(strspn);
 EXPORT_SYMBOL(strsep);
+EXPORT_SYMBOL(md5_init);
+EXPORT_SYMBOL(md5_loop);
+EXPORT_SYMBOL(md5_pad);
+EXPORT_SYMBOL(md5_result);
 
 /* software interrupts */
 EXPORT_SYMBOL(tasklet_hi_vec);

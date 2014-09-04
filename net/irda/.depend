@@ -1,0 +1,276 @@
+af_irda.o: af_irda.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sockios.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/iriap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irias_object.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irttp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/discovery.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/ultra.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/debug.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+crc.o: crc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/crc.h
+discovery.o: discovery.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/discovery.h
+irda_device.o: irda_device.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_ether.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wireless.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ioctls.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dma.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/pkt_sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda_device.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/wrapper.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irtty/sir.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/winbond/fir.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sa1100/fir.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/nsc/fir.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/toshiba/fir.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/smc/ircc/fir.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/esi/dongle.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/tekram/dongle.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/actisys/dongle.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/girbil/dongle.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/litelink/dongle.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/old/belkin.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ep7211/ir.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/kmod.h)
+iriap.o: iriap.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irttp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irias_object.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/iriap_event.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/iriap.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/ultra.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+iriap_event.o: iriap_event.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/iriap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/iriap_event.h
+irias_object.o: irias_object.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irias_object.h
+irlap.o: irlap.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/random.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda_device.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irqueue.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp_frame.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap_frame.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/qos.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/ultra.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/dynamic/window.h)
+irlap_event.o: irlap_event.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap_event.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap_frame.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/qos.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/parameters.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda_device.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/fast/rr.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/dynamic/window.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/ultra.h)
+irlap_frame.o: irlap_frame.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_ether.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/pkt_sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda_device.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap_frame.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/qos.h
+irlmp.o: irlmp.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/random.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/qos.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/iriap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp_frame.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/cache/last/lsap.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/ultra.h)
+irlmp_event.o: irlmp_event.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp_frame.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp_event.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/ultra.h)
+irlmp_frame.o: irlmp_frame.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp_frame.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/discovery.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/ultra.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/cache/last/lsap.h)
+irproc.o: irproc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/miscdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h
+irqueue.o: irqueue.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irqueue.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irmod.h
+irsyms.o: irsyms.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/iriap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irias_object.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irttp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda_device.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/parameters.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/debug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irtty.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sysctl.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irlan.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ircomm.h)
+irsysctl.o: irsysctl.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ctype.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irias_object.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/debug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/fast/rr.h)
+irttp.o: irttp.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/parameters.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irttp.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+parameters.o: parameters.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/parameters.h
+qos.o: qos.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/parameters.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/qos.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/irda/dynamic/window.h)
+timer.o: timer.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irtty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp_event.h
+wrapper.o: wrapper.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irtty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/crc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlap_frame.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda_device.h

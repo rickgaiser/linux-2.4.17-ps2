@@ -90,7 +90,11 @@ int parse_redboot_partitions(struct mtd_info *master, struct mtd_partition **ppa
 			goto out;
 		}
 		new_fl->img = &buf[i];
+#if defined (CONFIG_DRAGONBALL_SNSC_MPU110)
+                buf[i].flash_base &= master->size*2-1;
+#else
 		buf[i].flash_base &= master->size-1;
+#endif
 
 		/* I'm sure the JFFS2 code has done me permanent damage.
 		 * I now think the following is _normal_
@@ -126,6 +130,10 @@ int parse_redboot_partitions(struct mtd_info *master, struct mtd_partition **ppa
 	       parts[0].offset = 0;
 	}
 	for ( ; i<nrparts; i++) {
+		if (fl == NULL) {
+			nrparts = i;
+			break;
+		}
 		parts[i].size = fl->img->size;
 		parts[i].offset = fl->img->flash_base;
 		parts[i].name = names;

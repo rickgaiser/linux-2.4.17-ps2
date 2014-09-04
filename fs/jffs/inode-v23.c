@@ -10,7 +10,7 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * $Id: inode-v23.c,v 1.70 2001/10/02 09:16:02 dwmw2 Exp $
+ * $Id: inode-v23.c,v 1.72 2002/01/31 11:42:57 cdavies Exp $
  *
  * Ported to Linux 2.3.x and MTD:
  * Copyright (C) 2000  Alexander Larsson (alex@cendio.se), Cendio Systems AB
@@ -48,6 +48,7 @@
 #include <linux/stat.h>
 #include <linux/blkdev.h>
 #include <linux/quotaops.h>
+#include <linux/compatmac.h>
 #include <asm/semaphore.h>
 #include <asm/byteorder.h>
 #include <asm/uaccess.h>
@@ -56,6 +57,11 @@
 #include "intrep.h"
 #if CONFIG_JFFS_PROC_FS
 #include "jffs_proc.h"
+#endif
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,2)
+#define minor(x) MINOR(x)
+#define major(x) MAJOR(x)
 #endif
 
 static int jffs_remove(struct inode *dir, struct dentry *dentry, int type);
@@ -81,7 +87,7 @@ jffs_read_super(struct super_block *sb, void *data, int silent)
 	D1(printk(KERN_NOTICE "JFFS: Trying to mount device %s.\n",
 		  kdevname(dev)));
 
-	if (MAJOR(dev) != MTD_BLOCK_MAJOR) {
+	if (major(dev) != MTD_BLOCK_MAJOR) {
 		printk(KERN_WARNING "JFFS: Trying to mount a "
 		       "non-mtd device.\n");
 		return 0;
@@ -358,7 +364,7 @@ jffs_new_inode(const struct inode * dir, struct jffs_raw_inode *raw_inode,
 	inode->i_nlink = raw_inode->nlink;
 	inode->i_uid = raw_inode->uid;
 	inode->i_gid = raw_inode->gid;
-	inode->i_rdev = 0;
+	inode->i_rdev = NODEV;
 	inode->i_size = raw_inode->dsize;
 	inode->i_atime = raw_inode->atime;
 	inode->i_mtime = raw_inode->mtime;

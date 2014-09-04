@@ -189,6 +189,7 @@ extern struct pcmcia_low_level cerf_pcmcia_ops;
 extern struct pcmcia_low_level gcplus_pcmcia_ops;
 extern struct pcmcia_low_level xp860_pcmcia_ops;
 extern struct pcmcia_low_level yopy_pcmcia_ops;
+extern struct pcmcia_low_level shannon_pcmcia_ops;
 extern struct pcmcia_low_level pangolin_pcmcia_ops;
 extern struct pcmcia_low_level freebird_pcmcia_ops;
 extern struct pcmcia_low_level pfs168_pcmcia_ops;

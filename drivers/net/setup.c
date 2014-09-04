@@ -21,6 +21,7 @@ extern int awc4500_365_probe(void);
 extern int arcnet_init(void); 
 extern int scc_enet_init(void); 
 extern int fec_enet_init(void); 
+extern int fcc_enet_init(void);
 extern int dlci_setup(void); 
 extern int sdla_setup(void); 
 extern int sdla_c_setup(void); 
@@ -66,11 +67,14 @@ static struct net_probe pci_probes[] __initdata = {
 #if defined(CONFIG_ARCNET)
 	{arcnet_init, 0},
 #endif
-#if defined(CONFIG_SCC_ENET)
+#if defined(CONFIG_SCC_ENET) || defined(CONFIG_8260_SCC_ENET)
         {scc_enet_init, 0},
 #endif
 #if defined(CONFIG_FEC_ENET)
         {fec_enet_init, 0},
+#endif
+#if defined(CONFIG_FCC_ENET)
+	{fcc_enet_init, 0},
 #endif
 #if defined(CONFIG_COMX)
 	{comx_init, 0},

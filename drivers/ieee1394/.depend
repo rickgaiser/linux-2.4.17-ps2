@@ -1,0 +1,291 @@
+csr.o: csr.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   ieee1394_types.h \
+   hosts.h \
+   ieee1394.h \
+   highlevel.h
+highlevel.o: highlevel.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   ieee1394.h \
+   ieee1394_types.h \
+   hosts.h \
+   ieee1394_core.h \
+   highlevel.h
+hosts.o: hosts.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   ieee1394_types.h \
+   hosts.h \
+   ieee1394_core.h \
+   highlevel.h
+hosts.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tqueue.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   ieee1394_types.h \
+   csr.h
+	@touch hosts.h
+ieee1394.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h
+	@touch ieee1394.h
+ieee1394_core.o: ieee1394_core.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   ieee1394_types.h \
+   ieee1394.h \
+   hosts.h \
+   ieee1394_core.h \
+   highlevel.h \
+   ieee1394_transactions.h \
+   csr.h \
+   nodemgr.h \
+   ieee1394_hotplug.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/verbosedebug.h)
+ieee1394_core.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tqueue.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   hosts.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h
+	@touch ieee1394_core.h
+ieee1394_hotplug.h: \
+   ieee1394_core.h \
+   nodemgr.h
+	@touch ieee1394_hotplug.h
+ieee1394_transactions.o: ieee1394_transactions.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bitops.h \
+   ieee1394.h \
+   ieee1394_types.h \
+   hosts.h \
+   ieee1394_core.h \
+   highlevel.h
+ieee1394_transactions.h: \
+   ieee1394_core.h
+	@touch ieee1394_transactions.h
+ieee1394_types.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h
+	@touch ieee1394_types.h
+nodemgr.o: nodemgr.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kmod.h \
+   ieee1394_types.h \
+   ieee1394.h \
+   hosts.h \
+   ieee1394_transactions.h \
+   ieee1394_hotplug.h \
+   highlevel.h \
+   csr.h \
+   nodemgr.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rom/vendor/id.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rom/model/id.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rom/specifier/id.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rom/version.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rom/descriptor/leaf.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rom/descriptor/directory.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/verbosedebug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rom/node/capabilites.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rom/unit/directory.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/hotplug.h)
+ohci1394.o: ohci1394.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tqueue.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/pgtable.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/page.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/all/ppc.h) \
+   ieee1394.h \
+   ieee1394_types.h \
+   hosts.h \
+   ieee1394_core.h \
+   highlevel.h \
+   ohci1394.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/verbosedebug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/ohci/dma/debug.h)
+ohci1394.h: \
+   ieee1394_types.h
+	@touch ohci1394.h
+pcilynx.o: pcilynx.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   ieee1394.h \
+   ieee1394_types.h \
+   hosts.h \
+   ieee1394_core.h \
+   highlevel.h \
+   pcilynx.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/verbosedebug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/pcilynx/ports.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/pcilynx/localram.h)
+pcilynx.h: \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/pcilynx/ports.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/pcilynx/localram.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/stddef.h
+	@touch pcilynx.h
+raw1394.o: raw1394.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/devfs_fs_kernel.h \
+   ieee1394.h \
+   ieee1394_types.h \
+   ieee1394_core.h \
+   hosts.h \
+   highlevel.h \
+   ieee1394_transactions.h \
+   raw1394.h
+raw1394.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/types.h
+	@touch raw1394.h
+sbp2.o: sbp2.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blk.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/current.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/scatterlist.h \
+   ieee1394.h \
+   ieee1394_types.h \
+   ieee1394_core.h \
+   hosts.h \
+   nodemgr.h \
+   highlevel.h \
+   ieee1394_transactions.h \
+   ieee1394_hotplug.h \
+   ../scsi/scsi.h \
+   ../scsi/hosts.h \
+   ../scsi/sd.h \
+   sbp2.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/sbp2/debug/orbs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/sbp2/debug/dma.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/sbp2/debug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/rom/initial/memory/space.h)
+video1394.o: video1394.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/list.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tqueue.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/devfs_fs_kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/pgtable.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/page.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wrapper.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timex.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   ieee1394.h \
+   ieee1394_types.h \
+   hosts.h \
+   ieee1394_core.h \
+   highlevel.h \
+   video1394.h \
+   ohci1394.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ieee1394/verbosedebug.h)
+.PRECIOUS:	hosts.h \
+	ieee1394.h \
+	ieee1394_core.h \
+	ieee1394_hotplug.h \
+	ieee1394_transactions.h \
+	ieee1394_types.h \
+	ohci1394.h \
+	pcilynx.h \
+	raw1394.h \
+

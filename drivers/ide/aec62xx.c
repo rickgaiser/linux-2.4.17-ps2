@@ -51,6 +51,21 @@ extern int (*aec62xx_display_info)(char *, char **, off_t, int); /* ide-proc.c *
 extern char *ide_media_verbose(ide_drive_t *);
 static struct pci_dev *bmide_dev;
 
+static const char *aec6280_get_speed(u8 speed)
+{
+	switch(speed) {
+		case 7: return "6";
+		case 6: return "5";
+		case 5: return "4";
+		case 4: return "3";
+		case 3: return "2";
+		case 2: return "1";
+		case 1: return "0";
+		case 0: return "?";
+	}
+	return "?";
+}
+
 static int aec62xx_get_info (char *buffer, char **addr, off_t offset, int count)
 {
 	char *p = buffer;
@@ -68,6 +83,12 @@ static int aec62xx_get_info (char *buffer, char **addr, off_t offset, int count)
 			break;
 		case PCI_DEVICE_ID_ARTOP_ATP860R:
 			p += sprintf(p, "\n                                AEC6260 Chipset.\n");
+			break;
+		case PCI_DEVICE_ID_ARTOP_ATP865:
+			p += sprintf(p, "\n                                AEC6280 Chipset without ROM.\n");
+			break;
+		case PCI_DEVICE_ID_ARTOP_ATP865R:
+			p += sprintf(p, "\n                                AEC6280 Chipset with ROM.\n");
 			break;
 		default:
 			p += sprintf(p, "\n                                AEC62?? Chipset.\n");
@@ -153,6 +174,41 @@ static int aec62xx_get_info (char *buffer, char **addr, off_t offset, int count)
 			(void) pci_read_config_byte(bmide_dev, 0x4a, &uart);
 			p += sprintf(p, "reg4ah = 0x%02x\n", uart);
 			break;
+		case PCI_DEVICE_ID_ARTOP_ATP865:
+		case PCI_DEVICE_ID_ARTOP_ATP865R:
+			(void) pci_read_config_byte(bmide_dev, 0x44, &art);
+			p += sprintf(p, "DMA Mode:       %s(%s)          %s(%s)",
+				(c0&0x20)?((art&0x0f)?"UDMA":" DMA"):" PIO",
+				aec6280_get_speed(art&0x0f),
+				(c0&0x40)?((art&0xf0)?"UDMA":" DMA"):" PIO",
+				aec6280_get_speed(art>>4));
+			(void) pci_read_config_byte(bmide_dev, 0x45, &art);
+			p += sprintf(p, "         %s(%s)          %s(%s)\n",
+				(c0&0x20)?((art&0x0f)?"UDMA":" DMA"):" PIO",
+				aec6280_get_speed(art&0x0f),
+				(c0&0x40)?((art&0xf0)?"UDMA":" DMA"):" PIO",
+				aec6280_get_speed(art>>4));
+			(void) pci_read_config_byte(bmide_dev, 0x40, &art);
+			p += sprintf(p, "Active:         0x%02x", HIGH_4(art));
+			(void) pci_read_config_byte(bmide_dev, 0x41, &art);
+			p += sprintf(p, "             0x%02x", HIGH_4(art));
+			(void) pci_read_config_byte(bmide_dev, 0x42, &art);
+			p += sprintf(p, "            0x%02x", HIGH_4(art));
+			(void) pci_read_config_byte(bmide_dev, 0x43, &art);
+			p += sprintf(p, "              0x%02x\n", HIGH_4(art));
+			(void) pci_read_config_byte(bmide_dev, 0x40, &art);
+			p += sprintf(p, "Recovery:       0x%02x", LOW_4(art));
+			(void) pci_read_config_byte(bmide_dev, 0x41, &art);
+			p += sprintf(p, "             0x%02x", LOW_4(art));
+			(void) pci_read_config_byte(bmide_dev, 0x42, &art);
+			p += sprintf(p, "            0x%02x", LOW_4(art));
+			(void) pci_read_config_byte(bmide_dev, 0x43, &art);
+			p += sprintf(p, "              0x%02x\n", LOW_4(art));
+			(void) pci_read_config_byte(bmide_dev, 0x49, &uart);
+			p += sprintf(p, "reg49h = 0x%02x ", uart);
+			(void) pci_read_config_byte(bmide_dev, 0x4a, &uart);
+			p += sprintf(p, "reg4ah = 0x%02x\n", uart);
+			break;
 		default:
 			break;
 	}
@@ -177,6 +233,8 @@ struct chipset_bus_clock_list_entry {
 
 struct chipset_bus_clock_list_entry aec62xx_base [] = {
 #ifdef CONFIG_BLK_DEV_IDEDMA
+	{	XFER_UDMA_6,	0x41,	0x06,	0x31,	0x07	},
+	{	XFER_UDMA_5,	0x41,	0x05,	0x31,	0x06	},
 	{	XFER_UDMA_4,	0x41,	0x04,	0x31,	0x05	},
 	{	XFER_UDMA_3,	0x41,	0x03,	0x31,	0x04	},
 	{	XFER_UDMA_2,	0x41,	0x02,	0x31,	0x03	},
@@ -399,6 +457,58 @@ static int config_aec6260_chipset_for_dma (ide_drive_t *drive, byte ultra)
 						     ide_dma_off_quietly);
 }
 
+static int config_aec6280_chipset_for_dma (ide_drive_t *drive, byte ultra)
+{
+	struct hd_driveid *id	= drive->id;
+	ide_hwif_t *hwif	= HWIF(drive);
+	byte unit		= (drive->select.b.unit & 0x01);
+	unsigned long dma_base	= hwif->dma_base;
+	byte speed		= -1;
+	byte ultra66		= eighty_ninty_three(drive);
+
+	if (drive->media != ide_disk)
+		return ((int) ide_dma_off_quietly);
+
+	if ((id->dma_ultra & 0x0040) && (ultra) && (ultra66)) {
+		speed = XFER_UDMA_6;
+	} else if ((id->dma_ultra & 0x0020) && (ultra) && (ultra66)) {
+		speed = XFER_UDMA_5;
+	} else if ((id->dma_ultra & 0x0010) && (ultra) && (ultra66)) {
+		speed = XFER_UDMA_4;
+	} else if ((id->dma_ultra & 0x0008) && (ultra) && (ultra66)) {
+		speed = XFER_UDMA_3;
+	} else if ((id->dma_ultra & 0x0004) && (ultra)) {
+		speed = XFER_UDMA_2;
+	} else if ((id->dma_ultra & 0x0002) && (ultra)) {
+		speed = XFER_UDMA_1;
+	} else if ((id->dma_ultra & 0x0001) && (ultra)) {
+		speed = XFER_UDMA_0;
+	} else if (id->dma_mword & 0x0004) {
+		speed = XFER_MW_DMA_2;
+	} else if (id->dma_mword & 0x0002) {
+		speed = XFER_MW_DMA_1;
+	} else if (id->dma_mword & 0x0001) {
+		speed = XFER_MW_DMA_0;
+	} else if (id->dma_1word & 0x0004) {
+		speed = XFER_SW_DMA_2;
+	} else if (id->dma_1word & 0x0002) {
+		speed = XFER_SW_DMA_1;
+	} else if (id->dma_1word & 0x0001) {
+		speed = XFER_SW_DMA_0;
+	} else {
+		return ((int) ide_dma_off_quietly);
+	}
+
+	outb(inb(dma_base+2) & ~(1<<(5+unit)), dma_base+2);
+	(void) aec6260_tune_chipset(drive, speed);
+
+	return ((int)	((id->dma_ultra >> 11) & 3) ? ide_dma_on :
+			((id->dma_ultra >> 8) & 7) ? ide_dma_on :
+			((id->dma_mword >> 8) & 7) ? ide_dma_on :
+			((id->dma_1word >> 8) & 7) ? ide_dma_on :
+						     ide_dma_off_quietly);
+}
+
 static int config_chipset_for_dma (ide_drive_t *drive, byte ultra)
 {
 	switch(HWIF(drive)->pci_dev->device) {	
@@ -406,6 +516,9 @@ static int config_chipset_for_dma (ide_drive_t *drive, byte ultra)
 			return config_aec6210_chipset_for_dma(drive, ultra);
 		case PCI_DEVICE_ID_ARTOP_ATP860:
 		case PCI_DEVICE_ID_ARTOP_ATP860R:
+			return config_aec6260_chipset_for_dma(drive, ultra);
+		case PCI_DEVICE_ID_ARTOP_ATP865:
+		case PCI_DEVICE_ID_ARTOP_ATP865R:
 			return config_aec6260_chipset_for_dma(drive, ultra);
 		default:
 			return ((int) ide_dma_off_quietly);
@@ -433,6 +546,8 @@ static void aec62xx_tune_drive (ide_drive_t *drive, byte pio)
 			(void) aec6210_tune_chipset(drive, speed);
 		case PCI_DEVICE_ID_ARTOP_ATP860:
 		case PCI_DEVICE_ID_ARTOP_ATP860R:
+		case PCI_DEVICE_ID_ARTOP_ATP865:
+		case PCI_DEVICE_ID_ARTOP_ATP865R:
 			(void) aec6260_tune_chipset(drive, speed);
 		default:
 			break;
@@ -551,6 +666,31 @@ unsigned int __init ata66_aec62xx (ide_hwif_t *hwif)
 
 void __init ide_init_aec62xx (ide_hwif_t *hwif)
 {
+	byte reg49h = 0;
+	byte reg4ah = 0;
+
+	switch(hwif->pci_dev->device) {
+		case PCI_DEVICE_ID_ARTOP_ATP865:
+		case PCI_DEVICE_ID_ARTOP_ATP865R:
+			/* Clear reset and test bits.  */
+			pci_read_config_byte(hwif->pci_dev, 0x49, &reg49h);
+			pci_write_config_byte(hwif->pci_dev, 0x49, reg49h & ~0x30);
+			/* Enable chip interrupt output.  */
+			pci_read_config_byte(hwif->pci_dev, 0x4a, &reg4ah);
+			pci_write_config_byte(hwif->pci_dev, 0x4a, reg4ah & ~0x01);
+#define CONFIG_AEC6280_BURST
+#ifdef CONFIG_AEC6280_BURST
+			/* Must be greater than 0x80 for burst mode.  */
+			pci_write_config_byte(hwif->pci_dev, PCI_LATENCY_TIMER, 0x90);
+			/* Enable burst mode.  */
+			pci_read_config_byte(hwif->pci_dev, 0x4a, &reg4ah);
+			pci_write_config_byte(hwif->pci_dev, 0x4a, reg4ah | 0x80);
+#endif
+			break;
+		default:
+			break;
+	}
+
 #ifdef CONFIG_AEC62XX_TUNING
 	hwif->tuneproc = &aec62xx_tune_drive;
 	hwif->speedproc = &aec62xx_tune_chipset;
@@ -570,13 +710,20 @@ void __init ide_dmacapable_aec62xx (ide_hwif_t *hwif, unsigned long dmabase)
 	unsigned long flags;
 	byte reg54h = 0;
 
-	__save_flags(flags);	/* local CPU only */
-	__cli();		/* local CPU only */
+	switch(hwif->pci_dev->device) {
+		case PCI_DEVICE_ID_ARTOP_ATP865:
+		case PCI_DEVICE_ID_ARTOP_ATP865R:
+			break;
+		default:
+			__save_flags(flags);	/* local CPU only */
+			__cli();		/* local CPU only */
 
-	pci_read_config_byte(hwif->pci_dev, 0x54, &reg54h);
-	pci_write_config_byte(hwif->pci_dev, 0x54, reg54h & ~(hwif->channel ? 0xF0 : 0x0F));
+			pci_read_config_byte(hwif->pci_dev, 0x54, &reg54h);
+			pci_write_config_byte(hwif->pci_dev, 0x54, reg54h & ~(hwif->channel ? 0xF0 : 0x0F));
 
-	__restore_flags(flags);	/* local CPU only */
+			__restore_flags(flags);	/* local CPU only */
+			break;
+	}
 #endif /* CONFIG_AEC62XX_TUNING */
 	ide_setup_dma(hwif, dmabase, 8);
 }

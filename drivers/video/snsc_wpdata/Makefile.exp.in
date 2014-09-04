@@ -1,0 +1,37 @@
+#
+# Makefile for linking wallpaper data with linux kernel
+#
+# Copyright 2002 Sony Corporation.
+
+ifndef PPM
+usage:
+	@echo "Please specify input PPM file"
+	@echo "usage:"
+	@echo "    make PPM=sample.ppm [DEPTH=<depth> ZLVL=<compression level>]"
+endif
+
+ifdef DEPTH
+	DEPOPT = -d $(DEPTH)
+endif
+
+ifdef ZLVL
+	COMPOPT = -z $(ZLVL)
+endif
+
+vmlinux.bin: bwp.o dummy
+	@@LD@@ @@LINKFLAGS@@ vmlinux.o bwp.o -o vmlinux.elf
+	@@NM@@ vmlinux.elf | grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | sort > System.map
+	@@OBJCOPY@@ -O binary vmlinux.elf vmlinux.bin
+	@@OBJCOPY@@ -O srec vmlinux.elf vmlinux.srec
+
+
+O_FORMAT = $(shell @@OBJDUMP@@ -i | head -2 | grep elf32)
+bwp.o: $(PPM) ppmtobwp dummy
+	./ppmtobwp $(DEPOPT) $(COMPOPT) -i $(PPM) -o wallpaper.bwp
+	@@LD@@ -T wp.lds -b binary --oformat $(O_FORMAT) -o $@ wallpaper.bwp
+	@rm -f wallpaper.bwp
+
+clean:
+	rm -f vmlinux.bin vmlinux.elf vmlinux.srec System.map bwp.o
+
+dummy:

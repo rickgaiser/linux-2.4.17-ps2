@@ -17,7 +17,7 @@ O_TARGET := net.o
 
 export-objs     :=	8390.o arlan.o aironet4500_core.o aironet4500_card.o \
 			ppp_async.o ppp_generic.o slhc.o pppox.o auto_irq.o \
-			net_init.o
+			net_init.o hhnet_eth.o hhnet.o hhnet_dma.o
 list-multi	:=	rcpci.o
 rcpci-objs	:=	rcpci45.o rclanmtl.o
 
@@ -37,9 +37,10 @@ subdir-$(CONFIG_TR) += tokenring
 subdir-$(CONFIG_WAN) += wan
 subdir-$(CONFIG_NET_FC) += fc
 subdir-$(CONFIG_ARCNET) += arcnet
-subdir-$(CONFIG_APPLETALK) += appletalk
+subdir-$(CONFIG_ATALK) += appletalk
 subdir-$(CONFIG_SK98LIN) += sk98lin
 subdir-$(CONFIG_SKFP) += skfp
+subdir-$(CONFIG_INTEL_E100) += e100
 
 #
 # link order important here
@@ -58,6 +59,7 @@ obj-$(CONFIG_SUNGEM) += sungem.o
 obj-$(CONFIG_MACE) += mace.o
 obj-$(CONFIG_BMAC) += bmac.o
 obj-$(CONFIG_GMAC) += gmac.o
+obj-$(CONFIG_NCR885E) += ncr885e.o
 
 obj-$(CONFIG_OAKNET) += oaknet.o 8390.o
 
@@ -78,6 +80,7 @@ obj-$(CONFIG_NATSEMI) += natsemi.o
 obj-$(CONFIG_NS83820) += ns83820.o
 obj-$(CONFIG_STNIC) += stnic.o 8390.o
 obj-$(CONFIG_FEALNX) += fealnx.o
+obj-$(CONFIG_TC35815) += tc35815.o
 
 ifeq ($(CONFIG_SK98LIN),y)
 obj-y += sk98lin/sk98lin.o
@@ -89,6 +92,10 @@ endif
 
 obj-$(CONFIG_VIA_RHINE) += via-rhine.o
 obj-$(CONFIG_ADAPTEC_STARFIRE) += starfire.o
+
+ifeq ($(CONFIG_INTEL_E100),y)
+  obj-y += e100/e100.o
+endif
 
 #
 # end link order section
@@ -114,8 +121,10 @@ obj-$(CONFIG_SHAPER) += shaper.o
 obj-$(CONFIG_SK_G16) += sk_g16.o
 obj-$(CONFIG_HP100) += hp100.o
 obj-$(CONFIG_SMC9194) += smc9194.o
+obj-$(CONFIG_SMC91111) += smc91111.o
 obj-$(CONFIG_ARM_AM79C961A) += am79c961a.o
 obj-$(CONFIG_ARM_ETHERH) += 8390.o
+obj-$(CONFIG_CERF_CS8900A) += cerf89x0.o
 obj-$(CONFIG_WD80x3) += wd.o 8390.o
 obj-$(CONFIG_EL2) += 3c503.o 8390.o
 obj-$(CONFIG_NE2000) += ne.o 8390.o
@@ -129,6 +138,10 @@ obj-$(CONFIG_E2100) += e2100.o 8390.o
 obj-$(CONFIG_ES3210) += es3210.o 8390.o
 obj-$(CONFIG_LNE390) += lne390.o 8390.o
 obj-$(CONFIG_NE3210) += ne3210.o 8390.o
+obj-$(CONFIG_GT64260_ETH) += gt64260_eth.o
+obj-$(CONFIG_NET_SB1250_MAC) += sb1250-mac.o
+obj-$(CONFIG_HHNET_DMA) += hhnet_dma.o
+obj-$(CONFIG_HHNET) += hhnet_eth.o hhnet.o hhnet_drawb.o
 
 obj-$(CONFIG_PPP) += ppp_generic.o slhc.o
 obj-$(CONFIG_PPP_ASYNC) += ppp_async.o
@@ -152,6 +165,7 @@ obj-$(CONFIG_LANCE) += lance.o
 obj-$(CONFIG_SUN3LANCE) += sun3lance.o
 obj-$(CONFIG_DEFXX) += defxx.o
 obj-$(CONFIG_SGISEEQ) += sgiseeq.o
+obj-$(CONFIG_SGI_O2MACE_ETH) += meth.o
 obj-$(CONFIG_AT1700) += at1700.o
 obj-$(CONFIG_FMV18X) += fmv18x.o
 obj-$(CONFIG_EL1) += 3c501.o
@@ -183,6 +197,7 @@ obj-$(CONFIG_APRICOT) += 82596.o
 obj-$(CONFIG_LASI_82596) += lasi_82596.o
 obj-$(CONFIG_MVME16x_NET) += 82596.o
 obj-$(CONFIG_BVME6000_NET) += 82596.o
+obj-$(CONFIG_PPC405_ENET) += ppc405_enet.o ppc405_phy.o
 
 # This is also a 82596 and should probably be merged
 obj-$(CONFIG_LP486E) += lp486e.o
@@ -209,6 +224,8 @@ obj-$(CONFIG_MACSONIC) += macsonic.o
 obj-$(CONFIG_MACMACE) += macmace.o
 obj-$(CONFIG_MAC89x0) += mac89x0.o
 obj-$(CONFIG_TUN) += tun.o
+obj-$(CONFIG_ETHER00) +=ether00.o
+obj-$(CONFIG_NEC_CANDY) += nec_candy.o
 obj-$(CONFIG_DL2K) += dl2k.o
 
 ifeq ($(CONFIG_ARCH_ACORN),y)

@@ -1,3 +1,5 @@
+/* $USAGI: snmp.h,v 1.10 2001/07/04 06:18:02 yoshfuji Exp $ */
+
 /*
  *
  *		SNMP MIB entries for the IP subsystem.
@@ -61,11 +63,12 @@ struct ip_mib
  	unsigned long	IpFragOKs;
  	unsigned long	IpFragFails;
  	unsigned long	IpFragCreates;
-	unsigned long   __pad[0]; 
+	unsigned long	__pad[0];
 } ____cacheline_aligned;
  
 struct ipv6_mib
 {
+	unsigned long	Ip6LastChange;
 	unsigned long	Ip6InReceives;
  	unsigned long	Ip6InHdrErrors;
  	unsigned long	Ip6InTooBigErrors;
@@ -88,7 +91,7 @@ struct ipv6_mib
  	unsigned long	Ip6FragCreates;
  	unsigned long	Ip6InMcastPkts;
  	unsigned long	Ip6OutMcastPkts;
-	unsigned long   __pad[0]; 
+	unsigned long	__pad[0];
 } ____cacheline_aligned;
  
 struct icmp_mib
@@ -128,36 +131,49 @@ struct icmpv6_mib
 	unsigned long	Icmp6InMsgs;
 	unsigned long	Icmp6InErrors;
 
-	unsigned long	Icmp6InDestUnreachs;
-	unsigned long	Icmp6InPktTooBigs;
-	unsigned long	Icmp6InTimeExcds;
-	unsigned long	Icmp6InParmProblems;
+	/* XXX: order is important: net/ipv6/icmp.c */
+	unsigned long	Icmp6InDestUnreachs;		/*   1 */
+	unsigned long	Icmp6InPktTooBigs;		/*   2 */
+	unsigned long	Icmp6InTimeExcds;		/*   3 */
+	unsigned long	Icmp6InParmProblems;		/*   4 */
 
-	unsigned long	Icmp6InEchos;
-	unsigned long	Icmp6InEchoReplies;
-	unsigned long	Icmp6InGroupMembQueries;
-	unsigned long	Icmp6InGroupMembResponses;
-	unsigned long	Icmp6InGroupMembReductions;
-	unsigned long	Icmp6InRouterSolicits;
-	unsigned long	Icmp6InRouterAdvertisements;
-	unsigned long	Icmp6InNeighborSolicits;
-	unsigned long	Icmp6InNeighborAdvertisements;
-	unsigned long	Icmp6InRedirects;
+	unsigned long	Icmp6InAdminProhibs;
+
+	/* XXX: order is important: net/ipv6/icmp.c */
+	unsigned long	Icmp6InEchos;			/* 128 */
+	unsigned long	Icmp6InEchoReplies;		/* 129 */
+	unsigned long	Icmp6InGroupMembQueries;	/* 130 */
+	unsigned long	Icmp6InGroupMembResponses;	/* 131 */
+	unsigned long	Icmp6InGroupMembReductions;	/* 132 */
+	unsigned long	Icmp6InRouterSolicits;		/* 133 */
+	unsigned long	Icmp6InRouterAdvertisements;	/* 134 */
+	unsigned long	Icmp6InNeighborSolicits;	/* 135 */
+	unsigned long	Icmp6InNeighborAdvertisements;	/* 136 */
+	unsigned long	Icmp6InRedirects;		/* 137 */
 
 	unsigned long	Icmp6OutMsgs;
+	unsigned long	Icmp6OutErrors;
 
-	unsigned long	Icmp6OutDestUnreachs;
-	unsigned long	Icmp6OutPktTooBigs;
-	unsigned long	Icmp6OutTimeExcds;
-	unsigned long	Icmp6OutParmProblems;
+	/* XXX: order is important: net/ipv6/icmp.c */
+	unsigned long	Icmp6OutDestUnreachs;		/*   1 */
+	unsigned long	Icmp6OutPktTooBigs;		/*   2 */
+	unsigned long	Icmp6OutTimeExcds;		/*   3 */
+	unsigned long	Icmp6OutParmProblems;		/*   4 */
 
-	unsigned long	Icmp6OutEchoReplies;
-	unsigned long	Icmp6OutRouterSolicits;
-	unsigned long	Icmp6OutNeighborSolicits;
-	unsigned long	Icmp6OutNeighborAdvertisements;
-	unsigned long	Icmp6OutRedirects;
-	unsigned long	Icmp6OutGroupMembResponses;
-	unsigned long	Icmp6OutGroupMembReductions;
+	unsigned long	Icmp6OutAdminProhibs;
+
+	/* XXX: order is important: net/ipv6/icmp.c */
+	unsigned long	Icmp6OutEchos;			/* 128 */
+	unsigned long	Icmp6OutEchoReplies;		/* 129 */
+	unsigned long	Icmp6OutGroupMembQueries;	/* 130 */
+	unsigned long	Icmp6OutGroupMembResponses;	/* 131 */
+	unsigned long	Icmp6OutGroupMembReductions;	/* 132 */
+	unsigned long	Icmp6OutRouterSolicits;		/* 133 */
+	unsigned long	Icmp6OutRouterAdvertisements;	/* 134 */
+	unsigned long	Icmp6OutNeighborSolicits;	/* 135 */
+	unsigned long	Icmp6OutNeighborAdvertisements;	/* 136 */
+	unsigned long	Icmp6OutRedirects;		/* 137 */
+
 	unsigned long   __pad[0]; 
 } ____cacheline_aligned;
  

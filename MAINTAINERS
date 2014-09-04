@@ -1,4 +1,4 @@
-	List of maintainers and how to submit kernel changes
+	
 
 Please try to follow the guidelines below.  This will make things
 easier on the maintainers.  Not all of these guidelines matter for every
@@ -68,7 +68,6 @@ S: Status, one of the following:
 	Obsolete:	Old code. Something tagged obsolete generally means
 			it has been replaced by a better system and you
 			should be using that.
-
 3C501 NETWORK DRIVER
 P:	Alan Cox
 M:	alan@the.3c501.cabal.tm
@@ -543,6 +542,12 @@ P:      Mika Kuoppala
 M:      miku@iki.fi
 S:      Maintained
 
+ETHERNET, WATCHDOG TIMER AND GPIO DRIVERS ON IBM4XX
+P:	Armin Kuster
+M:	akuster@mvista.com
+L:	linuxppc-embedded@lists.linuxppc.org
+S:	Maintained
+
 EXT2 FILE SYSTEM
 P:	Remy Card
 M:	Remy.Card@linux.org
@@ -791,6 +796,13 @@ W:      http://www.inter-mezzo.org/
 L:      intermezzo-discuss@lists.sourceforge.net
 S:      Maintained
 
+INTERNATIONAL KERNEL PATCH (CRYPTO)
+P:	Alexander Kjeldaas
+M:	astor@fast.no
+W:	http://www.kerneli.org/
+L:	linux-kernel@vger.rutgers.edu
+S:	Maintained
+
 IP MASQUERADING:
 P:	Juanjo Ciarlante
 M:	jjciarla@raiz.uncu.edu.ar
@@ -872,6 +884,12 @@ L:	kbuild-devel@lists.sourceforge.net
 W:	http://kbuild.sourceforge.net
 S:	Maintained 
 
+KGDB FOR I386 PLATFORM
+P:	George Anzinger
+M:	george@mvista.com
+L:	linux-net@vger.kernel.org
+S:	Supported
+
 KERNEL NFSD
 P:	Neil Brown
 M:	neilb@cse.unsw.edu.au
@@ -899,11 +917,24 @@ M:	James.Bottomley@HansenPartnership.com
 L:	linux-scsi@vger.kernel.org
 S:	Maintained
 
+LINUX FOR EMBEDDED/CPCI POWERPC 6XX/7XX/74XX
+P:	Matt Porter
+M:	mporter@mvista.com
+S:	Maintained
+
 LINUX FOR IBM pSERIES (RS/6000)
 P:	Paul Mackerras
 M:	paulus@au.ibm.com
 W:	http://www.ibm.com/linux/ltc/projects/ppc
 S:	Supported
+
+LINUX FOR MPC8XX AND IBM4XX
+P:	Dan Malek
+P:	Tom Rini
+M:	dan@embeddededge.com
+M:	trini@kernel.crashing.org
+L:	linuxppc-embedded@lists.linuxppc.org
+S:	Maintained
 
 LINUX FOR POWERPC
 P:	Paul Mackerras
@@ -917,6 +948,12 @@ M:	benh@kernel.crashing.org
 W:	http://www.linuxppc.org/
 L:	linuxppc-dev@lists.linuxppc.org
 S:	Maintained
+
+LINUX FOR SYNERGY (GEMINI) VME/CPCI POWERPC
+P:	Val Henson
+M:	val@synergymicro.com
+W:	http://www.synergymicro.com/Software/Linux.html
+S:	Supported
 
 LOGICAL DISK MANAGER SUPPORT (LDM, Windows 2000/XP Dynamic Disks)
 P:	Richard Russon (FlatCap)
@@ -1242,6 +1279,14 @@ P:	Michal Ostrowski
 M:	mostrows@styx.uwaterloo.ca
 S:	Maintained
 
+PREEMPTIBLE KERNEL
+P:	Robert M. Love
+M:	rml@tech9.net
+L:	linux-kernel@vger.kernel.org
+L:	kpreempt-tech@lists.sourceforge.net
+W:	http://tech9.net/rml/linux
+S:	Maintained
+
 PROMISE DC4030 CACHING DISK CONTROLLER DRIVER
 P:	Peter Denison
 M:	promise@pnd-pc.demon.co.uk
@@ -1342,6 +1387,15 @@ P:	Kai Mäkisara
 M:	Kai.Makisara@metla.fi
 L:	linux-scsi@vger.kernel.org
 S:	Maintained
+
+SENSORS DRIVERS
+P:      Frodo Looijaard
+M:      frodol@dds.nl
+P:      Philip Edelbrock
+M:      phil@netroedge.com
+L:      sensors@stimpy.netroedge.com
+W:      http://www.lm-sensors.nu/
+S:      Maintained
 
 SGI VISUAL WORKSTATION 320 AND 540
 P:	Bent Hagemark
@@ -1744,6 +1798,14 @@ P:	Henner Eisen
 M:	eis@baty.hanse.de
 L:	linux-x25@vger.kernel.org
 S:	Maintained
+
+XFS FILESYSTEM
+P:	Silicon Graphics Inc
+M:	owner-xfs@oss.sgi.com
+M:	lord@sgi.com
+L:	linux-xfs@oss.sgi.com
+W:	http://oss.sgi.com/projects/xfs
+S:	Supported
 
 X86 3-LEVEL PAGING (PAE) SUPPORT
 P:	Ingo Molnar

@@ -1,0 +1,30 @@
+#
+#
+# 
+
+if [ "$CONFIG_CIPHERS" != "n" ]; then
+	comment 'AES Cipher (128 bit blocksize)'
+	dep_tristate ' AES (aka Rijndael) cipher (EXPERIMENTAL)' CONFIG_CIPHER_AES $CONFIG_CIPHERS
+#
+	comment 'AES Finalist Ciphers (128 bit blocksize)'
+#	dep_tristate ' Twofish cipher (EXPERIMENTAL)' CONFIG_CIPHER_TWOFISH $CONFIG_CIPHERS
+#	dep_tristate ' MARS cipher (EXPERIMENTAL)' CONFIG_CIPHER_MARS $CONFIG_CIPHERS
+#	dep_tristate ' RC6 cipher (EXPERIMENTAL)' CONFIG_CIPHER_RC6 $CONFIG_CIPHERS
+#	dep_tristate ' Serpent cipher (EXPERIMENTAL)' CONFIG_CIPHER_SERPENT $CONFIG_CIPHERS
+#
+	comment 'Other Ciphers submitted as AES Candidates:'
+#	dep_tristate ' DFC cipher (EXPERIMENTAL)' CONFIG_CIPHER_DFC $CONFIG_CIPHERS
+#
+	comment 'Other ciphers (64 bit blocksize)'
+#	dep_tristate ' Blowfish cipher (EXPERIMENTAL)' CONFIG_CIPHER_BLOWFISH $CONFIG_CIPHERS
+# 	dep_tristate ' IDEA cipher (EXPERIMENTAL)' CONFIG_CIPHER_IDEA $CONFIG_CIPHERS
+#	dep_tristate ' RC5 cipher (EXPERIMENTAL)' CONFIG_CIPHER_RC5 $CONFIG_CIPHERS
+ 	dep_tristate ' DES EDE3 cipher (3DES, EXPERIMENTAL)' CONFIG_CIPHER_DES_EDE3 $CONFIG_CIPHERS
+	dep_tristate ' DES cipher (DEPRECATED)' CONFIG_CIPHER_DES $CONFIG_CIPHERS
+#
+	comment 'Debugging'
+	dep_tristate ' DUMMY cipher (DEPRECATED)' CONFIG_CIPHER_DUMMY $CONFIG_CIPHERS
+
+	comment 'For IPsec only'
+	dep_tristate ' NULL cipher (EXPERIMENTAL)' CONFIG_CIPHER_NULL $CONFIG_CIPHERS
+fi

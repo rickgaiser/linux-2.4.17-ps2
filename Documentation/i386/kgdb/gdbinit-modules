@@ -1,0 +1,146 @@
+#
+# Usefull GDB user-command to debug Linux Kernel Modules with gdbstub.
+#
+# This don't work for Linux-2.0 or older.
+#
+# Author Edouard G. Parmelan <Edouard.Parmelan@quadratec.fr>
+#
+#
+# Fri Apr 30 20:33:29 CEST 1999
+#   First public release.
+#
+#   Major cleanup after experiment Linux-2.0 kernel without success.
+#   Symbols of a module are not in the correct order, I can't explain
+#   why :(
+#
+# Fri Mar 19 15:41:40 CET 1999
+#   Initial version.
+#
+# Thu Jan  6 16:29:03 CST 2000
+#   A little fixing by Dave Grothe <dave@gcom.com>
+#
+# Mon Jun 19 09:33:13 CDT 2000
+#   Alignment changes from Edouard Parmelan
+#
+# The basic idea is to find where insmod load the module and inform
+# GDB to load the symbol table of the module with the GDB command 
+# ``add-symbol-file <object> <address>''.
+#
+# The Linux kernel holds the list of all loaded modules in module_list,
+# this list end with &kernel_module (exactly with module->next == NULL,
+# but the last module is not a real module).
+#
+# Insmod allocates the struct module before the object file.  Since
+# Linux-2.1, this structure contain his size.  The real address of
+# the object file is then (char*)module + module->size_of_struct.
+#
+# You can use three user functions ``mod-list'', ``mod-print-symbols''
+# and ``add-module-symbols''.
+#
+# mod-list list all loaded modules with the format:
+#    <module-address> <module-name>
+#
+# As soon as you have found the address of your module, you can
+# print its exported symbols (mod-print-symbols) or inform GDB to add
+# symbols from your module file (mod-add-symbols).
+#
+# The argument that you give to mod-print-symbols or mod-add-symbols
+# is the <module-address> from the mod-list command.
+#
+# When using the mod-add-symbols command you must also give the full
+# pathname of the modules object code file.
+#
+# The command mod-add-lis is an example of how to make this easier.
+# You can edit this macro to contain the path name of your own
+# favorite module and then use it as a shorthand to load it.  You
+# still need the module-address, however.
+#
+# The internal function ``mod-validate'' set the GDB variable $mod
+# as a ``struct module*'' if the kernel known the module otherwise
+# $mod is set to NULL.  This ensure to not add symbols for a wrong
+# address.
+# 
+# Have a nice hacking day !
+#
+#
+define mod-list
+    set $mod = (struct module*)module_list
+    # the last module is the kernel, ignore it
+    while $mod != &kernel_module
+    	printf "%p\t%s\n", (long)$mod, ($mod)->name
+	set $mod = $mod->next
+    end
+end
+document mod-list
+List all modules in the form: <module-address> <module-name>
+Use the <module-address> as the argument for the other
+mod-commands: mod-print-symbols, mod-add-symbols.
+end
+
+define mod-validate
+    set $mod = (struct module*)module_list
+    while ($mod != $arg0) && ($mod != &kernel_module)
+    	set $mod = $mod->next
+    end
+    if $mod == &kernel_module
+	set $mod = 0
+    	printf "%p is not a module\n", $arg0
+    end
+end
+document mod-validate
+mod-validate <module-address>
+Internal user-command used to validate the module parameter.
+If <module> is a real loaded module, set $mod to it otherwise set $mod to 0.
+end
+
+
+define mod-print-symbols
+    mod-validate $arg0
+    if $mod != 0
+	set $i = 0
+	while $i < $mod->nsyms
+	    set $sym = $mod->syms[$i]
+	    printf "%p\t%s\n", $sym->value, $sym->name
+	    set $i = $i + 1
+	end
+    end
+end
+document mod-print-symbols
+mod-print-symbols <module-address>
+Print all exported symbols of the module.  see mod-list
+end
+
+
+define mod-add-symbols-align
+    mod-validate $arg0
+    if $mod != 0
+	set $mod_base = ($mod->size_of_struct + (long)$mod)
+	if ($arg2 != 0) && (($mod_base & ($arg2 - 1)) != 0)
+	    set $mod_base = ($mod_base | ($arg2 - 1)) + 1
+	end
+	add-symbol-file $arg1 $mod_base
+    end
+end
+document mod-add-symbols-align
+mod-add-symbols-align <module-address> <object file path name> <align>
+Load the symbols table of the module from the object file where
+first section aligment is <align>.
+To retreive alignment, use `objdump -h <object file path name>'.
+end
+
+define mod-add-symbols
+    mod-add-symbols-align $arg0 $arg1 sizeof(long)
+end
+document mod-add-symbols
+mod-add-symbols <module-address> <object file path name>
+Load the symbols table of the module from the object file.
+Default alignment is 4.  See mod-add-symbols-align.
+end
+
+define mod-add-lis
+    mod-add-symbols-align $arg0 /usr/src/LiS/streams.o 16
+end
+document mod-add-lis
+mod-add-lis <module-address>
+Does mod-add-symbols <module-address> /usr/src/LiS/streams.o
+end

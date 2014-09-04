@@ -65,6 +65,8 @@ obj-$(CONFIG_INPUT_TURBOGRAFX)	+= turbografx.o
 
 obj-$(CONFIG_INPUT_AMIJOY)	+= amijoy.o
 
+obj-$(CONFIG_INPUT_MAPLE_CONTROL)+= maplecontrol.o
+
 # The global Rules.make.
 
 include $(TOPDIR)/Rules.make

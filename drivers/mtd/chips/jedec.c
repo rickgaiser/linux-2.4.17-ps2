@@ -11,7 +11,7 @@
  * not going to guess how to send commands to them, plus I expect they will
  * all speak CFI..
  *
- * $Id: jedec.c,v 1.12 2001/11/06 14:37:35 dwmw2 Exp $
+ * $Id: jedec.c,v 1.14 2002/06/27 02:19:12 dwmw2 Exp $
  */
 
 #include <linux/mtd/jedec.h>
@@ -465,8 +465,8 @@ static int jedec_probe32(struct map_info *map,unsigned long base,
       we call this routine with the JEDEC return still enabled, if two or
       more flashes have a truncated address space the probe test will still
       work */
-   if (base + Size+0x555 < map->size &&
-       base + Size+0x555 < (base & (~(my_bank_size-1))) + my_bank_size)
+   if (base + (Size<<2)+0x555 < map->size &&
+       base + (Size<<2)+0x555 < (base & (~(my_bank_size-1))) + my_bank_size)
    {
       if (flread(base+Size) != flread(base+Size + 0x100) ||
 	  flread(base+Size + 1) != flread(base+Size + 0x101))
@@ -738,6 +738,7 @@ static int flash_erase(struct mtd_info *mtd, struct erase_info *instr)
    }
        	    
    //printk("done\n");
+   instr->state = MTD_ERASE_DONE;
    if (instr->callback)
 	instr->callback(instr);
    return 0;

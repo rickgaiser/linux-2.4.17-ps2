@@ -1,3 +1,5 @@
+/* $USAGI: ip6_fib.c,v 1.14 2002/03/13 13:23:51 yoshfuji Exp $ */
+
 /*
  *	Linux INET6 implementation 
  *	Forwarding Information Database
@@ -11,6 +13,13 @@
  *      modify it under the terms of the GNU General Public License
  *      as published by the Free Software Foundation; either version
  *      2 of the License, or (at your option) any later version.
+ */
+
+/*
+ *      Changes:
+ *
+ *      sekiya@USAGI                   :        Remove ip6_null_entry from the top
+ *                                              of ip6 routing table.
  */
 
 #include <linux/config.h>
@@ -33,7 +42,6 @@
 #include <net/ip6_fib.h>
 #include <net/ip6_route.h>
 
-#define RT6_DEBUG 2
 #undef CONFIG_IPV6_SUBTREES
 
 #if RT6_DEBUG >= 3
@@ -104,101 +112,14 @@ static __inline__ u32 fib6_new_sernum(void)
 }
 
 /*
- *	Auxiliary address test functions for the radix tree.
- *
- *	These assume a 32bit processor (although it will work on 
- *	64bit processors)
- */
-
-/*
- *	compare "prefix length" bits of an address
- */
-
-static __inline__ int addr_match(void *token1, void *token2, int prefixlen)
-{
-	__u32 *a1 = token1;
-	__u32 *a2 = token2;
-	int pdw;
-	int pbi;
-
-	pdw = prefixlen >> 5;	  /* num of whole __u32 in prefix */
-	pbi = prefixlen &  0x1f;  /* num of bits in incomplete u32 in prefix */
-
-	if (pdw)
-		if (memcmp(a1, a2, pdw << 2))
-			return 0;
-
-	if (pbi) {
-		__u32 mask;
-
-		mask = htonl((0xffffffff) << (32 - pbi));
-
-		if ((a1[pdw] ^ a2[pdw]) & mask)
-			return 0;
-	}
-
-	return 1;
-}
-
-/*
  *	test bit
  */
 
-static __inline__ int addr_bit_set(void *token, int fn_bit)
+static __inline__ int addr_bit_set(const void *token, int fn_bit)
 {
-	__u32 *addr = token;
+	const __u32 *addr = token;
 
 	return htonl(1 << ((~fn_bit)&0x1F)) & addr[fn_bit>>5];
-}
-
-/*
- *	find the first different bit between two addresses
- *	length of address must be a multiple of 32bits
- */
-
-static __inline__ int addr_diff(void *token1, void *token2, int addrlen)
-{
-	__u32 *a1 = token1;
-	__u32 *a2 = token2;
-	int i;
-
-	addrlen >>= 2;
-
-	for (i = 0; i < addrlen; i++) {
-		__u32 xb;
-
-		xb = a1[i] ^ a2[i];
-
-		if (xb) {
-			int j = 31;
-
-			xb = ntohl(xb);
-
-			while ((xb & (1 << j)) == 0)
-				j--;
-
-			return (i * 32 + 31 - j);
-		}
-	}
-
-	/*
-	 *	we should *never* get to this point since that 
-	 *	would mean the addrs are equal
-	 *
-	 *	However, we do get to it 8) And exacly, when
-	 *	addresses are equal 8)
-	 *
-	 *	ip route add 1111::/128 via ...
-	 *	ip route add 1111::/64 via ...
-	 *	and we are here.
-	 *
-	 *	Ideally, this function should stop comparison
-	 *	at prefix length. It does not, but it is still OK,
-	 *	if returned value is greater than prefix length.
-	 *					--ANK (980803)
-	 */
-
-	return addrlen<<5;
 }
 
 static __inline__ struct fib6_node * node_alloc(void)
@@ -232,7 +153,7 @@ static __inline__ void rt6_release(struct rt6_info *rt)
  */
 
 static struct fib6_node * fib6_add_1(struct fib6_node *root, void *addr,
-				     int addrlen, int plen,
+				     int plen,
 				     int offset)
 {
 	struct fib6_node *fn, *in, *ln;
@@ -248,8 +169,10 @@ static struct fib6_node * fib6_add_1(struct fib6_node *root, void *addr,
 
 	fn = root;
 
+#ifndef CONFIG_IPV6_EN_DFLT
 	if (plen == 0)
 		return fn;
+#endif
 
 	do {
 		key = (struct rt6key *)((u8 *)fn->leaf + offset);
@@ -258,7 +181,7 @@ static struct fib6_node * fib6_add_1(struct fib6_node *root, void *addr,
 		 *	Prefix match
 		 */
 		if (plen < fn->fn_bit ||
-		    !addr_match(&key->addr, addr, fn->fn_bit))
+		    ipv6_prefix_cmp(&key->addr, addr, fn->fn_bit))
 			goto insert_above;
 		
 		/*
@@ -321,13 +244,15 @@ insert_above:
 
 	pn = fn->parent;
 
-	/* find 1st bit in difference between the 2 addrs.
-
-	   See comment in addr_diff: bit may be an invalid value,
-	   but if it is >= plen, the value is ignored in any case.
+	/*
+	 * find 1st bit in difference between the 2 addrs.
+	 *
+	 * Retuned value is ignored if returned valud is
+	 * greater than prefix length.
+	 *					--ANK (980803)
 	 */
-	
-	bit = addr_diff(addr, &key->addr, addrlen);
+
+	bit = ipv6_addr_diff(addr, &key->addr);
 
 	/* 
 	 *		(intermediate)[in]	
@@ -427,6 +352,21 @@ static int fib6_add_rt2node(struct fib6_node *fn, struct rt6_info *rt)
 
 	ins = &fn->leaf;
 
+#ifdef CONFIG_IPV6_EN_DFLT
+	if(fn->fn_flags&RTN_TL_ROOT &&
+	   fn->leaf == &ip6_null_entry &&
+	   !(rt->rt6i_flags & (RTF_DEFAULT | RTF_ADDRCONF | RTF_ALLONLINK)) ){
+		/*   
+		 *   The top fib of ip6 routing table includes ip6_null_entry.
+		 */
+		RT6_TRACE(
+			"fib6_add_rt2node : Try to insert default route into RTN_TL_ROOT.\n");
+		fn->leaf = rt;
+		rt->u.next = NULL;
+		goto out;
+	}
+#endif
+
 	for (iter = fn->leaf; iter; iter=iter->u.next) {
 		/*
 		 *	Search for duplicates
@@ -464,6 +404,9 @@ static int fib6_add_rt2node(struct fib6_node *fn, struct rt6_info *rt)
 
 	rt->u.next = iter;
 	*ins = rt;
+#ifdef CONFIG_IPV6_EN_DFLT
+out:
+#endif
 	rt->rt6i_node = fn;
 	atomic_inc(&rt->rt6i_ref);
 	inet6_rt_notify(RTM_NEWROUTE, rt);
@@ -495,7 +438,7 @@ int fib6_add(struct fib6_node *root, struct rt6_info *rt)
 	struct fib6_node *fn;
 	int err = -ENOMEM;
 
-	fn = fib6_add_1(root, &rt->rt6i_dst.addr, sizeof(struct in6_addr),
+	fn = fib6_add_1(root, &rt->rt6i_dst.addr, 
 			rt->rt6i_dst.plen, (u8*) &rt->rt6i_dst - (u8*) rt);
 
 	if (fn == NULL)
@@ -531,7 +474,7 @@ int fib6_add(struct fib6_node *root, struct rt6_info *rt)
 			/* Now add the first leaf node to new subtree */
 
 			sn = fib6_add_1(sfn, &rt->rt6i_src.addr,
-					sizeof(struct in6_addr), rt->rt6i_src.plen,
+					rt->rt6i_src.plen,
 					(u8*) &rt->rt6i_src - (u8*) rt);
 
 			if (sn == NULL) {
@@ -552,7 +495,7 @@ int fib6_add(struct fib6_node *root, struct rt6_info *rt)
 			}
 		} else {
 			sn = fib6_add_1(fn->subtree, &rt->rt6i_src.addr,
-					sizeof(struct in6_addr), rt->rt6i_src.plen,
+					rt->rt6i_src.plen,
 					(u8*) &rt->rt6i_src - (u8*) rt);
 
 			if (sn == NULL)
@@ -594,8 +537,8 @@ st_failure:
  */
 
 struct lookup_args {
-	int		offset;		/* key offset on rt6_info	*/
-	struct in6_addr	*addr;		/* search key			*/
+	int			offset;		/* key offset on rt6_info	*/
+	const struct in6_addr	*addr;		/* search key			*/
 };
 
 static struct fib6_node * fib6_lookup_1(struct fib6_node *root,
@@ -648,13 +591,14 @@ static struct fib6_node * fib6_lookup_1(struct fib6_node *root,
 			key = (struct rt6key *) ((u8 *) fn->leaf +
 						 args->offset);
 
-			if (addr_match(&key->addr, args->addr, key->plen))
+			if (!ipv6_prefix_cmp(&key->addr, args->addr, key->plen))
 				return fn;
 		}
 
 		fn = fn->parent;
 	}
 
+	RT6_TRACE("no fib found, return NULL\n");
 	return NULL;
 }
 
@@ -675,7 +619,7 @@ struct fib6_node * fib6_lookup(struct fib6_node *root, struct in6_addr *daddr,
 
 	fn = fib6_lookup_1(root, args);
 
-	if (fn == NULL)
+	if (fn == NULL || fn->fn_flags & RTN_TL_ROOT)
 		fn = root;
 
 	return fn;
@@ -700,7 +644,7 @@ static struct fib6_node * fib6_locate_1(struct fib6_node *root,
 		 *	Prefix match
 		 */
 		if (plen < fn->fn_bit ||
-		    !addr_match(&key->addr, addr, fn->fn_bit))
+		    ipv6_prefix_cmp(&key->addr, addr, fn->fn_bit))
 			return NULL;
 
 		if (plen == fn->fn_bit)
@@ -896,6 +840,11 @@ static void fib6_del_route(struct fib6_node *fn, struct rt6_info **rtp)
 	read_unlock(&fib6_walker_lock);
 
 	rt->u.next = NULL;
+
+#ifdef CONFIG_IPV6_EN_DFLT
+	if (fn->leaf == NULL && fn->fn_flags&RTN_TL_ROOT)
+		fn->leaf = &ip6_null_entry;
+#endif
 
 	/* If it was last route, expunge its radix tree node */
 	if (fn->leaf == NULL) {

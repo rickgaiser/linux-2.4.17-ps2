@@ -1,0 +1,38 @@
+irnet.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/devfs_fs_kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/miscdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ctype.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ppp_defs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_ppp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ppp_channel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irda.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/iriap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irias_object.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irlmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/irttp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/irda/discovery.h
+	@touch irnet.h
+irnet_irda.o: irnet_irda.c \
+   irnet_irda.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+irnet_irda.h: \
+   irnet.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+	@touch irnet_irda.h
+irnet_ppp.o: irnet_ppp.c \
+   irnet_ppp.h
+irnet_ppp.h: \
+   irnet.h
+	@touch irnet_ppp.h
+.PRECIOUS:	irnet.h \
+	irnet_irda.h \
+	irnet_ppp.h \
+

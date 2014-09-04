@@ -1,0 +1,127 @@
+netsyms.o: netsyms.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inetdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fddidevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/trdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/neighbour.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/snmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/dst.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/checksum.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/route.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/hippi.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hippidevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/pkt_sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/scm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_bridge.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_vlan.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/random.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/divert.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/divert.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/inet.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/protocol.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/udp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/tcp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/icmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/inet_common.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mroute.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/igmp.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ipv6.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ipv6/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/khttpd.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/khttpd/module.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in6.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/icmpv6.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ipv6.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ndisc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/transp_v6.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/addrconf.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ip6_route.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/mipglue.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ipsec.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sadb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/spd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ipsec.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/rtnetlink.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ipx/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atalk/module.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sysctl.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/filter.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/arpd.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/vlan/8021q.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/vlan/8021q/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bridge.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bridge/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/dlci/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ipsec/debug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ipv6/mobility.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ipv6/mobility/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/netlink/dev.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/netlink/dev/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/tr.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/fddi.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/kmod.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/hw/flowcontrol.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/sched.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/estimator.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/cls/police.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net/cls.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/netfilter.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netfilter.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ipv6_tunnel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/icmpv6.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ipv6/ipv6/tunnel.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ipv6/ipv6/tunnel/module.h)
+socket.o: socket.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wanrouter.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netlink.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/rtnetlink.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/cache.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/highmem.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/trace.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/kmod.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/scm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netfilter.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/smp.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/preempt.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/wan/router.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bluez.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ipsec.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/netlink/dev.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/netfilter.h)
+sysctl_net.o: sysctl_net.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/inet.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/net.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ipv6.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/tr.h)

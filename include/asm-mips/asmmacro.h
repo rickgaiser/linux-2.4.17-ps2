@@ -9,6 +9,35 @@
 
 #include <asm/offset.h>
 
+#ifdef CONFIG_CPU_R5900_CONTEXT
+
+#define S_GREG sq
+#define L_GREG lq
+
+/* save fp_acc: clobber $f0 */
+/* 	msub.s: $f0 = fpacc - 0.0f * 0.0f */
+#define	FPU_SAVE_EXTRA(thread)			\
+	mtc1    $0,$f0;				\
+	msub.s  $f0,$f0,$f0;			\
+	swc1	$f0,(THREAD_FPU_ACC)(thread);	\
+	lwc1	$f0,(THREAD_FPU + 0x000)(thread)
+
+/* restore fp_acc: clobber $f0 and $f1 */
+/* 	suba.s: fpacc <- $f0 - 0.0f */
+#define	FPU_RESTORE_EXTRA(thread)		\
+	lwc1	$f0,(THREAD_FPU_ACC)(thread); 	\
+	mtc1    $0,$f1;				\
+	suba.s  $f0,$f1
+
+#else
+
+#define S_GREG sw
+#define L_GREG lw
+#define FPU_SAVE_EXTRA(thread)
+#define FPU_RESTORE_EXTRA(thread)
+
+#endif
+
 #define FPU_SAVE_DOUBLE(thread, tmp) \
 	cfc1	tmp,  fcr31;                    \
 	sdc1	$f0,  (THREAD_FPU + 0x000)(thread); \
@@ -63,6 +92,7 @@
 	swc1	$f29, (THREAD_FPU + 0x0e8)(thread); \
 	swc1	$f30, (THREAD_FPU + 0x0f0)(thread); \
 	swc1	$f31, (THREAD_FPU + 0x0f8)(thread); \
+	FPU_SAVE_EXTRA(thread);                     \
 	sw	tmp,  (THREAD_FPU + 0x100)(thread)
 
 #define FPU_RESTORE_DOUBLE(thread, tmp) \
@@ -87,6 +117,7 @@
 
 #define FPU_RESTORE_SINGLE(thread,tmp)              \
 	lw	tmp,  (THREAD_FPU + 0x100)(thread); \
+	FPU_RESTORE_EXTRA(thread);                  \
 	lwc1	$f0,  (THREAD_FPU + 0x000)(thread); \
 	lwc1	$f1,  (THREAD_FPU + 0x008)(thread); \
 	lwc1	$f2,  (THREAD_FPU + 0x010)(thread); \

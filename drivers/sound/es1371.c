@@ -1566,6 +1566,7 @@ static int es1371_mmap(struct file *file, struct vm_area_struct *vma)
 		ret = -EAGAIN;
 		goto out;
 	}
+	vma->vm_flags &= ~VM_IO;
 	db->mapped = 1;
 out:
 	up(&s->sem);
@@ -2133,6 +2134,7 @@ static int es1371_mmap_dac(struct file *file, struct vm_area_struct *vma)
 	ret = -EAGAIN;
 	if (remap_page_range(vma->vm_start, virt_to_phys(s->dma_dac1.rawbuf), size, vma->vm_page_prot))
 		goto out;
+	vma->vm_flags &= ~VM_IO;
 	s->dma_dac1.mapped = 1;
 	ret = 0;
 out:

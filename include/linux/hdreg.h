@@ -333,6 +333,26 @@ struct hd_driveid {
 #define IDE_NICE_1		(3)	/* when probably won't affect us much */
 #define IDE_NICE_2		(4)	/* when we know it's on our expense */
 
+/*
+ * IDE Command set flags, which applys WORD82 of IDENTIFY DEVICE
+ */
+/*                                                 ATA spec level         345  */
+#define IDE_COMMANDSET_SMART           (1<< 0)  /* SMART supported        345  */
+#define IDE_COMMANDSET_SECURITY        (1<< 1)  /*                        345  */
+#define IDE_COMMANDSET_REMOVABLE       (1<< 2)  /*                        345  */
+#define IDE_COMMANDSET_PM              (1<< 3)  /*                         45  */
+#define IDE_COMMANDSET_PACKET          (1<< 4)  /*                         4   */
+#define IDE_COMMANDSET_WRITECACHE      (1<< 5)  /*                         45  */
+#define IDE_COMMANDSET_LOOKAHEAD       (1<< 6)  /*                         45  */
+#define IDE_COMMANDSET_RELEASEINTRRUPT (1<< 7)  /*                         45  */
+#define IDE_COMMANDSET_SERVICEINTRRUPT (1<< 8)  /*                         45  */
+#define IDE_COMMANDSET_DEVICERESET     (1<< 9)  /*                         45  */
+#define IDE_COMMANDSET_PROTECTEDAREA   (1<<10)  /*                         45  */
+/* OBSOLETE bit 11                                                             */
+#define IDE_COMMANDSET_WRITEBUFFER     (1<<12)  /*                         45  */
+#define IDE_COMMANDSET_READBUFFER      (1<<13)  /*                         45  */
+#define IDE_COMMANDSET_NOP             (1<<14)  /*                         45  */
+
 #ifdef __KERNEL__
 /*
  * These routines are used for kernel command line parameters from main.c:

@@ -1,0 +1,8 @@
+# drivers/sound/Config.in
+#
+# 25 Nov 1998, Gabriel Paubert, <mailto:paubert@iram.es>
+#
+# will have to change if we want to support other kinds of bridges 
+
+tristate 'Universe PCI/VME bridge (experimental)' CONFIG_VME_UNIVERSE
+

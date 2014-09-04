@@ -1,0 +1,70 @@
+lk201.o: lk201.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kbd_ll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kbd_kern.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vt_kern.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/keyboard.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/wbflush.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dec/tc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dec/machtype.h \
+   zs.h \
+   lk201.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/magic/sysrq.h)
+tc.o: tc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/addrspace.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dec/machtype.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dec/tcinfo.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dec/tcmodule.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dec/interrupts.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ptrace.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h
+zs.o: zs.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty_flip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/major.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcntl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/serial/console.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/console.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/pgtable.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/wbflush.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bootinfo.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/decstation.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dec/interrupts.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dec/machtype.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dec/tc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dec/ioasic_addrs.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/baget/mips.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/baget/baget.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/kgdb.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/magic/sysrq.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysrq.h \
+   zs.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/devfs/fs.h)

@@ -33,12 +33,34 @@
 #define __bi_save_flags(x) __save_flags(x)
 #define __bi_save_and_cli(x) __save_and_cli(x)
 #define __bi_restore_flags(x) __restore_flags(x)
-#else
+
+#else /* __KERNEL__ */
+
+#include <features.h>
+
+#if  __GLIBC__ > 2 || ( __GLIBC__ == 2 && __GLIBC_MINOR__ >=2 )
+
+#include <sys/tas.h>
+
+volatile int __asm_bitops_lock;
+
+#define __bi_flags
+#define __bi_cli()
+#define __bi_save_flags(x) \
+	do {\
+		while (_test_and_set ((int*)&__asm_bitops_lock, 1));	\
+	} while (0)
+#define __bi_restore_flags(x)	__asm_bitops_lock=0
+
+#else /*  __GLIBC__ > 2 || ( __GLIBC__ == 2 && __GLIBC_MINOR__ >=2 ) */
+
 #define __bi_flags
 #define __bi_cli()
 #define __bi_save_flags(x)
-#define __bi_save_and_cli(x)
 #define __bi_restore_flags(x)
+
+#endif /*  __GLIBC__ > 2 || ( __GLIBC__ == 2 && __GLIBC_MINOR__ >=2 ) */
+
 #endif /* __KERNEL__ */
 
 #ifdef CONFIG_CPU_HAS_LLSC
@@ -594,11 +616,12 @@ extern __inline__ int find_first_zero_bit (void *addr, unsigned size)
 		".set\tnoat\n"
 		"1:\tsubu\t$1,%6,%0\n\t"
 		"blez\t$1,2f\n\t"
-		"lw\t$1,(%5)\n\t"
 		"addiu\t%5,4\n\t"
+		"lw\t$1,-4(%5)\n\t"
 #if (_MIPS_ISA == _MIPS_ISA_MIPS2 ) || (_MIPS_ISA == _MIPS_ISA_MIPS3 ) || \
     (_MIPS_ISA == _MIPS_ISA_MIPS4 ) || (_MIPS_ISA == _MIPS_ISA_MIPS5 ) || \
-    (_MIPS_ISA == _MIPS_ISA_MIPS32) || (_MIPS_ISA == _MIPS_ISA_MIPS64)
+    (_MIPS_ISA == _MIPS_ISA_MIPS32) || (_MIPS_ISA == _MIPS_ISA_MIPS64) || \
+    defined(CONFIG_CPU_R5900)
 		"beql\t%1,$1,1b\n\t"
 		"addiu\t%0,32\n\t"
 #else
@@ -621,8 +644,7 @@ extern __inline__ int find_first_zero_bit (void *addr, unsigned size)
 		"2:"
 		: "=r" (res), "=r" (dummy), "=r" (addr)
 		: "0" ((signed int) 0), "1" ((unsigned int) 0xffffffff),
-		  "2" (addr), "r" (size)
-		: "$1");
+		  "2" (addr), "r" (size));
 
 	return res;
 }
@@ -657,8 +679,7 @@ extern __inline__ int find_next_zero_bit (void * addr, int size, int offset)
 			".set\treorder\n"
 			"1:"
 			: "=r" (set), "=r" (dummy)
-			: "0" (0), "1" (1 << bit), "r" (*p)
-			: "$1");
+			: "0" (0), "1" (1 << bit), "r" (*p));
 		if (set < (32 - bit))
 			return set + offset;
 		set = 32 - bit;
@@ -679,29 +700,21 @@ extern __inline__ int find_next_zero_bit (void * addr, int size, int offset)
  *
  * Undefined if no zero exists, so code should check against ~0UL first.
  */
-extern __inline__ unsigned long ffz(unsigned long word)
+static inline unsigned long ffz(unsigned long word)
 {
-	unsigned int	__res;
-	unsigned int	mask = 1;
+	unsigned long k;
 
-	__asm__ (
-		".set\tnoreorder\n\t"
-		".set\tnoat\n\t"
-		"move\t%0,$0\n"
-		"1:\tand\t$1,%2,%1\n\t"
-		"beqz\t$1,2f\n\t"
-		"sll\t%1,1\n\t"
-		"bnez\t%1,1b\n\t"
-		"addiu\t%0,1\n\t"
-		".set\tat\n\t"
-		".set\treorder\n"
-		"2:\n\t"
-		: "=&r" (__res), "=r" (mask)
-		: "r" (word), "1" (mask)
-		: "$1");
+	word = ~word;
+	k = 31;
+	if (word & 0x0000ffffUL) { k -= 16; word <<= 16; }
+	if (word & 0x00ff0000UL) { k -= 8;  word <<= 8;  }
+	if (word & 0x0f000000UL) { k -= 4;  word <<= 4;  }
+	if (word & 0x30000000UL) { k -= 2;  word <<= 2;  }
+	if (word & 0x40000000UL) { k -= 1; }
 
-	return __res;
+	return k;
 }
+
 
 #ifdef __KERNEL__
 

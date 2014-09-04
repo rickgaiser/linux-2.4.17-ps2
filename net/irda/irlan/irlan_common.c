@@ -317,6 +317,9 @@ void irlan_connect_indication(void *instance, void *sap, struct qos_info *qos,
 
 	del_timer(&self->watchdog_timer);
 
+	/* since irlan_do_*_event gobble the skb, we must get it once -- rmk */
+	skb_get(skb);
+
 	irlan_do_provider_event(self, IRLAN_DATA_CONNECT_INDICATION, skb);
 	irlan_do_client_event(self, IRLAN_DATA_CONNECT_INDICATION, skb);
 

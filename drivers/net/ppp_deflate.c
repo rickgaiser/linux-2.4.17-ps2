@@ -39,7 +39,7 @@
 #include <linux/ppp_defs.h>
 #include <linux/ppp-comp.h>
 
-#include "zlib.c"
+#include <linux/zlib.h>
 
 /*
  * State for a Deflate (de)compressor.

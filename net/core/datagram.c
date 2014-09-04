@@ -37,6 +37,7 @@
 #include <linux/rtnetlink.h>
 #include <linux/poll.h>
 #include <linux/highmem.h>
+#include <linux/security.h>
 
 #include <net/protocol.h>
 #include <linux/skbuff.h>
@@ -164,8 +165,10 @@ struct sk_buff *skb_recv_datagram(struct sock *sk, unsigned flags, int noblock, 
 		} else
 			skb = skb_dequeue(&sk->receive_queue);
 
-		if (skb)
+		if (skb) {
+			security_skb_recv_datagram(skb, sk, flags);
 			return skb;
+		}
 
 		/* User doesn't want to wait */
 		error = -EAGAIN;

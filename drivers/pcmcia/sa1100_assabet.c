@@ -18,9 +18,6 @@ static int assabet_pcmcia_init(struct pcmcia_init *init){
   /* Enable CF bus: */
   ASSABET_BCR_clear(ASSABET_BCR_CF_BUS_OFF);
 
-  /* All those are inputs */
-  GPDR &= ~(ASSABET_GPIO_CF_CD | ASSABET_GPIO_CF_BVD2 | ASSABET_GPIO_CF_BVD1 | ASSABET_GPIO_CF_IRQ);
-
   /* Set transition detect */
   set_GPIO_IRQ_edge( ASSABET_GPIO_CF_CD|ASSABET_GPIO_CF_BVD2|ASSABET_GPIO_CF_BVD1, GPIO_BOTH_EDGES );
   set_GPIO_IRQ_edge( ASSABET_GPIO_CF_IRQ, GPIO_FALLING_EDGE );

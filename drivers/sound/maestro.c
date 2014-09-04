@@ -2512,6 +2512,7 @@ static int ess_mmap(struct file *file, struct vm_area_struct *vma)
 	ret = -EAGAIN;
 	if (remap_page_range(vma->vm_start, virt_to_phys(db->rawbuf), size, vma->vm_page_prot))
 		goto out;
+	vma->vm_flags &= ~VM_IO;
 	db->mapped = 1;
 	ret = 0;
 out:

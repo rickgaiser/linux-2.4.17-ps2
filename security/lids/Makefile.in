@@ -1,0 +1,6 @@
+# for LIDS project
+KBUILD_INCLUDE_PATHS=security/lids/include
+
+objlink(CONFIG_LIDS lids_lsm.o lids_acl.o lids_exec.o lids_init.o lids_cap.o lids_sysctl.o lids_net.o lids_logs.o lids_lsm.o  lids_syslog_script.o rmd160.o klids.o)
+
+select(CONFIG_LIDS lids.o)

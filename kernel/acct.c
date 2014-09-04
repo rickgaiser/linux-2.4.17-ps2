@@ -54,6 +54,7 @@
 #include <linux/smp_lock.h>
 #include <linux/file.h>
 #include <linux/tty.h>
+#include <linux/security.h>
 
 #include <asm/uaccess.h>
 
@@ -182,6 +183,9 @@ asmlinkage long sys_acct(const char *name)
 			goto out_err;
 	}
 
+	if ((error = security_acct(file)))
+		goto out_err;
+
 	error = 0;
 	lock_kernel();
 	if (acct_file) {
@@ -209,7 +213,8 @@ asmlinkage long sys_acct(const char *name)
 out:
 	return error;
 out_err:
-	filp_close(file, NULL);
+	if (file)
+		filp_close(file, NULL);
 	goto out;
 }
 

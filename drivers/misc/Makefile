@@ -11,6 +11,15 @@
 
 O_TARGET := misc.o
 
+export-objs			:= mcp-core.o mcp-sa1100.o mcp-pxa.o \
+				   ucb1x00-core.o 
+
+obj-$(CONFIG_MCP_SA1100)	+= mcp-core.o mcp-sa1100.o
+obj-$(CONFIG_MCP_UCB1200)	+= ucb1x00-core.o
+obj-$(CONFIG_MCP_UCB1200_AUDIO)	+= ucb1x00-audio.o
+obj-$(CONFIG_MCP_UCB1200_TS)	+= ucb1x00-ts.o
+obj-$(CONFIG_MCP_UCB1400_TS)	+= mcp-pxa.o ucb1x00-core.o ucb1x00-ts.o
+
 include $(TOPDIR)/Rules.make
 
 fastdep:

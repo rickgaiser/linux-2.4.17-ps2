@@ -521,6 +521,32 @@ int check_disk_change(kdev_t dev)
 		bdops->revalidate(dev);
 	return 1;
 }
+/*
+ * Flush hardware buffer (harddisk, etc...)
+ */
+int flush_hardwarebuf(kdev_t dev)
+{
+	int major = MAJOR(dev);
+	const struct block_device_operations * fops;
+	int returnval = 0;
+	int i;
+
+	if ( major >= MAX_BLKDEV )
+		return -EINVAL;
+	if (major) {
+		fops = get_blkfops(major);
+		if (fops && fops->flush_hardwarebuf)
+			return fops->flush_hardwarebuf(dev);
+	} else {
+		/* Flush all devices. */
+		for (i=0; i < MAX_BLKDEV; i++) {
+			fops = blkdevs[i].bdops;
+			if (fops && fops->flush_hardwarebuf)
+				returnval |= fops->flush_hardwarebuf(MKDEV(i,0));
+		}
+	}
+	return returnval;
+}
 
 int ioctl_by_bdev(struct block_device *bdev, unsigned cmd, unsigned long arg)
 {
@@ -612,7 +638,7 @@ int blkdev_put(struct block_device *bdev, int kind)
 
 	down(&bdev->bd_sem);
 	lock_kernel();
-	if (kind == BDEV_FILE)
+	if (kind == BDEV_FILE && bdev->bd_openers == 1)
 		__block_fsync(bd_inode);
 	else if (kind == BDEV_FS)
 		fsync_no_super(rdev);

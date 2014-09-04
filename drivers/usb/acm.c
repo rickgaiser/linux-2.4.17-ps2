@@ -315,6 +315,8 @@ static int acm_tty_open(struct tty_struct *tty, struct file *filp)
 
         unlock_kernel();
 
+	acm->throttle = 0;
+
 	acm->ctrlurb.dev = acm->dev;
 	if (usb_submit_urb(&acm->ctrlurb))
 		dbg("usb_submit_urb(ctrl irq) failed");

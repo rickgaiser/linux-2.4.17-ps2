@@ -574,6 +574,8 @@ inline void insert_journal_hash(struct reiserfs_journal_cnode **table, struct re
 /* lock the current transaction */
 inline static void lock_journal(struct super_block *p_s_sb) {
   PROC_INFO_INC( p_s_sb, journal.lock_journal );
+  debug_lock_break(1);
+  conditional_schedule();
   while(atomic_read(&(SB_JOURNAL(p_s_sb)->j_wlock)) > 0) {
     PROC_INFO_INC( p_s_sb, journal.lock_journal_wait );
     sleep_on(&(SB_JOURNAL(p_s_sb)->j_wait)) ;
@@ -704,6 +706,8 @@ reiserfs_panic(s, "journal-539: flush_commit_list: BAD count(%d) > orig_commit_l
 	mark_buffer_dirty(tbh) ;
       }
       ll_rw_block(WRITE, 1, &tbh) ;
+      debug_lock_break(1);
+      conditional_schedule();
       count++ ;
       put_bh(tbh) ; /* once for our get_hash */
     } 
@@ -736,9 +740,17 @@ reiserfs_panic(s, "journal-539: flush_commit_list: BAD count(%d) > orig_commit_l
 		   atomic_read(&(jl->j_commit_left)));
   }
 
+  /* ok, all transactions were send to drive, flush them to the media */
+  if(tbh->b_dev) {
+      flush_hardwarebuf(tbh->b_dev);
+  }
+
   mark_buffer_dirty(jl->j_commit_bh) ;
   ll_rw_block(WRITE, 1, &(jl->j_commit_bh)) ;
   wait_on_buffer(jl->j_commit_bh) ;
+  if(jl->j_commit_bh->b_dev) {
+    flush_hardwarebuf(jl->j_commit_bh->b_dev);
+  }
   if (!buffer_uptodate(jl->j_commit_bh)) {
     reiserfs_panic(s, "journal-615: buffer write failed\n") ;
   }
@@ -793,7 +805,7 @@ static void remove_all_from_journal_list(struct super_block *p_s_sb, struct reis
   while(cn) {
     if (cn->blocknr != 0) {
       if (debug) {
-        printk("block %lu, bh is %d, state %d\n", cn->blocknr, cn->bh ? 1: 0, 
+        printk("block %lu, bh is %d, state %ld\n", cn->blocknr, cn->bh ? 1: 0, 
 	        cn->state) ;
       }
       fake_bh.b_blocknr = cn->blocknr ;
@@ -833,6 +845,11 @@ static int _update_journal_header_block(struct super_block *p_s_sb, unsigned lon
     set_bit(BH_Dirty, &(SB_JOURNAL(p_s_sb)->j_header_bh->b_state)) ;
     ll_rw_block(WRITE, 1, &(SB_JOURNAL(p_s_sb)->j_header_bh)) ;
     wait_on_buffer((SB_JOURNAL(p_s_sb)->j_header_bh)) ; 
+    if ( SB_JOURNAL(p_s_sb)->j_header_bh->b_dev ){
+      flush_hardwarebuf( SB_JOURNAL(p_s_sb)->j_header_bh->b_dev);
+    }
+    debug_lock_break(1);
+    conditional_schedule();
     if (!buffer_uptodate(SB_JOURNAL(p_s_sb)->j_header_bh)) {
       printk( "reiserfs: journal-837: IO error during journal replay\n" );
       return -EIO ;
@@ -1054,6 +1071,9 @@ free_cnode:
 	  reiserfs_panic(s, "journal-1011: cn->bh is NULL\n") ;
 	}
 	wait_on_buffer(cn->bh) ;
+        if (cn->bh->b_dev)
+            flush_hardwarebuf(cn->bh->b_dev);
+
 	if (!cn->bh) {
 	  reiserfs_panic(s, "journal-1012: cn->bh is NULL\n") ;
 	}
@@ -1160,6 +1180,8 @@ loop_start:
             clear_bit(BLOCK_NEEDS_FLUSH, &cn->state) ;
             if (!pjl && cn->bh) {
                 wait_on_buffer(cn->bh) ;
+                if (cn->bh->b_dev)
+                    flush_hardwarebuf(cn->bh->b_dev);
             }
             /* check again, someone could have logged while we scheduled */
             pjl = find_newer_jl_for_cn(cn) ;
@@ -1557,6 +1579,10 @@ static int journal_read_transaction(struct super_block *p_s_sb, unsigned long cu
   }
   for (i = 0 ; i < le32_to_cpu(desc->j_len) ; i++) {
     wait_on_buffer(real_blocks[i]) ; 
+    /* flush replayed blocks */
+    if(real_blocks[i]->b_dev) {
+      flush_hardwarebuf(real_blocks[i]->b_dev);
+    }
     if (!buffer_uptodate(real_blocks[i])) {
       reiserfs_warning("journal-1226: REPLAY FAILURE, fsck required! buffer write failed\n") ;
       brelse_array(real_blocks + i, le32_to_cpu(desc->j_len) - i) ;
@@ -1851,7 +1877,7 @@ static int reiserfs_journal_commit_thread(void *nullp) {
       break ;
     }
     wake_up(&reiserfs_commit_thread_done) ;
-    interruptible_sleep_on_timeout(&reiserfs_commit_thread_wait, 5) ;
+    interruptible_sleep_on_timeout(&reiserfs_commit_thread_wait, 5 * HZ) ;
   }
   unlock_kernel() ;
   wake_up(&reiserfs_commit_thread_done) ;
@@ -2092,6 +2118,8 @@ static int journal_join(struct reiserfs_transaction_handle *th, struct super_blo
 }
 
 int journal_begin(struct reiserfs_transaction_handle *th, struct super_block  * p_s_sb, unsigned long nblocks) {
+  debug_lock_break(1);
+  conditional_schedule();
   return do_journal_begin_r(th, p_s_sb, nblocks, 0) ;
 }
 
@@ -2232,6 +2260,8 @@ int journal_mark_dirty_nolog(struct reiserfs_transaction_handle *th, struct supe
 }
 
 int journal_end(struct reiserfs_transaction_handle *th, struct super_block *p_s_sb, unsigned long nblocks) {
+  debug_lock_break(1);
+  conditional_schedule();
   return do_journal_end(th, p_s_sb, nblocks, 0) ;
 }
 
@@ -2683,6 +2713,8 @@ void reiserfs_prepare_for_journal(struct super_block *p_s_sb,
       RFALSE( buffer_locked(bh) && cur_tb != NULL,
 	      "waiting while do_balance was running\n") ;
       wait_on_buffer(bh) ;
+      debug_lock_break(1);
+      conditional_schedule();
     }
     PROC_INFO_INC( p_s_sb, journal.prepare_retry );
     retry_count++ ;
@@ -2856,6 +2888,8 @@ printk("journal-2020: do_journal_end: BAD desc->j_len is ZERO\n") ;
     /* copy all the real blocks into log area.  dirty log blocks */
     if (test_bit(BH_JDirty, &cn->bh->b_state)) {
       struct buffer_head *tmp_bh ;
+      debug_lock_break(1);
+      conditional_schedule();		/* getblk can sleep, so... */
       tmp_bh = getblk(p_s_sb->s_dev, reiserfs_get_journal_block(p_s_sb) + 
 		     ((cur_write_start + jindex) % JOURNAL_BLOCK_COUNT), 
 				       p_s_sb->s_blocksize) ;

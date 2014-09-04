@@ -66,4 +66,21 @@ void usb_stor_show_sense( unsigned char key,
 #define US_DEBUG(x)
 #endif
 
+#ifdef DEBUG_PRINTSTALL
+#define US_DEBUG_PRINTSTALL(x...) printk( USB_STORAGE x )
+#define US_DEBUG_PRINTSTALL_CMD(urb) \
+    {	int i; printk("[");						\
+	for (i=0; i< (urb->transfer_buffer_length > 12 ? 12 :		\
+			urb->transfer_buffer_length); i++)		\
+	    printk("%02x", ((unsigned char*)urb->transfer_buffer)[i]);	\
+	printk("]\n");	}
+#define US_DEBUG_PRINT_SRBCMD(srb) \
+    {	int i; printk("["); for (i=0; i< srb->cmd_len; i++)		\
+	printk("%02x", ((unsigned char*)srb->cmnd)[i]);	 printk("]\n");	}
+#else
+#define US_DEBUG_PRINTSTALL(x...)
+#define US_DEBUG_PRINTSTALL_CMD(urb)
+#define US_DEBUG_PRINT_SRBCMD(srb)
+#endif
+
 #endif

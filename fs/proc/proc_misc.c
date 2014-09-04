@@ -344,12 +344,14 @@ static int filesystems_read_proc(char *page, char **start, off_t off,
 	return proc_calc_metrics(page, start, off, count, eof, len);
 }
 
+#ifdef CONFIG_GENERIC_ISA_DMA
 static int dma_read_proc(char *page, char **start, off_t off,
 				 int count, int *eof, void *data)
 {
 	int len = get_dma_list(page);
 	return proc_calc_metrics(page, start, off, count, eof, len);
 }
+#endif
 
 static int ioports_read_proc(char *page, char **start, off_t off,
 				 int count, int *eof, void *data)
@@ -516,7 +518,9 @@ void __init proc_misc_init(void)
 		{"interrupts",	interrupts_read_proc},
 #endif
 		{"filesystems",	filesystems_read_proc},
+#ifdef CONFIG_GENERIC_ISA_DMA
 		{"dma",		dma_read_proc},
+#endif		
 		{"ioports",	ioports_read_proc},
 		{"cmdline",	cmdline_read_proc},
 #ifdef CONFIG_SGI_DS1286

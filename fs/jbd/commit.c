@@ -26,7 +26,7 @@ extern spinlock_t journal_datalist_lock;
 /*
  * Default IO end handler for temporary BJ_IO buffer_heads.
  */
-static void journal_end_buffer_io_sync(struct buffer_head *bh, int uptodate)
+void journal_end_buffer_io_sync(struct buffer_head *bh, int uptodate)
 {
 	BUFFER_TRACE(bh, "");
 	mark_buffer_uptodate(bh, uptodate);
@@ -212,6 +212,9 @@ write_out_data_locked:
 				__journal_remove_journal_head(bh);
 				refile_buffer(bh);
 				__brelse(bh);
+				debug_lock_break(2);
+				if (conditional_schedule_needed())
+					break;
 			}
 		}
 		if (bufs == ARRAY_SIZE(wbuf)) {
@@ -235,8 +238,7 @@ write_out_data_locked:
 		journal_brelse_array(wbuf, bufs);
 		lock_journal(journal);
 		spin_lock(&journal_datalist_lock);
-		if (bufs)
-			goto write_out_data_locked;
+		goto write_out_data_locked;
 	}
 
 	/*
@@ -272,6 +274,14 @@ sync_datalist_empty:
 	 */
 	while ((jh = commit_transaction->t_async_datalist)) {
 		struct buffer_head *bh = jh2bh(jh);
+		if (conditional_schedule_needed()) {
+			debug_lock_break(551);
+			spin_unlock(&journal_datalist_lock);
+			unlock_journal(journal);
+			lock_journal(journal);
+			spin_lock(&journal_datalist_lock);
+			continue;
+		}
 		if (buffer_locked(bh)) {
 			spin_unlock(&journal_datalist_lock);
 			unlock_journal(journal);
@@ -410,6 +420,7 @@ sync_datalist_empty:
 		flags = journal_write_metadata_buffer(commit_transaction,
 						      jh, &new_jh, blocknr);
 		set_bit(BH_JWrite, &jh2bh(new_jh)->b_state);
+		set_bit(BH_Lock, &jh2bh(new_jh)->b_state);
 		wbuf[bufs++] = jh2bh(new_jh);
 
 		/* Record the new block's tag in the current descriptor
@@ -453,7 +464,6 @@ start_journal_io:
 			unlock_journal(journal);
 			for (i=0; i<bufs; i++) {
 				struct buffer_head *bh = wbuf[i];
-				set_bit(BH_Lock, &bh->b_state);
 				clear_bit(BH_Dirty, &bh->b_state);
 				bh->b_end_io = journal_end_buffer_io_sync;
 				submit_bh(WRITE, bh);
@@ -561,8 +571,7 @@ start_journal_io:
 		journal_unfile_buffer(jh);
 		jh->b_transaction = NULL;
 		journal_unlock_journal_head(jh);
-		__brelse(bh);		/* One for getblk */
-		/* AKPM: bforget here */
+		put_bh(bh);			/* One for getblk */
 	}
 
 	jbd_debug(3, "JBD: commit phase 6\n");
@@ -594,9 +603,11 @@ start_journal_io:
 	JBUFFER_TRACE(descriptor, "write commit block");
 	{
 		struct buffer_head *bh = jh2bh(descriptor);
-		ll_rw_block(WRITE, 1, &bh);
+		clear_bit(BH_Dirty, &bh->b_state);
+		bh->b_end_io = journal_end_buffer_io_sync;
+		submit_bh(WRITE, bh);
 		wait_on_buffer(bh);
-		__brelse(bh);		/* One for getblk() */
+		put_bh(bh);		/* One for getblk() */
 		journal_unlock_journal_head(descriptor);
 	}
 	lock_journal(journal);

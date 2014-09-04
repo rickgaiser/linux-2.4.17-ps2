@@ -1,0 +1,30 @@
+akmem_alloc.o: akmem_alloc.c \
+   akmempriv.h
+akmem_exec.o: akmem_exec.c \
+   akmempriv.h
+akmem_linux.o: akmem_linux.c \
+   akmempriv.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/pgtable.h
+akmem_linuxdev.o: akmem_linuxdev.c \
+   akmempriv.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/devfs_fs_kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/major.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/akmem/ownmajor.h)
+akmem_r5900.o: akmem_r5900.c \
+   akmem_mips.inc
+akmemosdep.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/akmemio.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/akmem.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h
+	@touch akmemosdep.h
+akmempriv.h: \
+   akmemosdep.h
+	@touch akmempriv.h
+.PRECIOUS:	akmemosdep.h \
+	akmempriv.h \
+

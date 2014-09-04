@@ -383,6 +383,7 @@ struct usb_bus *usb_alloc_bus(struct usb_operations *op)
 
 	bus->op = op;
 	bus->root_hub = NULL;
+	init_MUTEX(&bus->dev_tree_sem);
 	bus->hcpriv = NULL;
 	bus->busnum = -1;
 	bus->bandwidth_allocated = 0;
@@ -957,6 +958,12 @@ void usb_free_dev(struct usb_device *dev)
 	if (atomic_dec_and_test(&dev->refcnt)) {
 		dev->bus->op->deallocate(dev);
 		usb_destroy_configuration(dev);
+		if (dev->manufacturer)
+			kfree(dev->manufacturer);
+		if (dev->product)
+			kfree(dev->product);
+		if (dev->serial)
+			kfree(dev->serial);
 
 		usb_bus_put(dev->bus);
 
@@ -2168,6 +2175,35 @@ int usb_string(struct usb_device *dev, int index, char *buf, size_t size)
 }
 
 /*
+ * usb_alloc_string:
+ *	returns string length (> 0) or error (< 0)
+ */
+int usb_alloc_string(struct usb_device *dev, int index, char **ptr)
+{
+	unsigned char *buf;
+	int err;
+
+	if (!ptr)
+		return -EINVAL;
+	*ptr = NULL;
+	buf = kmalloc(256, GFP_KERNEL);
+	if (!buf)
+		return -ENOMEM;
+	if ((err = usb_string(dev, index, buf, 256)) <= 0)
+		goto errout;
+	*ptr = kmalloc(err + 1, GFP_KERNEL);
+	if (*ptr == NULL) {
+		err = -ENOMEM;
+		goto errout;
+	}
+	strcpy(*ptr, buf);
+
+ errout:
+	kfree(buf);
+	return err;
+}
+
+/*
  * By the time we get here, the device has gotten a new device ID
  * and is in the default state. We need to identify the thing and
  * get the ball rolling..
@@ -2243,6 +2279,15 @@ int usb_new_device(struct usb_device *dev)
 
 	dbg("new device strings: Mfr=%d, Product=%d, SerialNumber=%d",
 		dev->descriptor.iManufacturer, dev->descriptor.iProduct, dev->descriptor.iSerialNumber);
+	if (dev->descriptor.iManufacturer)
+		usb_alloc_string(dev, dev->descriptor.iManufacturer,
+				 &dev->manufacturer);
+	if (dev->descriptor.iProduct)
+		usb_alloc_string(dev, dev->descriptor.iProduct,
+				 &dev->product);
+	if (dev->descriptor.iSerialNumber)
+		usb_alloc_string(dev, dev->descriptor.iSerialNumber,
+				 &dev->serial);
 #ifdef DEBUG
 	if (dev->descriptor.iManufacturer)
 		usb_show_string(dev, "Manufacturer", dev->descriptor.iManufacturer);

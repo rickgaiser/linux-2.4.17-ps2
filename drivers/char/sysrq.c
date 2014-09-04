@@ -31,6 +31,31 @@
 #include <linux/spinlock.h>
 
 #include <asm/ptrace.h>
+#ifdef CONFIG_KGDB_SYSRQ
+#include <asm/kgdb.h>
+#define  GDB_OP &kgdb_op
+static struct sysrq_key_op kgdb_op={
+	handler:	(void*)breakpoint,
+	help_msg:	"kGdb ",
+	action_msg:	"Debug breakpoint\n",
+};
+
+#else
+#define  GDB_OP NULL
+#endif
+static void kill_current(int key, struct pt_regs *pt_regs,
+		struct kbd_struct *kbd, struct tty_struct *tty)
+{
+        printk("%-8s\n",current->comm);
+	force_sig(SIGKILL, current);
+	return;
+}
+static struct sysrq_key_op kill_current_op={
+	handler:	kill_current,
+	help_msg:	"kill_Current",
+	action_msg:	"Kill ",
+};
+
 
 extern void reset_vc(unsigned int);
 extern struct list_head super_blocks;
@@ -353,11 +378,11 @@ static struct sysrq_key_op *sysrq_key_table[SYSRQ_KEY_TABLE_LENGTH] = {
 		 it is handled specially on the spark
 		 and will never arive */
 /* b */	&sysrq_reboot_op,
-/* c */	NULL,
+/* c */	&kill_current_op,
 /* d */	NULL,
 /* e */	&sysrq_term_op,
 /* f */	NULL,
-/* g */	NULL,
+/* g */	GDB_OP,
 /* h */	NULL,
 /* i */	&sysrq_kill_op,
 /* j */	NULL,

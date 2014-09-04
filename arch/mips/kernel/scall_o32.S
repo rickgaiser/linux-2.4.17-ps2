@@ -3,7 +3,8 @@
  * License.  See the file "COPYING" in the main directory of this archive
  * for more details.
  *
- * Copyright (C) 1997, 1998, 1999, 2000 by Ralf Baechle
+ * Copyright (C) 1997, 1998, 1999, 2000, 2001 by Ralf Baechle
+ * Copyright (C) 2001 MIPS Technologies, Inc.
  */
 #include <asm/asm.h>
 #include <linux/errno.h>
@@ -12,6 +13,7 @@
 #include <asm/regdef.h>
 #include <asm/stackframe.h>
 #include <asm/isadep.h>
+#include <asm/sysmips.h>
 #include <asm/unistd.h>
 
 /* This duplicates the definition from <linux/sched.h> */
@@ -22,6 +24,14 @@
 
 /* Highest syscall used of any syscall flavour */
 #define MAX_SYSCALL_NO	__NR_Linux + __NR_Linux_syscalls
+
+#ifdef CONFIG_CPU_R5900_CONTEXT
+#define S_GREG  sq
+#define L_GREG  lq
+#else
+#define S_GREG  sw
+#define L_GREG  lw
+#endif
 
 	.align  5
 NESTED(handle_sys, PT_SIZE, sp)
@@ -44,11 +54,11 @@ NESTED(handle_sys, PT_SIZE, sp)
 	beqz	t2, illegal_syscall;
 
 	subu	t0, t3, 5		# 5 or more arguments?
-	sw	a3, PT_R26(sp)		# save a3 for syscall restarting
+	S_GREG	a3, PT_R26(sp)		# save a3 for syscall restarting
 	bgez	t0, stackargs
 
 stack_done:
-        sw      a3, PT_R26(sp)          # save for syscall restart
+        S_GREG	a3, PT_R26(sp)          # save for syscall restart
 	lw	t0, TASK_PTRACE($28)	# syscall tracing enabled?
 	andi	t0, PT_TRACESYS
 	bnez	t0, trace_a_syscall
@@ -57,18 +67,18 @@ stack_done:
 
 	li	t0, -EMAXERRNO - 1	# error?
 	sltu	t0, t0, v0
-	sw	t0, PT_R7(sp)		# set error flag
+	S_GREG	t0, PT_R7(sp)		# set error flag
 	beqz	t0, 1f
 
 	negu	v0			# error
-	sw	v0, PT_R0(sp)		# set flag for syscall restarting
-1:	sw	v0, PT_R2(sp)		# result
+	S_GREG	v0, PT_R0(sp)		# set flag for syscall restarting
+1:	S_GREG	v0, PT_R2(sp)		# result
 
 EXPORT(o32_ret_from_sys_call)
 	mfc0	t0, CP0_STATUS		# need_resched and signals atomic test
 	ori	t0, t0, 1
 	xori	t0, t0, 1
-	mtc0	t0, CP0_STATUS
+	MTC0_asm(t0, CP0_STATUS)
 
 	lw	t2, TASK_NEED_RESCHED($28)
 	bnez	t2, o32_reschedule
@@ -84,15 +94,15 @@ signal_return:
 
 	mfc0	t0, CP0_STATUS
 	ori	t0, t0, 1
-	mtc0	t0, CP0_STATUS
+	MTC0_asm(t0, CP0_STATUS)
 
+	SAVE_STATIC
 	move	a0, zero
 	move	a1, sp
 	jal	do_signal
 	b	restore_all
 
 o32_reschedule:
-	SAVE_STATIC
 	jal	schedule
 	b	o32_ret_from_sys_call
 
@@ -100,24 +110,24 @@ o32_reschedule:
 
 trace_a_syscall:
 	SAVE_STATIC
-	sw	t2, PT_R1(sp)
+	S_GREG	t2, PT_R1(sp)
 	jal	syscall_trace
-	lw	t2, PT_R1(sp)
+	L_GREG	t2, PT_R1(sp)
 
-	lw	a0, PT_R4(sp)		# Restore argument registers
-	lw	a1, PT_R5(sp)
-	lw	a2, PT_R6(sp)
-	lw	a3, PT_R7(sp)
+	L_GREG	a0, PT_R4(sp)		# Restore argument registers
+	L_GREG	a1, PT_R5(sp)
+	L_GREG	a2, PT_R6(sp)
+	L_GREG	a3, PT_R7(sp)
 	jalr	t2
 
 	li	t0, -EMAXERRNO - 1	# error?
 	sltu	t0, t0, v0
-	sw	t0, PT_R7(sp)		# set error flag
+	S_GREG	t0, PT_R7(sp)		# set error flag
 	beqz	t0, 1f
 
 	negu	v0			# error
-	sw	v0, PT_R0(sp)		# set flag for syscall restarting
-1:	sw	v0, PT_R2(sp)		# result
+	S_GREG	v0, PT_R0(sp)		# set flag for syscall restarting
+1:	S_GREG	v0, PT_R2(sp)		# result
 
 	jal	syscall_trace
 	j	ret_from_sys_call
@@ -130,7 +140,7 @@ trace_a_syscall:
 	 * This Sucks (TM).
 	 */
 stackargs:
-	lw	t0, PT_R29(sp)		# get old user stack pointer
+	L_GREG	t0, PT_R29(sp)		# get old user stack pointer
 	subu	t3, 4
 	sll	t1, t3, 2		# stack valid?
 
@@ -138,7 +148,7 @@ stackargs:
 	or	t0, t1
 	bltz	t0, bad_stack		# -> sp is bad
 
-	lw	t0, PT_R29(sp)		# get old user stack pointer
+	L_GREG	t0, PT_R29(sp)		# get old user stack pointer
 	la	t1, 3f			# copy 1 to 2 arguments
 	sll	t3, t3, 4
 	subu	t1, t3
@@ -176,10 +186,10 @@ stackargs:
 	 */
 bad_stack:
 	negu	v0				# error
-	sw	v0, PT_R0(sp)
-	sw	v0, PT_R2(sp)
+	S_GREG	v0, PT_R0(sp)
+	S_GREG	v0, PT_R2(sp)
 	li	t0, 1				# set error flag
-	sw	t0, PT_R7(sp)
+	S_GREG	t0, PT_R7(sp)
 	j	ret_from_sys_call
 
 	/*
@@ -187,8 +197,160 @@ bad_stack:
 	 */
 illegal_syscall:
 	li	v0, ENOSYS			# error
-	sw	v0, PT_R2(sp)
+	S_GREG	v0, PT_R2(sp)
 	li	t0, 1				# set error flag
-	sw	t0, PT_R7(sp)
+	S_GREG	t0, PT_R7(sp)
 	j	ret_from_sys_call
 	END(handle_sys)
+
+	LEAF(mips_atomic_set)
+	andi	v0, a1, 3			# must be word aligned
+	bnez	v0, bad_alignment
+
+	lw	v1, THREAD_CURDS($28)		# in legal address range?
+	addiu	a0, a1, 4
+	or	a0, a0, a1
+	and	a0, a0, v1
+	bltz	a0, bad_address
+
+#ifdef CONFIG_CPU_HAS_LLSC
+	/* Ok, this is the ll/sc case.  World is sane :-)  */
+1:	ll	v0, (a1)
+	move	a0, a2
+2:	sc	a0, (a1)
+	beqz	a0, 1b
+
+	.section __ex_table,"a"
+	PTR	1b, bad_stack
+	PTR	2b, bad_stack
+	.previous
+#else
+	sw	a1, 16(sp)
+	sw	a2, 20(sp)
+
+	move	a0, sp
+	move	a2, a1
+	li	a1, 1
+	jal	do_page_fault
+
+	lw	a1, 16(sp)
+	lw	a2, 20(sp)
+
+	/*
+	 * At this point the page should be readable and writable unless
+	 * there was no more memory available.
+	 */
+	CLI
+1:	lw	v0, (a1)
+2:	sw	a2, (a1)
+	STI
+
+	.section __ex_table,"a"
+	PTR	1b, no_mem
+	PTR	2b, no_mem
+	.previous
+#endif
+
+	S_GREG	v0, PT_R2(sp)		# result
+1:
+
+	/* Success, so skip usual error handling garbage.  */
+	lw	t0, TASK_PTRACE($28)	# syscall tracing enabled?
+	andi	t0, PT_TRACESYS
+	bnez	t0, 1f
+	b	o32_ret_from_sys_call
+
+1:	SAVE_STATIC
+	jal	syscall_trace
+	li	a3, 0			# success
+	j	ret_from_sys_call
+
+no_mem:	li	v0, -ENOMEM
+	jr	ra
+
+bad_address:
+	li	v0, -EFAULT
+	jr	ra
+
+bad_alignment:
+	li	v0, -EINVAL
+	jr	ra
+	END(mips_atomic_set)	
+
+	LEAF(mips_atomic_compare_and_set)
+	andi	v0, a1, 3			# must be word aligned
+	bnez	v0, bad_alignment
+
+	lw	v1, THREAD_CURDS($28)		# in legal address range?
+	addiu	a0, a1, 4
+	or	a0, a0, a1
+	and	a0, a0, v1
+	bltz	a0, bad_address
+
+#ifdef CONFIG_CPU_HAS_LLSC
+	/* Ok, this is the ll/sc case.  World is sane :-)  */
+1:	ll	a0, (a1)
+	move	v0, zero
+	bne	a0, a2, 3f
+	move	v0, a3
+2:	sc	v0, (a1)
+	beqz	v0, 1b
+3:
+	.section __ex_table,"a"
+	PTR	1b, bad_stack
+	PTR	2b, bad_stack
+	.previous
+#else
+	sw	a1, 16(sp)
+	sw	a2, 20(sp)
+	sw	a3, 24(sp)
+
+	move	a0, sp
+	move	a2, a1
+	li	a1, 1
+	jal	do_page_fault
+
+	lw	a1, 16(sp)
+	lw	a2, 20(sp)
+	lw	a3, 24(sp)
+
+	/*
+	 * At this point the page should be readable and writable unless
+	 * there was no more memory available.
+	 */
+	CLI
+1:	lw	v0, (a1)
+	move	v0, zero
+	bne	v0, a2, 3f
+2:	sw	a3, (a1)
+	li	v0, 1
+3:
+	STI
+
+	.section __ex_table,"a"
+	PTR	1b, no_mem
+	PTR	2b, no_mem
+	.previous
+#endif
+
+	sw	v0, PT_R2(sp)		# result
+1:
+
+	/* Success, so skip usual error handling garbage.  */
+	lw	t0, TASK_PTRACE($28)	# syscall tracing enabled?
+	andi	t0, PT_TRACESYS
+	bnez	t0, 1f
+	b	o32_ret_from_sys_call
+
+1:	SAVE_STATIC
+	jal	syscall_trace
+	li	a3, 0			# success
+	j	ret_from_sys_call
+
+	END(mips_atomic_compare_and_set)
+
+	LEAF(sys_sysmips)
+	beq	a0, MIPS_ATOMIC_SET, mips_atomic_set
+	beq	a0, MIPS_ATOMIC_COMPARE_AND_SWAP, mips_atomic_compare_and_set
+	j	_sys_sysmips
+	END(sys_sysmips)

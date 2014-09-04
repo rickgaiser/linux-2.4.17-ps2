@@ -108,6 +108,7 @@
 #include <linux/init.h>
 #include <linux/poll.h>
 #include <linux/smp_lock.h>
+#include <linux/security.h>
 
 #include <asm/checksum.h>
 
@@ -793,6 +794,10 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 		err = -EPERM;
 		if (!unix_may_send(sk, other))
 			goto out_unlock;
+
+		if ((err = security_unix_may_send(sk->socket, other->socket)))
+			goto out_unlock;
+
 	} else {
 		/*
 		 *	1003.1g breaking connected state with AF_UNSPEC
@@ -955,6 +960,11 @@ restart:
 		unix_state_runlock(other);
 		sock_put(other);
 		goto restart;
+	}
+
+	if ((err = security_unix_stream_connect(sock, other->socket))) {
+		unix_state_wunlock(sk);
+		goto out_unlock;
 	}
 
 	/* The way is open! Fastly set all the necessary fields... */
@@ -1241,6 +1251,9 @@ restart:
 
 	err = -EPIPE;
 	if (other->shutdown&RCV_SHUTDOWN)
+		goto out_unlock;
+
+	if ((err = security_unix_may_send(sk->socket, other->socket)))
 		goto out_unlock;
 
 	if (unix_peer(other) != sk &&

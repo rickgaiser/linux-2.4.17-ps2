@@ -380,6 +380,7 @@
 #define LVDS_GEN_CNTL			       0x02d0
 #define LVDS_PLL_CNTL			       0x02d4
 #define TMDS_CRC			       0x02a0
+#define TMDS_TRANSMITTER_CNTL		       0x02a4
 
 #define RADEON_BASE_CODE		       0x0f0b
 #define RADEON_BIOS_0_SCRATCH		       0x0010
@@ -523,13 +524,25 @@
 #define LVDS_PANEL_TYPE				   (1 << 2)
 #define LVDS_PANEL_FORMAT			   (1 << 3)
 #define LVDS_EN					   (1 << 7)
+#define LVDS_BL_MOD_LEVEL_MASK			   0x0000ff00
+#define LVDS_BL_MOD_LEVEL_SHIFT			   8
+#define LVDS_BL_MOD_EN				   (1 << 16)
 #define LVDS_DIGON				   (1 << 18)
 #define LVDS_BLON				   (1 << 19)
 #define LVDS_SEL_CRTC2				   (1 << 23)
+#define LVDS_STATE_MASK	\
+	(LVDS_ON | LVDS_DISPLAY_DIS | LVDS_BL_MOD_LEVEL_MASK | \
+	 LVDS_EN | LVDS_DIGON | LVDS_BLON)
 
 /* LVDS_PLL_CNTL bit constatns */
 #define HSYNC_DELAY_SHIFT			   0x1c
 #define HSYNC_DELAY_MASK			   (0xf << 0x1c)
+
+/* TMDS_TRANSMITTER_CNTL bit constants */
+#define TMDS_PLL_EN				   (1 << 0)
+#define TMDS_PLLRST				   (1 << 1)
+#define TMDS_RAN_PAT_RST			   (1 << 7)
+#define ICHCSEL					   (1 << 28)
 
 /* FP_HORZ_STRETCH bit constants */
 #define HORZ_STRETCH_RATIO_MASK			   0xffff
@@ -561,6 +574,7 @@
 #define DAC_4BPP_PIX_ORDER                         0x00000200
 #define DAC_CRC_EN                                 0x00080000
 #define DAC_MASK_ALL				   (0xff << 24)
+#define DAC_EXPAND_MODE				   (1 << 14)
 #define DAC_VGA_ADR_EN				   (1 << 13)
 #define DAC_RANGE_CNTL				   (3 << 0)
 #define DAC_BLANKING				   (1 << 2)

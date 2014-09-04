@@ -14,6 +14,7 @@
 #include <linux/string.h>
 #include <linux/stat.h>
 #include <linux/fat_cvf.h>
+#include <linux/sched.h>
 
 #if 0
 #  define PRINTK(x) printk x

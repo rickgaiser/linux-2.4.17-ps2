@@ -271,6 +271,10 @@ static int sg_open(struct inode * inode, struct file * filp)
         return -ENXIO;
     if (sdp->detached)
     	return -ENODEV;
+    /* avoid race condition: return error */
+    /* this might occur while scsi_register_host() running */
+    if ( !sdp->device || !sdp->device->device_attach_finished )
+        return -ENXIO;
 
      /* This driver's module count bumped by fops_get in <linux/fs.h> */
      /* Prevent the device driver from vanishing while we sleep */

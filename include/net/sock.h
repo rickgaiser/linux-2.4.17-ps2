@@ -1,3 +1,5 @@
+/* $USAGI: sock.h,v 1.19 2001/12/23 15:02:39 yoshfuji Exp $ */
+
 /*
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
@@ -37,6 +39,7 @@
 #include <linux/timer.h>
 #include <linux/cache.h>
 #include <linux/in.h>		/* struct sockaddr_in */
+#include <linux/security.h>
 
 #if defined(CONFIG_IPV6) || defined (CONFIG_IPV6_MODULE)
 #include <linux/in6.h>		/* struct sockaddr_in6 */
@@ -153,6 +156,13 @@ struct ipv6_pinfo {
 	int			mcast_hops;
 	int			mcast_oif;
 
+	/* stuff related to RFC2292bis and its variants */
+	struct {
+		__u8		tclass:1;
+	} recvopt;
+
+	__u8			tclass;
+
 	/* pktoption flags */
 	union {
 		struct {
@@ -171,9 +181,13 @@ struct ipv6_pinfo {
 	__u8			mc_loop:1,
 	                        recverr:1,
 	                        sndflow:1,
-	                        pmtudisc:2;
+	                        pmtudisc:2,
+				ipv6only:1;
 
 	struct ipv6_mc_socklist	*ipv6_mc_list;
+#ifdef CONFIG_IPV6_ANYCAST
+	struct ipv6_ac_socklist	*ipv6_ac_list;
+#endif
 	struct ipv6_fl_socklist *ipv6_fl_list;
 	__u32			dst_cookie;
 
@@ -506,6 +520,9 @@ struct sock {
 
 	unsigned short		family;		/* Address family			*/
 	unsigned char		reuse;		/* SO_REUSEADDR setting			*/
+#ifdef SO_REUSEPORT
+	unsigned char		reuseport;	/* SO_REUSEPORT setting			*/
+#endif
 	unsigned char		shutdown;
 	atomic_t		refcnt;		/* Reference count			*/
 
@@ -1027,6 +1044,41 @@ static inline int sock_i_uid(struct sock *sk)
 	return uid;
 }
 
+static inline uid_t sock_i_uid_t(struct sock*sk)
+{
+	uid_t uid = -1;
+	read_lock(&sk->callback_lock);
+	if (sk->socket)
+		uid = sk->socket->inode->i_uid;
+	read_unlock(&sk->callback_lock);
+	return uid;
+}
+
+static inline int *sock_i_uidp(struct sock *sk, int *uidp)
+{
+	if (!uidp)
+		return NULL;
+	read_lock(&sk->callback_lock);
+	if (sk->socket)
+		*uidp = sk->socket->inode->i_uid;
+	else {
+		*uidp = 0;
+		uidp = NULL;
+	}
+	read_unlock(&sk->callback_lock);
+	return uidp;
+}
+
+static inline int check_sock_i_uid(struct sock *sk, int uid)
+{
+	int ret = -1;
+	read_lock(&sk->callback_lock);
+	if (sk->socket)
+		ret = sk->socket->inode->i_uid != uid;
+	read_unlock(&sk->callback_lock);
+	return ret;
+}
+
 static inline unsigned long sock_i_ino(struct sock *sk)
 {
 	unsigned long ino;
@@ -1134,6 +1186,7 @@ static inline void skb_set_owner_w(struct sk_buff *skb, struct sock *sk)
 	skb->sk = sk;
 	skb->destructor = sock_wfree;
 	atomic_add(skb->truesize, &sk->wmem_alloc);
+	security_skb_set_owner_w(skb, sk);
 }
 
 static inline void skb_set_owner_r(struct sk_buff *skb, struct sock *sk)
@@ -1145,15 +1198,19 @@ static inline void skb_set_owner_r(struct sk_buff *skb, struct sock *sk)
 
 static inline int sock_queue_rcv_skb(struct sock *sk, struct sk_buff *skb)
 {
+	int err = 0;
+
 	/* Cast skb->rcvbuf to unsigned... It's pointless, but reduces
 	   number of warnings when compiling with -W --ANK
 	 */
 	if (atomic_read(&sk->rmem_alloc) + skb->truesize >= (unsigned)sk->rcvbuf)
                 return -ENOMEM;
 
+	if ((err = security_socket_sock_rcv_skb(sk, skb))) 
+		return err;
+
 #ifdef CONFIG_FILTER
 	if (sk->filter) {
-		int err = 0;
 		struct sk_filter *filter;
 
 		/* It would be deadlock, if sock_queue_rcv_skb is used

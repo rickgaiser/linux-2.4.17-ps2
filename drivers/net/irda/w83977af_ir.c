@@ -206,7 +206,7 @@ int w83977af_open(int i, unsigned int iobase, unsigned int irq,
 
 	/* FIXME: The HP HDLS-1100 does not support 1152000! */
 	self->qos.baud_rate.bits = IR_9600|IR_19200|IR_38400|IR_57600|
-		IR_115200|IR_576000|IR_1152000|(IR_4000000 << 8);
+		IR_115200/*|IR_576000|IR_1152000|(IR_4000000 << 8)*/;
 
 	/* The HP HDLS-1100 needs 1 ms according to the specs */
 	self->qos.min_turn_time.bits = qos_mtt_bits;
@@ -1345,7 +1345,7 @@ static int w83977af_net_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 	case SIOCSBANDWIDTH: /* Set bandwidth */
 		if (!capable(CAP_NET_ADMIN)) {
 			ret = -EPERM;
-			goto out;
+			break;
 		}
 		w83977af_change_speed(self, irq->ifr_baudrate);
 		break;

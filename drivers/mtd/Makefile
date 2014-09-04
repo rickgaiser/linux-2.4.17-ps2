@@ -8,7 +8,7 @@
 # Note 2! The CFLAGS definitions are now inherited from the
 # parent makes..
 #
-# $Id: Makefile,v 1.63 2001/06/13 09:43:07 dwmw2 Exp $
+# $Id: Makefile,v 1.66 2002/04/23 13:52:14 mag Exp $
 
 
 obj-y           += chips/chipslink.o maps/mapslink.o \
@@ -19,7 +19,7 @@ obj-            :=
 
 O_TARGET	:= mtdlink.o
 
-export-objs	:= mtdcore.o mtdpart.o redboot.o bootldr.o afs.o
+export-objs	:= mtdcore.o mtdpart.o sdmparse.o redboot.o cmdline.o afs.o mtdconcat.o bootldr.o
 list-multi	:= nftl.o
 
 mod-subdirs	:= 
@@ -44,8 +44,10 @@ subdir-m	:= $(subdir-y)
 
 # Core functionality.
 obj-$(CONFIG_MTD)		+= mtdcore.o
+obj-$(CONFIG_MTD_CONCAT)	+= mtdconcat.o
 obj-$(CONFIG_MTD_PARTITIONS)	+= mtdpart.o
 obj-$(CONFIG_MTD_REDBOOT_PARTS) += redboot.o
+obj-$(CONFIG_MTD_CMDLINE_PARTS) += cmdline.o
 obj-$(CONFIG_MTD_BOOTLDR_PARTS) += bootldr.o
 obj-$(CONFIG_MTD_AFS_PARTS)	+= afs.o
 
@@ -55,6 +57,8 @@ obj-$(CONFIG_MTD_BLOCK)		+= mtdblock.o
 obj-$(CONFIG_MTD_BLOCK_RO)	+= mtdblock_ro.o
 obj-$(CONFIG_FTL)		+= ftl.o
 obj-$(CONFIG_NFTL)		+= nftl.o
+obj-$(CONFIG_LTL)		+= ltl.o
+obj-$(CONFIG_MTD_SDM_PARTITION) += sdmparse.o
 
 nftl-objs	:= nftlcore.o nftlmount.o
 

@@ -250,6 +250,18 @@ static void *usb_kbd_probe(struct usb_device *dev, unsigned int ifnum,
 			
 	input_register_device(&kbd->dev);
 
+        /* wait for completion of outstanding led urb */
+        {
+		int trial_count = 10;
+		while ( trial_count-- &&  (kbd->led.status == -EINPROGRESS))
+		{
+			set_current_state(TASK_INTERRUPTIBLE);
+			schedule_timeout( 1 * HZ / 1000 ); /* wait 1 frame */
+		}
+		if ( !trial_count )
+			printk("urbs not completed but continue\n");
+        }
+
 	printk(KERN_INFO "input%d: %s on usb%d:%d.%d\n",
 		 kbd->dev.number, kbd->name, dev->bus->busnum, dev->devnum, ifnum);
 

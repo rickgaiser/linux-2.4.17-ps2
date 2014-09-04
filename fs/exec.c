@@ -37,6 +37,8 @@
 #include <linux/personality.h>
 #define __NO_VERSION__
 #include <linux/module.h>
+#include <linux/security.h>
+#include <linux/trace.h>
 
 #include <asm/uaccess.h>
 #include <asm/pgalloc.h>
@@ -420,8 +422,8 @@ static int exec_mmap(void)
 		active_mm = current->active_mm;
 		current->mm = mm;
 		current->active_mm = mm;
-		task_unlock(current);
 		activate_mm(active_mm, mm);
+		task_unlock(current);
 		mm_release();
 		if (old_mm) {
 			if (active_mm != old_mm) BUG();
@@ -610,6 +612,7 @@ int prepare_binprm(struct linux_binprm *bprm)
 {
 	int mode;
 	struct inode * inode = bprm->file->f_dentry->d_inode;
+	int retval;
 
 	mode = inode->i_mode;
 	/*
@@ -639,27 +642,9 @@ int prepare_binprm(struct linux_binprm *bprm)
 			bprm->e_gid = inode->i_gid;
 	}
 
-	/* We don't have VFS support for capabilities yet */
-	cap_clear(bprm->cap_inheritable);
-	cap_clear(bprm->cap_permitted);
-	cap_clear(bprm->cap_effective);
-
-	/*  To support inheritance of root-permissions and suid-root
-         *  executables under compatibility mode, we raise all three
-         *  capability sets for the file.
-         *
-         *  If only the real uid is 0, we only raise the inheritable
-         *  and permitted sets of the executable file.
-         */
-
-	if (!issecure(SECURE_NOROOT)) {
-		if (bprm->e_uid == 0 || current->uid == 0) {
-			cap_set_full(bprm->cap_inheritable);
-			cap_set_full(bprm->cap_permitted);
-		}
-		if (bprm->e_uid == 0) 
-			cap_set_full(bprm->cap_effective);
-	}
+	/* fill in binprm security blob */
+	if ((retval = security_bprm_set(bprm)))
+		return retval;
 
 	memset(bprm->buf,0,BINPRM_BUF_SIZE);
 	return kernel_read(bprm->file,0,bprm->buf,BINPRM_BUF_SIZE);
@@ -682,16 +667,9 @@ int prepare_binprm(struct linux_binprm *bprm)
 
 void compute_creds(struct linux_binprm *bprm) 
 {
-	kernel_cap_t new_permitted, working;
 	int do_unlock = 0;
 
-	new_permitted = cap_intersect(bprm->cap_permitted, cap_bset);
-	working = cap_intersect(bprm->cap_inheritable,
-				current->cap_inheritable);
-	new_permitted = cap_combine(new_permitted, working);
-
-	if (bprm->e_uid != current->uid || bprm->e_gid != current->gid ||
-	    !cap_issubset(new_permitted, current->cap_permitted)) {
+	if (bprm->e_uid != current->uid || bprm->e_gid != current->gid) {
                 current->mm->dumpable = 0;
 		
 		lock_kernel();
@@ -703,32 +681,17 @@ void compute_creds(struct linux_binprm *bprm)
 				bprm->e_uid = current->uid;
 				bprm->e_gid = current->gid;
 			}
-			if(!capable(CAP_SETPCAP)) {
-				new_permitted = cap_intersect(new_permitted,
-							current->cap_permitted);
-			}
 		}
 		do_unlock = 1;
 	}
-
-
-	/* For init, we want to retain the capabilities set
-         * in the init_task struct. Thus we skip the usual
-         * capability rules */
-	if (current->pid != 1) {
-		current->cap_permitted = new_permitted;
-		current->cap_effective =
-			cap_intersect(new_permitted, bprm->cap_effective);
-	}
-	
-        /* AUD: Audit candidate if current->cap_effective is set */
 
         current->suid = current->euid = current->fsuid = bprm->e_uid;
         current->sgid = current->egid = current->fsgid = bprm->e_gid;
 
 	if(do_unlock)
 		unlock_kernel();
-	current->keep_capabilities = 0;
+
+	security_bprm_compute_creds(bprm);
 }
 
 
@@ -798,6 +761,9 @@ int search_binary_handler(struct linux_binprm *bprm,struct pt_regs *regs)
 	    }
 	}
 #endif
+	if ((retval = security_bprm_check(bprm)))
+		return retval;
+
 	/* kernel module loader fixup */
 	/* so we don't try to load run modprobe in kernel space. */
 	set_fs(USER_DS);
@@ -866,6 +832,11 @@ int do_execve(char * filename, char ** argv, char ** envp, struct pt_regs * regs
 	if (IS_ERR(file))
 		return retval;
 
+	TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_EXEC,
+			  0,
+			  file->f_dentry->d_name.len,
+			  file->f_dentry->d_name.name);
+
 	bprm.p = PAGE_SIZE*MAX_ARG_PAGES-sizeof(void *);
 	memset(bprm.page, 0, MAX_ARG_PAGES*sizeof(bprm.page[0])); 
 
@@ -874,6 +845,7 @@ int do_execve(char * filename, char ** argv, char ** envp, struct pt_regs * regs
 	bprm.sh_bang = 0;
 	bprm.loader = 0;
 	bprm.exec = 0;
+	bprm.security = NULL;
 	if ((bprm.argc = count(argv, bprm.p / sizeof(void *))) < 0) {
 		allow_write_access(file);
 		fput(file);
@@ -885,6 +857,9 @@ int do_execve(char * filename, char ** argv, char ** envp, struct pt_regs * regs
 		fput(file);
 		return bprm.envc;
 	}
+
+	if ((retval = security_bprm_alloc(&bprm)))
+		goto out;
 
 	retval = prepare_binprm(&bprm);
 	if (retval < 0) 
@@ -904,9 +879,11 @@ int do_execve(char * filename, char ** argv, char ** envp, struct pt_regs * regs
 		goto out; 
 
 	retval = search_binary_handler(&bprm,regs);
-	if (retval >= 0)
+	if (retval >= 0) {
 		/* execve success */
+		security_bprm_free(&bprm);
 		return retval;
+	}
 
 out:
 	/* Something went wrong, return the inode and free the argument pages*/
@@ -919,6 +896,9 @@ out:
 		if (page)
 			__free_page(page);
 	}
+
+	if (bprm.security)
+		security_bprm_free(&bprm);
 
 	return retval;
 }
@@ -933,6 +913,10 @@ void set_binfmt(struct linux_binfmt *new)
 		__MOD_DEC_USE_COUNT(old->module);
 }
 
+#ifdef CONFIG_MULTITHREADED_CORES
+static spinlock_t coredump_lock = SPIN_LOCK_UNLOCKED;
+#endif
+
 int do_coredump(long signr, struct pt_regs * regs)
 {
 	struct linux_binfmt * binfmt;
@@ -945,16 +929,32 @@ int do_coredump(long signr, struct pt_regs * regs)
 	binfmt = current->binfmt;
 	if (!binfmt || !binfmt->core_dump)
 		goto fail;
+#ifdef CONFIG_MULTITHREADED_CORES
+	spin_lock (&coredump_lock);
+	if (!current->mm->dumpable) {
+		spin_unlock (&coredump_lock);
+		goto fail;
+	}
+	current->mm->dumpable = 0;
+	spin_unlock (&coredump_lock);
+#else
 	if (!current->mm->dumpable)
 		goto fail;
 	current->mm->dumpable = 0;
+#endif
 	if (current->rlim[RLIMIT_CORE].rlim_cur < binfmt->min_coredump)
 		goto fail;
 
 	memcpy(corename,"core.", 5);
 	corename[4] = '\0';
- 	if (core_uses_pid || atomic_read(&current->mm->mm_users) != 1)
+#ifndef CONFIG_MULTITHREADED_CORES
+  	if (core_uses_pid || atomic_read(&current->mm->mm_users) != 1)
  		sprintf(&corename[4], ".%d", current->pid);
+#else
+  	if (core_uses_pid)
+ 		sprintf(&corename[4], ".%d", current->pid);
+#endif
+
 	file = filp_open(corename, O_CREAT | 2 | O_NOFOLLOW, 0600);
 	if (IS_ERR(file))
 		goto fail;
@@ -973,7 +973,17 @@ int do_coredump(long signr, struct pt_regs * regs)
 	if (do_truncate(file->f_dentry, 0) != 0)
 		goto close_fail;
 
+#ifdef CONFIG_MULTITHREADED_CORES
+	/* Stop our siblings.  We have the kernel lock, but schedule() will
+	   nicely release it for us.  */
+	if (stop_all_threads (current->mm) != 0)
+		goto close_fail;
+#endif
 	retval = binfmt->core_dump(signr, regs, file);
+#ifdef CONFIG_MULTITHREADED_CORES
+	/* Restart our siblings (so they can die, or whatever).  */
+	start_all_threads (current->mm);
+#endif
 
 close_fail:
 	filp_close(file, NULL);

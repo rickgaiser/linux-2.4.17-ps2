@@ -30,6 +30,20 @@
 #include <linux/highmem.h>
 #include <linux/slab.h>
 #include <linux/module.h>
+#include <asm/semaphore.h>
+
+/* Maybe something to cleanup in 2.3?
+ * We shouldn't touch 0x3f2 on machines which don't have a PC floppy controller
+ * - it may contain something else which could cause a system hang.  This is
+ * now selected by a configuration option, but maybe it ought to be in the
+ * floppy code itself? - rmk
+ */
+#if defined(__i386__) || (defined(__arm__) && defined(CONFIG_ARCH_ACORN))
+#define FLOPPY_BOOT_DISABLE
+#endif
+#ifdef CONFIG_BLK_DEV_FD
+#undef FLOPPY_BOOT_DISABLE
+#endif
 
 /*
  * MAC Floppy IWM hooks
@@ -118,6 +132,11 @@ int * max_readahead[MAX_BLKDEV];
 int * max_sectors[MAX_BLKDEV];
 
 /*
+ * Max number of segments per request
+ */
+int * max_segments[MAX_BLKDEV];
+
+/*
  * How many reqeusts do we allocate per queue,
  * and how many do we "batch" on freeing them?
  */
@@ -128,6 +147,13 @@ static inline int get_max_sectors(kdev_t dev)
 	if (!max_sectors[MAJOR(dev)])
 		return MAX_SECTORS;
 	return max_sectors[MAJOR(dev)][MINOR(dev)];
+}
+
+static inline int get_max_segments(kdev_t dev)
+{
+	if (!max_segments[MAJOR(dev)])
+		return MAX_SEGMENTS;
+	return max_segments[MAJOR(dev)][MINOR(dev)];
 }
 
 inline request_queue_t *blk_get_queue(kdev_t dev)
@@ -673,6 +699,7 @@ static int __make_request(request_queue_t * q, int rw,
 	 * Try to coalesce the new request with old requests
 	 */
 	max_sectors = get_max_sectors(bh->b_rdev);
+	max_segments = get_max_segments(bh->b_rdev);
 
 again:
 	req = NULL;
@@ -821,6 +848,7 @@ void generic_make_request (int rw, struct buffer_head * bh)
 	int major = MAJOR(bh->b_rdev);
 	int minorsize = 0;
 	request_queue_t *q;
+	struct gendisk *gd;
 
 	if (!bh->b_end_io)
 		BUG();
@@ -850,6 +878,43 @@ void generic_make_request (int rw, struct buffer_head * bh)
 			bh->b_end_io(bh, 0);
 			return;
 		}
+	}
+
+	/* device partitioning */
+	if ((gd = blk_dev[major].gd)) {
+		kdev_t kdev = bh->b_rdev;
+		int unit = MINOR(kdev) >> gd->minor_shift;
+		int partno = MINOR(kdev) & ((1 << gd->minor_shift) - 1);
+		struct hd_struct *part = &gd->part[partno];
+		unsigned long rsector = bh->b_rsector;
+
+		if (gd->part_sem != NULL && partno != 0)
+			down(gd->part_sem);
+
+		if (rsector >= part->nr_sects) {
+			if (gd->part_sem != NULL && partno != 0)
+				up(gd->part_sem);
+			printk(KERN_ERR
+			       "generic_make_request: Block %ld out of bounds "
+			       "on dev %s\n", 
+			       rsector, kdevname(kdev));
+			buffer_IO_error(bh);
+			return;
+		}
+		bh->b_rdev = MKDEV(major, unit << gd->minor_shift);
+		if (part->nr_segs > 1) {
+		       /* segmented partition */
+			struct hd_seg_struct *seg;
+			seg = part->hash[rsector / part->hash_unit];
+			while (seg->offset + seg->nr_sects <= rsector)
+				seg++;
+			bh->b_rsector = rsector - seg->offset + seg->start_sect;
+		} else {
+			bh->b_rsector += part->start_sect;
+		}
+
+		if (gd->part_sem != NULL && partno != 0)
+			up(gd->part_sem);
 	}
 
 	/*
@@ -892,6 +957,9 @@ void submit_bh(int rw, struct buffer_head * bh)
 	int count = bh->b_size >> 9;
 
 	if (!test_bit(BH_Lock, &bh->b_state))
+		BUG();
+
+	if (buffer_delay(bh) || !buffer_mapped(bh))
 		BUG();
 
 	set_bit(BH_Req, &bh->b_state);
@@ -1165,12 +1233,14 @@ int __init blk_dev_init(void)
 #ifdef CONFIG_ATARI_FLOPPY
 	atari_floppy_init();
 #endif
+#ifdef CONFIG_BLK_DEV_FD1772
+	fd1772_init();
+#endif
 #ifdef CONFIG_BLK_DEV_FD
 	floppy_init();
-#else
-#if defined(__i386__)	/* Do we even need this? */
-	outb_p(0xc, 0x3f2);
 #endif
+#ifdef FLOPPY_BOOT_DISABLE
+	outb_p(0xc, 0x3f2);
 #endif
 #ifdef CONFIG_CDU31A
 	cdu31a_init();

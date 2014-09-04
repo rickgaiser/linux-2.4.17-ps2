@@ -29,6 +29,9 @@ text("#ifndef _MIPS_OFFSET_H");
 text("#define _MIPS_OFFSET_H");
 linefeed;
 
+#ifdef CONFIG_CPU_LX45XXX
+extern unsigned int dspProduct;
+#endif
 void output_ptreg_defines(void)
 {
 	text("/* MIPS pt_regs offsets. */");
@@ -66,10 +69,18 @@ void output_ptreg_defines(void)
 	offset("#define PT_R31    ", struct pt_regs, regs[31]);
 	offset("#define PT_LO     ", struct pt_regs, lo);
 	offset("#define PT_HI     ", struct pt_regs, hi);
+#ifdef CONFIG_CPU_R5900_CONTEXT
+	offset("#define PT_SA     ", struct pt_regs, sa);
+#endif
 	offset("#define PT_EPC    ", struct pt_regs, cp0_epc);
 	offset("#define PT_BVADDR ", struct pt_regs, cp0_badvaddr);
 	offset("#define PT_STATUS ", struct pt_regs, cp0_status);
 	offset("#define PT_CAUSE  ", struct pt_regs, cp0_cause);
+#ifdef CONFIG_CPU_LX45XXX
+	offset("#define PT_ESTATUS ", struct pt_regs, cp0_estatus);
+	offset("#define PT_ECAUSE  ", struct pt_regs, cp0_ecause);
+#endif
+
 	size("#define PT_SIZE   ", struct pt_regs);
 	linefeed;
 }
@@ -107,6 +118,10 @@ void output_thread_defines(void)
 	offset("#define THREAD_STATUS  ", struct task_struct, \
 	       thread.cp0_status);
 	offset("#define THREAD_FPU     ", struct task_struct, thread.fpu);
+#ifdef CONFIG_CPU_R5900_CONTEXT
+	offset("#define THREAD_FPU_ACC ", struct task_struct, \
+	       thread.fpu.hard.fp_acc);
+#endif
 	offset("#define THREAD_BVADDR  ", struct task_struct, \
 	       thread.cp0_badvaddr);
 	offset("#define THREAD_BUADDR  ", struct task_struct, \
@@ -121,10 +136,6 @@ void output_thread_defines(void)
 	       thread.irix_trampoline);
 	offset("#define THREAD_OLDCTX  ", struct task_struct, \
 	       thread.irix_oldctx);
-	offset("#define THREAD_DSEEPC  ", struct task_struct, \
-	       thread.dsemul_epc);
-	offset("#define THREAD_DSEAERPC ", struct task_struct, \
-	       thread.dsemul_aerpc);
 	linefeed;
 }
 
@@ -144,6 +155,10 @@ void output_sc_defines(void)
 	offset("#define SC_FPREGS     ", struct sigcontext, sc_fpregs);
 	offset("#define SC_MDHI       ", struct sigcontext, sc_mdhi);
 	offset("#define SC_MDLO       ", struct sigcontext, sc_mdlo);
+#ifdef CONFIG_CPU_R5900_CONTEXT
+	offset("#define SC_SA         ", struct sigcontext, sc_sa);
+	offset("#define SC_FP_ACC     ", struct sigcontext, sc_fp_acc);
+#endif
 	offset("#define SC_PC         ", struct sigcontext, sc_pc);
 	offset("#define SC_STATUS     ", struct sigcontext, sc_status);
 	offset("#define SC_OWNEDFP    ", struct sigcontext, sc_ownedfp);

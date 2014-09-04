@@ -1,0 +1,198 @@
+klids.o: klids.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/unistd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lids.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/hide/klids.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/msgqueue/size.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/net/timeout.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/net/udp.h) \
+   lids_mail_script.c \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/net/max/tries.h)
+lids_acl.o: lids_acl.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/quotaops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/page.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/pgtable.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/namei.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/utime.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/rmd160.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lids.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsext.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsif.h
+lids_cap.o: lids_cap.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/capability.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mman.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext2_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ioctls.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lids.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsext.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsif.h
+lids_exec.o: lids_exec.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/capability.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mman.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext2_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ioctls.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/page.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/highmem.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lids.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsext.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsif.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/x86.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/sparc32.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ppc.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mips.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/arm.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/sa/exec/up.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/no/exec/up.h)
+lids_init.o: lids_init.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/capability.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mman.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext2_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ioctls.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lids.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsext.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsif.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/reload/conf.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/smp.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/allow/switch.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/max/inode.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/max/sacl.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/max/oacl.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/allow/any/prog/switch.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/sa/through/net.h)
+lids_logs.o: lids_logs.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lids.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/sa/through/net.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/timeout/after/flood.h)
+lids_lsm.o: lids_lsm.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netfilter.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netlink.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lids.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsext.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsif.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/sa/through/net.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/allow/switch.h)
+lids_net.o: lids_net.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unistd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/utsname.h
+lids_sysctl.o: lids_sysctl.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/security.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/capability.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mman.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext2_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ioctls.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lids.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsext.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/lidsif.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/rmd160.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/allow/any/prog/switch.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/max/protected/pid.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/reload/conf.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/allow/switch.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/restrict/mode/switch.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/mode/switch/console.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/mode/switch/serial.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/mode/switch/pty.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/max/try.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/lids/ttw/fail.h)
+rmd160.o: rmd160.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/security/lids/include/linux/rmd160.h

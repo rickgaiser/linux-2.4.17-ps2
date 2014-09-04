@@ -112,6 +112,13 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
+#ifdef CONFIG_8139TOO_DREAMCAST
+#define CONFIG_8139TOO_BUF16K	1
+#define USE_NO_DMAMAP		1
+#else
+#define USE_NO_DMAMAP		0
+#endif
+
 #define RTL8139_DRIVER_NAME   DRV_NAME " Fast Ethernet driver " DRV_VERSION
 #define PFX DRV_NAME ": "
 
@@ -160,7 +167,11 @@ static int max_interrupt_work = 20;
 static int multicast_filter_limit = 32;
 
 /* Size of the in-memory receive ring. */
+#ifdef CONFIG_8139TOO_BUF16K
+#define RX_BUF_LEN_IDX	1	/* 0==8K, 1==16K, 2==32K, 3==64K */
+#else
 #define RX_BUF_LEN_IDX	2	/* 0==8K, 1==16K, 2==32K, 3==64K */
+#endif
 #define RX_BUF_LEN	(8192 << RX_BUF_LEN_IDX)
 #define RX_BUF_PAD	16
 #define RX_BUF_WRAP_PAD 2048 /* spare padding to handle lack of packet wrap */
@@ -212,6 +223,7 @@ typedef enum {
 	ADDTRON8139,
 	DFE538TX,
 	DFE690TXD,
+	SEGABBA,
 	RTL8129,
 } board_t;
 
@@ -229,7 +241,10 @@ static struct {
 	{ "Addtron Technolgy 8139 10/100BaseTX", RTL8139_CAPS },
 	{ "D-Link DFE-538TX (RealTek RTL8139)", RTL8139_CAPS },
 	{ "D-Link DFE-690TXD (RealTek RTL8139)", RTL8139_CAPS },
+	{ "SEGA Broadband Adapter", RTL8139_CAPS },
 	{ "RealTek RTL8129", RTL8129_CAPS },
+        { "Allied Telesis 8139B PCI/CardBus",RTL8139_CAPS },
+        { "Planex Communications FNW-3603-TX",RTL8139_CAPS },
 };
 
 
@@ -242,6 +257,9 @@ static struct pci_device_id rtl8139_pci_tbl[] __devinitdata = {
 	{0x4033, 0x1360, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ADDTRON8139 },
 	{0x1186, 0x1300, PCI_ANY_ID, PCI_ANY_ID, 0, 0, DFE538TX },
 	{0x1186, 0x1340, PCI_ANY_ID, PCI_ANY_ID, 0, 0, DFE690TXD },
+	{0x11db, 0x1234, PCI_ANY_ID, PCI_ANY_ID, 0, 0, SEGABBA },
+        {0x1259, 0xa117, PCI_ANY_ID, PCI_ANY_ID, 0, 0, RTL8139_CB },
+        {0x14ea, 0xab06, PCI_ANY_ID, PCI_ANY_ID, 0, 0, RTL8139_CB },
 
 #ifdef CONFIG_8139TOO_8129
 	{0x10ec, 0x8129, PCI_ANY_ID, PCI_ANY_ID, 0, 0, RTL8129 },
@@ -654,10 +672,17 @@ static const u16 rtl8139_intr_mask =
 	PCIErr | PCSTimeout | RxUnderrun | RxOverflow | RxFIFOOver |
 	TxErr | TxOK | RxErr | RxOK;
 
+#ifdef CONFIG_8139TOO_BUF16K
+static const unsigned int rtl8139_rx_config =
+	RxCfgRcv16K | RxNoWrap |
+	(RX_FIFO_THRESH << RxCfgFIFOShift) |
+	(RX_DMA_BURST << RxCfgDMAShift);
+#else
 static const unsigned int rtl8139_rx_config =
 	RxCfgRcv32K | RxNoWrap |
 	(RX_FIFO_THRESH << RxCfgFIFOShift) |
 	(RX_DMA_BURST << RxCfgDMAShift);
+#endif
 
 static const unsigned int rtl8139_tx_config =
 	(TX_DMA_BURST << TxDMAShift) | (TX_RETRY << TxRetryShift);
@@ -1335,8 +1360,9 @@ static void rtl8139_hw_start (struct net_device *dev)
 
 	tp->rx_config = rtl8139_rx_config | AcceptBroadcast | AcceptMyPhys;
 	RTL_W32 (RxConfig, tp->rx_config);
+	tp->rx_config = 0;
 
-	/* Check this value: the documentation for IFG contradicts ifself. */
+	/* Check this value: the documentation for IFG contradicts itself. */
 	RTL_W32 (TxConfig, rtl8139_tx_config);
 
 	tp->cur_rx = 0;

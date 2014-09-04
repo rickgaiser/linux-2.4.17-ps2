@@ -14,6 +14,8 @@ obj-		:=
 # Things that need to export symbols
 export-objs	:= ray_cs.o
 
+list-multi = wvlan.o
+
 # 16-bit client drivers
 obj-$(CONFIG_PCMCIA_3C589)	+= 3c589_cs.o
 obj-$(CONFIG_PCMCIA_3C574)	+= 3c574_cs.o
@@ -30,6 +32,9 @@ obj-$(CONFIG_PCMCIA_RAYCS)	+= ray_cs.o
 obj-$(CONFIG_PCMCIA_NETWAVE)	+= netwave_cs.o
 obj-$(CONFIG_PCMCIA_WAVELAN)	+= wavelan_cs.o
 obj-$(CONFIG_AIRONET4500_CS)	+= aironet4500_cs.o
+obj-$(CONFIG_PCMCIA_WVLAN)	+= wvlan_cs.o
+
+wvlan-objs = wvlan_hcf.o wvlan_hcfio.o
 
 # Cardbus client drivers
 obj-$(CONFIG_PCMCIA_XIRTULIP)	+= xircom_tulip_cb.o
@@ -39,3 +44,6 @@ obj-$(CONFIG_PCMCIA_IBMTR)	+= ibmtr_cs.o
 
 include $(TOPDIR)/Rules.make
 
+wvlan_cs.o: $(wvlan-objs) 
+	$(CC) $(CFLAGS) -DPCMCIA -c -o tmp_wvlan.o wvlan_cs.c
+	$(LD) -r -o $@ $(wvlan-objs) tmp_wvlan.o

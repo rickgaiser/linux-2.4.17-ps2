@@ -26,4 +26,13 @@ struct ip_tunnel_parm
 	struct iphdr		iph;
 };
 
+/* IPIP,SIT and ISATAP things */
+#define	sit_mode	i_flags
+#define	sit_v4any	i_key
+
+#define	SITMODE_GENERIC	0
+#define	SITMODE_6TO4	1
+#define	SITMODE_ISATAP	2
+#define	SITMODE_MAX	2
+
 #endif /* _IF_TUNNEL_H_ */

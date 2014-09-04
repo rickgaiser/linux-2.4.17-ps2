@@ -36,7 +36,7 @@ typedef struct scsi_disk {
 } Scsi_Disk;
 
 extern int revalidate_scsidisk(kdev_t dev, int maxusage);
-
+extern int sd_purge_buffers(Scsi_Device * SDp);
 /*
  * Used by pmac to find the device associated with a target.
  */

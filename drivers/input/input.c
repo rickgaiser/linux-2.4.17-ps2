@@ -34,6 +34,8 @@
 #include <linux/input.h>
 #include <linux/module.h>
 #include <linux/random.h>
+#include <linux/kd.h>
+#include <linux/vt_kern.h>
 
 MODULE_AUTHOR("Vojtech Pavlik <vojtech@suse.cz>");
 MODULE_DESCRIPTION("Input layer module");
@@ -59,6 +61,8 @@ static struct input_handler *input_table[8];
 static devfs_handle_t input_devfs_handle;
 static int input_number;
 static long input_devices[NBITS(INPUT_DEVICES)];
+static int rep_delay = HZ/4;
+static int rep_period = HZ/33;
 
 void input_event(struct input_dev *dev, unsigned int type, unsigned int code, int value)
 {
@@ -185,6 +189,44 @@ static void input_repeat_key(unsigned long data)
 	mod_timer(&dev->timer, jiffies + dev->rep[REP_PERIOD]);
 }
 
+static int input_repeat_func(struct kbd_repeat *rep)
+{
+	struct input_dev *dev = input_dev;
+	int new_delay, new_period;
+	int old_delay, old_period;
+
+	old_delay = rep_delay * 1000 / HZ;
+	old_period = rep_period * 1000 / HZ;
+
+	if (rep->delay > 0) {
+	    new_delay = rep->delay * HZ / 1000;
+	    if (new_delay < 1)
+		    new_delay = 1;
+	    rep_delay = new_delay;
+	}
+
+	if (rep->rate > 0) {
+	    new_period = rep->rate * HZ / 1000;
+	    if (new_period < 1)
+		    new_period = 1;
+	    rep_period = new_period;
+	}
+
+	while (dev) {
+		if (test_bit(EV_REP, dev->evbit)) {
+			if (rep->delay > 0)
+			    input_event(dev, EV_REP, REP_DELAY, new_delay);
+			if (rep->rate > 0)
+			    input_event(dev, EV_REP, REP_PERIOD, new_period);
+		}
+		dev = dev->next;
+	}
+
+	rep->delay = old_delay;
+	rep->rate = old_period;
+	return 0;
+}
+
 int input_open_device(struct input_handle *handle)
 {
 	handle->open++;
@@ -235,8 +277,8 @@ void input_register_device(struct input_dev *dev)
 	init_timer(&dev->timer);
 	dev->timer.data = (long) dev;
 	dev->timer.function = input_repeat_key;
-	dev->rep[REP_DELAY] = HZ/4;
-	dev->rep[REP_PERIOD] = HZ/33;
+	dev->rep[REP_DELAY] = rep_delay;
+	dev->rep[REP_PERIOD] = rep_period;
 
 /*
  * Add the device.
@@ -424,6 +466,7 @@ static int __init input_init(void)
 		return -EBUSY;
 	}
 	input_devfs_handle = devfs_mk_dir(NULL, "input", NULL);
+	kbd_rate = input_repeat_func;
 	return 0;
 }
 
@@ -432,6 +475,7 @@ static void __exit input_exit(void)
 	devfs_unregister(input_devfs_handle);
         if (devfs_unregister_chrdev(INPUT_MAJOR, "input"))
                 printk(KERN_ERR "input: can't unregister char major %d", INPUT_MAJOR);
+	kbd_rate = NULL;
 }
 
 module_init(input_init);

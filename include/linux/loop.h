@@ -17,12 +17,24 @@
 
 #ifdef __KERNEL__
 
+/* definitions for IV metric */
+#define LOOP_IV_SECTOR_BITS 9
+#define LOOP_IV_SECTOR_SIZE (1 << LOOP_IV_SECTOR_BITS)
+
+typedef int loop_iv_t;
+
 /* Possible states of device */
 enum {
 	Lo_unbound,
 	Lo_bound,
 	Lo_rundown,
 };
+
+struct loop_device;
+
+typedef	int (* transfer_proc_t)(struct loop_device *, int cmd,
+				char *raw_buf, char *loop_buf, int size,
+				loop_iv_t IV);
 
 struct loop_device {
 	int		lo_number;
@@ -32,9 +44,7 @@ struct loop_device {
 	int		lo_encrypt_type;
 	int		lo_encrypt_key_size;
 	int		lo_flags;
-	int		(*transfer)(struct loop_device *, int cmd,
-				    char *raw_buf, char *loop_buf, int size,
-				    int real_block);
+	transfer_proc_t transfer;
 	char		lo_name[LO_NAME_SIZE];
 	char		lo_encrypt_key[LO_KEY_SIZE];
 	__u32           lo_init[2];
@@ -58,17 +68,13 @@ struct loop_device {
 	atomic_t		lo_pending;
 };
 
-typedef	int (* transfer_proc_t)(struct loop_device *, int cmd,
-				char *raw_buf, char *loop_buf, int size,
-				int real_block);
-
 static inline int lo_do_transfer(struct loop_device *lo, int cmd, char *rbuf,
-				 char *lbuf, int size, int rblock)
+				 char *lbuf, int size, loop_iv_t IV)
 {
 	if (!lo->transfer)
 		return 0;
 
-	return lo->transfer(lo, cmd, rbuf, lbuf, size, rblock);
+	return lo->transfer(lo, cmd, rbuf, lbuf, size, IV);
 }
 #endif /* __KERNEL__ */
 
@@ -122,6 +128,8 @@ struct loop_info {
 #define LO_CRYPT_IDEA     6
 #define LO_CRYPT_DUMMY    9
 #define LO_CRYPT_SKIPJACK 10
+#define LO_CRYPT_AES      16   /* loop-AES */
+#define LO_CRYPT_CRYPTOAPI 18  /* international crypto patch */
 #define MAX_LO_CRYPT	20
 
 #ifdef __KERNEL__
@@ -129,7 +137,7 @@ struct loop_info {
 struct loop_func_table {
 	int number; 	/* filter type */ 
 	int (*transfer)(struct loop_device *lo, int cmd, char *raw_buf,
-			char *loop_buf, int size, int real_block);
+			char *loop_buf, int size, loop_iv_t IV);
 	int (*init)(struct loop_device *, struct loop_info *); 
 	/* release is called from loop_unregister_transfer or clr_fd */
 	int (*release)(struct loop_device *); 

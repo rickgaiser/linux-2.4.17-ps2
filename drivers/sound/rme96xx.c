@@ -1429,7 +1429,7 @@ static int rm96xx_mmap(struct file *file, struct vm_area_struct *vma) {
 
 
 /* this is the mapping */
-
+	vma->vm_flags &= ~VM_IO;
 	dma->mmapped = 1;
 	unlock_kernel();
 	return 0;

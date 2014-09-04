@@ -204,6 +204,7 @@ static int  zft_mmap(struct file *filep, struct vm_area_struct *vma)
 	sigfillset(&current->blocked);
 	lock_kernel();
 	if ((result = ftape_mmap(vma)) >= 0) {
+		vma->vm_flags &= ~VM_IO;
 #ifndef MSYNC_BUG_WAS_FIXED
 		static struct vm_operations_struct dummy = { NULL, };
 		vma->vm_ops = &dummy;

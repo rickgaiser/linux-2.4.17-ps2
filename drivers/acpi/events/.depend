@@ -1,0 +1,49 @@
+evevent.o: evevent.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/achware.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acevents.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h
+evmisc.o: evmisc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acevents.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/achware.h
+evregion.o: evregion.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acevents.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h
+evrgnini.o: evrgnini.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acevents.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h
+evsci.o: evsci.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/achware.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acevents.h
+evxface.o: evxface.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/achware.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acevents.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h
+evxfevnt.o: evxfevnt.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/achware.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acevents.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h
+evxfregn.o: evxfregn.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/achware.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acevents.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h

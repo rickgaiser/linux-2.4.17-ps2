@@ -382,6 +382,50 @@ scsi_ioctl_get_pci(Scsi_Device * dev, void *arg)
                             sizeof(dev->host->pci_dev->slot_name));
 }
 
+static void copy_internal_device_state( Scsi_Device_Internal_State * pState,
+					Scsi_Device * pDevice,
+					int bStateToDevice)
+{
+	if ( bStateToDevice ) {
+		pDevice->online  = pState->online ;
+		pDevice->writeable = pState->writeable;
+		pDevice->removable = pState->removable;
+		pDevice->random = pState->random;
+		pDevice->has_cmdblocks = pState->has_cmdblocks;
+		pDevice->changed = pState->changed;
+		pDevice->busy = pState->busy;
+		pDevice->lockable = pState->lockable;
+		pDevice->borken  = pState->borken ;
+		pDevice->tagged_supported = pState->tagged_supported;
+		pDevice->disconnect = pState->disconnect;
+		pDevice->soft_reset = pState->soft_reset;
+		pDevice->sync = pState->sync;
+		pDevice->wide = pState->wide;
+		pDevice->single_lun = pState->single_lun;
+		pDevice->was_reset = pState->was_reset;
+		pDevice->expecting_cc_ua = pState->expecting_cc_ua;
+		pDevice->device_blocked  = pState->device_blocked ;
+	} else {
+		pState->online  = pDevice->online ; 
+		pState->writeable = pDevice->writeable; 
+		pState->removable = pDevice->removable; 
+		pState->random = pDevice->random; 
+		pState->has_cmdblocks = pDevice->has_cmdblocks; 
+		pState->changed = pDevice->changed; 
+		pState->busy = pDevice->busy; 
+		pState->lockable = pDevice->lockable; 
+		pState->borken  = pDevice->borken ; 
+		pState->tagged_supported = pDevice->tagged_supported; 
+		pState->disconnect = pDevice->disconnect; 
+		pState->soft_reset = pDevice->soft_reset; 
+		pState->sync = pDevice->sync; 
+		pState->wide = pDevice->wide; 
+		pState->single_lun = pDevice->single_lun;
+		pState->was_reset = pDevice->was_reset; 
+		pState->expecting_cc_ua = pDevice->expecting_cc_ua; 
+		pState->device_blocked  = pDevice->device_blocked ; 
+	}
+}
 
 /*
  * the scsi_ioctl() function differs from most ioctls in that it does
@@ -390,8 +434,10 @@ scsi_ioctl_get_pci(Scsi_Device * dev, void *arg)
  */
 int scsi_ioctl(Scsi_Device * dev, int cmd, void *arg)
 {
+	int result;
 	char scsi_cmd[MAX_COMMAND_SIZE];
 	char cmd_byte1;
+	Scsi_Device_Internal_State devState;
 
 	/* No idea how this happens.... */
 	if (!dev)
@@ -491,6 +537,32 @@ int scsi_ioctl(Scsi_Device * dev, int cmd, void *arg)
         case SCSI_IOCTL_GET_PCI:
                 return scsi_ioctl_get_pci(dev, arg);
                 break;
+	case SCSI_IOCTL_GET_DEVICE_INTERNAL_STATE:
+
+		result = verify_area(VERIFY_WRITE, arg, sizeof (Scsi_Device_Internal_State));
+		if (result) return result;
+		memset(&devState, 0, sizeof(Scsi_Device_Internal_State));
+		copy_internal_device_state( &devState, dev, 0);
+		if (copy_to_user(arg, &devState,sizeof(Scsi_Device_Internal_State)))
+			return -EFAULT;
+		return 0;
+		break;
+
+	case SCSI_IOCTL_SET_DEVICE_INTERNAL_STATE:
+#if defined(CONFIG_SCSI_DEBUG)
+		if(!capable(CAP_SYS_ADMIN))  return -EACCES;
+		result = verify_area(VERIFY_READ, arg, sizeof (Scsi_Device_Internal_State));
+		if (result) return result;
+		memset(&devState, 0, sizeof(Scsi_Device_Internal_State));
+		if (copy_from_user(&devState, arg, sizeof(Scsi_Device_Internal_State)))
+			return -EFAULT;
+		copy_internal_device_state( &devState, dev, 1);
+		return 0;
+#else
+		return -EFAULT;
+#endif
+		break;
+
 	default:
 		if (dev->host->hostt->ioctl)
 			return dev->host->hostt->ioctl(dev, cmd, arg);

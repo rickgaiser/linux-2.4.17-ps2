@@ -1,0 +1,17 @@
+#
+# Crypto Library Configuration
+#
+mainmenu_option next_comment
+comment 'Cryptographic options'
+
+bool 'Cryptographic API support' CONFIG_CRYPTO
+
+source crypto/cryptoloop/Config.in
+
+dep_tristate 'Cryptographic ciphers' CONFIG_CIPHERS $CONFIG_CRYPTO
+source crypto/ciphers/Config.in
+
+dep_tristate 'Digest algorithms' CONFIG_DIGESTS $CONFIG_CRYPTO
+source crypto/digests/Config.in
+
+endmenu

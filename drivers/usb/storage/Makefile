@@ -7,6 +7,7 @@
 
 O_TARGET	:= storage.o
 EXTRA_CFLAGS	:= -I../../scsi/
+#EXTRA_CFLAGS	:= -I../../scsi/ -DDEBUG_PRINTSTALL
 
 list-multi	:= usb-storage.o
 

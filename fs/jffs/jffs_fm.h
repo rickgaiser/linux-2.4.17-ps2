@@ -10,7 +10,7 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * $Id: jffs_fm.h,v 1.13 2001/01/11 12:03:25 dwmw2 Exp $
+ * $Id: jffs_fm.h,v 1.14 2001/12/10 17:37:12 asanochkin Exp $
  *
  * Ported to Linux 2.3.x and MTD:
  * Copyright (C) 2000  Alexander Larsson (alex@cendio.se), Cendio Systems AB
@@ -123,7 +123,7 @@ struct jffs_fmcontrol
 
 
 struct jffs_fmcontrol *jffs_build_begin(struct jffs_control *c, kdev_t dev);
-void jffs_build_end(struct jffs_fmcontrol *fmc);
+int jffs_build_end(struct jffs_fmcontrol *fmc, __u32 head_offset);
 void jffs_cleanup_fmcontrol(struct jffs_fmcontrol *fmc);
 
 int jffs_fmalloc(struct jffs_fmcontrol *fmc, __u32 size,

@@ -222,7 +222,7 @@ processes to mmap shared memory at address which are a multiple of
 this value.
 
 NOTE: This does not fix shared mmaps, check out the sparc64 port for
-one way to solve this (in particular SPARC_FLAG_MMAPSHARED).
+one way to solve this (in particular arch_get_unmapped_area).
 
 Next, you have two methods to solve the D-cache aliasing issue for all
 other cases.  Please keep in mind that fact that, for a given page

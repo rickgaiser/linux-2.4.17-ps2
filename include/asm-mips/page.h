@@ -1,5 +1,4 @@
-/* $Id: page.h,v 1.9 2000/02/24 00:13:19 ralf Exp $
- *
+/*
  * Definitions for page handling
  *
  * This file is subject to the terms and conditions of the GNU General Public
@@ -20,8 +19,50 @@
 
 #ifndef _LANGUAGE_ASSEMBLY
 
+#ifdef CONFIG_DEBUG_BUGVERBOSE
 #define BUG() do { printk("kernel BUG at %s:%d!\n", __FILE__, __LINE__); *(int *)0=0; } while (0)
 #define PAGE_BUG(page) do {  BUG(); } while (0)
+#else
+#define BUG()		do { *(int *)0 = 0; } while (0)
+#define PAGE_BUG(page)	do { *(int *)0 = 0; } while (0)
+#endif
+
+/*
+ * Prototypes for clear_page / copy_page variants with processor dependant
+ * optimizations.
+ */
+void andes_clear_page(void * page);
+void mips32_clear_page_dc(unsigned long page);
+void mips32_clear_page_sc(unsigned long page);
+void r3k_clear_page(void * page);
+void r4k_clear_page_d16(void * page);
+void r4k_clear_page_d32(void * page);
+void r4k_clear_page_r4600_v1(void * page);
+void r4k_clear_page_r4600_v2(void * page);
+void r4k_clear_page_s16(void * page);
+void r4k_clear_page_s32(void * page);
+void r4k_clear_page_s64(void * page);
+void r4k_clear_page_s128(void * page);
+void r5432_clear_page_d32(void * page);
+void rm7k_clear_page(void * page);
+void sb1_clear_page(void * page);
+void r5900_clear_page_d16(void * page);
+void andes_copy_page(void * to, void * from);
+void mips32_copy_page_dc(unsigned long to, unsigned long from);
+void mips32_copy_page_sc(unsigned long to, unsigned long from);
+void r3k_copy_page(void * to, void * from);
+void r4k_copy_page_d16(void * to, void * from);
+void r4k_copy_page_d32(void * to, void * from);
+void r4k_copy_page_r4600_v1(void * to, void * from);
+void r4k_copy_page_r4600_v2(void * to, void * from);
+void r4k_copy_page_s16(void * to, void * from);
+void r4k_copy_page_s32(void * to, void * from);
+void r4k_copy_page_s64(void * to, void * from);
+void r4k_copy_page_s128(void * to, void * from);
+void r5432_copy_page_d32(void * to, void * from);
+void rm7k_copy_page(void * to, void * from);
+void sb1_copy_page(void * to, void * from);
+void r5900_copy_page_d16(void * to, void * from);
 
 extern void (*_clear_page)(void * page);
 extern void (*_copy_page)(void * to, void * from);

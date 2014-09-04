@@ -1,0 +1,87 @@
+CryptoAPI
+=========
+
+if you are interested in encrypting your data on persistent storage,
+you should take a look at <file:Documentation/crypto/cryptoloop.txt>
+
+/this document is still incomplete/
+
+how to make use of the cryptographic API in kernelspace:
+(see also the <linux/crypto.h> header!)
+
+Ciphers
+~~~~~~~
+
+example code:
+
+#include <linux/crypto.h>
+
+struct cipher_context* 
+setup_cipher (const char *ciphername, const u8 *key, u32 keylen)
+{
+  int error = 0;
+  struct cipher_context *cx = NULL;
+  struct cipher_implementation* ci = NULL;
+  
+  ci = find_cipher_by_name (ciphername, 1 /* == atomic - i.e. cipher must not sleep */);
+  
+  if (!ci) /* cipher not found */
+    return NULL;
+
+  ci->lock ();
+
+  cx = ci->realloc_context (NULL, ci, /* max expected */ keylen);
+
+  if (!cx) /* some error */
+  {
+    ci->unlock ();
+    return NULL;
+  }
+
+  if (ci->set_key (cx, key, keylen) < 0)
+  { /* error while setting key */
+    ci->wipe_context(cx);
+    ci->free_context(cx);
+    ci->unlock ();
+    return NULL;
+  }
+ 
+  return cx; /* everything ok so far */
+}
+
+int 
+test_cipher (struct cipher_context *cx, u8 *data, u32 datalen)
+{
+  int error = 0;
+  u_int32_t iv[4] = { 0, 0, 0, 0 }; /* dummy IV value */
+ 
+  if ((error = cx->ci->encrypt (cx, data, data, datalen, &iv)) < 0) 
+    return error;
+
+  /* *data should contain ciphertext now */
+ 
+  if ((error = cx->ci->decrypt( cx, data, data, datalen, &iv)) < 0) 
+    return error;
+
+  /* plaintext again */
+
+  return 0;
+}
+
+free_cipher (struct cipher_context* cx)
+{
+  /* assert (cx != NULL); */
+  struct cipher_implementation* ci == cx->ci;
+
+  ci->wipe_context(cx);
+  ci->free_context(cx);
+  ci->unlock();
+}
+
+
+
+Digests
+~~~~~~~
+[...to write...]
+
+--

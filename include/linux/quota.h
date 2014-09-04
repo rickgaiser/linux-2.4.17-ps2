@@ -40,30 +40,10 @@
 #define _LINUX_QUOTA_
 
 #include <linux/errno.h>
+#include <linux/types.h>
 
-/*
- * Convert diskblocks to blocks and the other way around.
- */
-#define dbtob(num) (num << BLOCK_SIZE_BITS)
-#define btodb(num) (num >> BLOCK_SIZE_BITS)
-
-/*
- * Convert count of filesystem blocks to diskquota blocks, meant
- * for filesystems where i_blksize != BLOCK_SIZE
- */
-#define fs_to_dq_blocks(num, blksize) (((num) * (blksize)) / BLOCK_SIZE)
-
-/*
- * Definitions for disk quotas imposed on the average user
- * (big brother finally hits Linux).
- *
- * The following constants define the amount of time given a user
- * before the soft limits are treated as hard limits (usually resulting
- * in an allocation failure). The timer is started when the user crosses
- * their soft limit, it is reset when they go below their soft limit.
- */
-#define MAX_IQ_TIME  604800	/* (7*24*60*60) 1 week */
-#define MAX_DQ_TIME  604800	/* (7*24*60*60) 1 week */
+typedef __kernel_uid32_t qid_t;	/* Type in which we store ids in memory */
+typedef __u64 qsize_t;		/* Type in which we store size limitations */
 
 #define MAXQUOTAS 2
 #define USRQUOTA  0		/* element used for user quotas */
@@ -76,10 +56,32 @@
 	"user",    /* USRQUOTA */ \
 	"group",   /* GRPQUOTA */ \
 	"undefined", \
-};
+}
 
-#define QUOTAFILENAME "quota"
+/*
+ * Definitions of magics and versions of current quota files
+ */
+#define INITQMAGICS {\
+	0xd9c01f11,	/* USRQUOTA */\
+	0xd9c01927	/* GRPQUOTA */\
+}
+
+#define INITQVERSIONS {\
+	0,		/* USRQUOTA */\
+	0		/* GRPQUOTA */\
+}
+
+#define QUOTAFILENAME "aquota"
 #define QUOTAGROUP "staff"
+
+/* Size of blocks in which are counted size limits */
+#define QUOTABLOCK_BITS 10
+#define QUOTABLOCK_SIZE (1 << QUOTABLOCK_BITS)
+
+/* Conversion routines from and to quota blocks */
+#define qb2kb(x) ((x) << (QUOTABLOCK_BITS-10))
+#define kb2qb(x) ((x) >> (QUOTABLOCK_BITS-10))
+#define toqb(x) (((x) + QUOTABLOCK_SIZE - 1) >> QUOTABLOCK_BITS)
 
 /*
  * Command definitions for the 'quotactl' system call.
@@ -93,43 +95,107 @@
 
 #define Q_QUOTAON  0x0100	/* enable quotas */
 #define Q_QUOTAOFF 0x0200	/* disable quotas */
-#define Q_GETQUOTA 0x0300	/* get limits and usage */
-#define Q_SETQUOTA 0x0400	/* set limits and usage */
-#define Q_SETUSE   0x0500	/* set usage */
+/* GETQUOTA, SETQUOTA and SETUSE which were at 0x0300-0x0500 has now other parameteres */
 #define Q_SYNC     0x0600	/* sync disk copy of a filesystems quotas */
 #define Q_SETQLIM  0x0700	/* set limits */
-#define Q_GETSTATS 0x0800	/* get collected stats */
-#define Q_RSQUASH  0x1000	/* set root_squash option */
+/* GETSTATS at 0x0800 is now longer... */
+#define Q_GETINFO  0x0900	/* get info about quotas - graces, flags... */
+#define Q_SETINFO  0x0A00	/* set info about quotas */
+#define Q_SETGRACE 0x0B00	/* set inode and block grace */
+#define Q_SETFLAGS 0x0C00	/* set flags for quota */
+#define Q_GETQUOTA 0x0D00	/* get limits and usage */
+#define Q_SETQUOTA 0x0E00	/* set limits and usage */
+#define Q_SETUSE   0x0F00	/* set usage */
+/* 0x1000 used by old RSQUASH */
+/* 0x1100 used by GETSTATS v2, since replaced by procfs entry */
 
 /*
  * The following structure defines the format of the disk quota file
- * (as it appears on disk) - the file is an array of these structures
- * indexed by user or group number.
+ * (as it appears on disk) - the file is a hash table whose entries points
+ * to blocks of these structures.
  */
-struct dqblk {
-	__u32 dqb_bhardlimit;	/* absolute limit on disk blks alloc */
-	__u32 dqb_bsoftlimit;	/* preferred limit on disk blks */
-	__u32 dqb_curblocks;	/* current block count */
+struct disk_dqblk {
+	__u32 dqb_id;		/* id this quota applies to */
 	__u32 dqb_ihardlimit;	/* absolute limit on allocated inodes */
 	__u32 dqb_isoftlimit;	/* preferred inode limit */
 	__u32 dqb_curinodes;	/* current # allocated inodes */
-	time_t dqb_btime;		/* time limit for excessive disk use */
-	time_t dqb_itime;		/* time limit for excessive inode use */
+	__u32 dqb_bhardlimit;	/* absolute limit on disk space (in QUOTABLOCK_SIZE) */
+	__u32 dqb_bsoftlimit;	/* preferred limit on disk space (in QUOTABLOCK_SIZE) */
+	__u64 dqb_curspace;	/* current space occupied (in bytes) */
+	__u64 dqb_btime;	/* time limit for excessive disk use */
+	__u64 dqb_itime;	/* time limit for excessive inode use */
+};
+
+/* This is in-memory copy of quota block. See meaning of entries above */
+struct mem_dqblk {
+	unsigned int dqb_ihardlimit;
+	unsigned int dqb_isoftlimit;
+	unsigned int dqb_curinodes;
+	unsigned int dqb_bhardlimit;
+	unsigned int dqb_bsoftlimit;
+	qsize_t dqb_curspace;
+	__kernel_time_t dqb_btime;
+	__kernel_time_t dqb_itime;
 };
 
 /*
- * Shorthand notation.
+ * Here are header structures as written on disk and their in-memory copies
  */
-#define	dq_bhardlimit	dq_dqb.dqb_bhardlimit
-#define	dq_bsoftlimit	dq_dqb.dqb_bsoftlimit
-#define	dq_curblocks	dq_dqb.dqb_curblocks
-#define	dq_ihardlimit	dq_dqb.dqb_ihardlimit
-#define	dq_isoftlimit	dq_dqb.dqb_isoftlimit
-#define	dq_curinodes	dq_dqb.dqb_curinodes
-#define	dq_btime	dq_dqb.dqb_btime
-#define	dq_itime	dq_dqb.dqb_itime
+/* First generic header */
+struct disk_dqheader {
+	__u32 dqh_magic;	/* Magic number identifying file */
+	__u32 dqh_version;	/* File version */
+};
 
-#define dqoff(UID)      ((loff_t)((UID) * sizeof (struct dqblk)))
+/* Header with type and version specific information */
+struct disk_dqinfo {
+	__u32 dqi_bgrace;	/* Time before block soft limit becomes hard limit */
+	__u32 dqi_igrace;	/* Time before inode soft limit becomes hard limit */
+	__u32 dqi_flags;	/* Flags for quotafile (DQF_*) */
+	__u32 dqi_blocks;	/* Number of blocks in file */
+	__u32 dqi_free_blk;	/* Number of first free block in the list */
+	__u32 dqi_free_entry;	/* Number of block with at least one free entry */
+};
+
+/* Inmemory copy of version specific information */
+struct mem_dqinfo {
+	unsigned int dqi_bgrace;
+	unsigned int dqi_igrace;
+	unsigned int dqi_flags;
+	unsigned int dqi_blocks;
+	unsigned int dqi_free_blk;
+	unsigned int dqi_free_entry;
+};
+
+/* Flags for version specific files */
+#define DQF_MASK  0x0000	/* Mask for all valid ondisk flags */
+
+#ifdef __KERNEL__
+#define DQF_DIRTY 0x0010	/* Is info dirty? */
+extern inline void mark_info_dirty(struct mem_dqinfo *info)
+{
+	info->dqi_flags |= DQF_DIRTY;
+}
+#define info_dirty(info) ((info)->dqi_flags & DQF_DIRTY)
+#endif
+/*
+ *  Structure of header of block with quota structures. It is padded to 16 bytes so
+ *  there will be space for exactly 18 quota-entries in a block
+ */
+struct disk_dqdbheader {
+	__u32 dqdh_next_free;	/* Number of next block with free entry */
+	__u32 dqdh_prev_free;	/* Number of previous block with free entry */
+	__u16 dqdh_entries;	/* Number of valid entries in block */
+	__u16 dqdh_pad1;
+	__u32 dqdh_pad2;
+};
+
+#define DQINFOOFF	sizeof(struct disk_dqheader)	/* Offset of info header in file */
+#define DQBLKSIZE_BITS	10
+#define DQBLKSIZE	(1 << DQBLKSIZE_BITS)	/* Size of block with quota structures */
+#define DQTREEOFF	1		/* Offset of tree in file in blocks */
+#define DQTREEDEPTH	4		/* Depth of quota tree */
+#define DQSTRINBLK	((DQBLKSIZE - sizeof(struct disk_dqdbheader)) / sizeof(struct disk_dqblk))	/* Number of entries in one blocks */
 
 struct dqstats {
 	__u32 lookups;
@@ -140,12 +206,12 @@ struct dqstats {
 	__u32 allocated_dquots;
 	__u32 free_dquots;
 	__u32 syncs;
+	__u32 version;
 };
 
 #ifdef __KERNEL__
 
 extern int nr_dquots, nr_free_dquots;
-extern int dquot_root_squash;
 
 #define NR_DQHASH 43            /* Just an arbitrary number */
 
@@ -162,37 +228,50 @@ struct dquot {
 	struct list_head dq_free;	/* Free list element */
 	wait_queue_head_t dq_wait_lock;	/* Pointer to waitqueue on dquot lock */
 	wait_queue_head_t dq_wait_free;	/* Pointer to waitqueue for quota to be unused */
-	int dq_count;			/* Reference count */
+	int dq_count;			/* Use count */
+	int dq_dup_ref;			/* Number of duplicated refences */
 
 	/* fields after this point are cleared when invalidating */
 	struct super_block *dq_sb;	/* superblock this applies to */
-	unsigned int dq_id;		/* ID this applies to (uid, gid) */
+	qid_t dq_id;			/* ID this applies to (uid, gid) */
 	kdev_t dq_dev;			/* Device this applies to */
 	short dq_type;			/* Type of quota */
 	short dq_flags;			/* See DQ_* */
+	loff_t dq_off;			/* Offset of structure in file (0 for not allocated) */
 	unsigned long dq_referenced;	/* Number of times this dquot was 
 					   referenced during its lifetime */
-	struct dqblk dq_dqb;		/* Diskquota usage */
+	struct mem_dqblk dq_dqb;		/* Diskquota usage */
 };
 
 #define NODQUOT (struct dquot *)NULL
 
+#define dq_curspace dq_dqb.dqb_curspace
+#define dq_curinodes dq_dqb.dqb_curinodes
+#define dq_isoftlimit dq_dqb.dqb_isoftlimit
+#define dq_ihardlimit dq_dqb.dqb_ihardlimit
+#define dq_bsoftlimit dq_dqb.dqb_bsoftlimit
+#define dq_bhardlimit dq_dqb.dqb_bhardlimit
+#define dq_itime dq_dqb.dqb_itime
+#define dq_btime dq_dqb.dqb_btime
+
 /*
- * Flags used for set_dqblk.
+ * Flags used for set_info
  */
-#define SET_QUOTA         0x02
-#define SET_USE           0x04
-#define SET_QLIMIT        0x08
+#define ISET_GRACE 0x01
+#define ISET_FLAGS 0x02
+#define ISET_ALL   0x03
 
 #define QUOTA_OK          0
 #define NO_QUOTA          1
+
+typedef char *dqbuf_t;
 
 #else
 
 # /* nodep */ include <sys/cdefs.h>
 
 __BEGIN_DECLS
-long quotactl __P ((int, const char *, int, caddr_t));
+long quotactl __P ((int, const char *, qid_t, __kernel_caddr_t));
 __END_DECLS
 
 #endif /* __KERNEL__ */

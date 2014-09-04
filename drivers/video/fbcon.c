@@ -169,6 +169,17 @@ static inline void cursor_undrawn(void)
 
 #define divides(a, b)	((!(a) || (b)%(a)) ? 0 : 1)
 
+#ifdef CONFIG_SNSC
+/* suppress Linux logo and/or cursor */
+static int nologo = 0;
+static int nocursor = 0;
+#ifdef CONFIG_FBCON_WALLPAPER
+/* boot wall paper */
+static int wallpaper_shown = -1;
+static int wallpaper = 1;
+extern int fbcon_show_wallpaper(void);
+#endif
+#endif
 
 /*
  *  Interface used by the world
@@ -471,6 +482,13 @@ static void fbcon_init(struct vc_data *conp, int init)
     int unit = conp->vc_num;
     struct fb_info *info;
 
+#ifdef CONFIG_FBCON_WALLPAPER
+    /* if wallpaper is shown, suppress Linux logo and cursor */
+    if (wallpaper) {
+            nologo = 1;
+            nocursor = 1;
+    }
+#endif
     /* on which frame buffer will we open this console? */
     info = registered_fb[(int)con2fb_map[unit]];
 
@@ -494,6 +512,10 @@ static void fbcon_init(struct vc_data *conp, int init)
     conp->vc_display_fg = &info->display_fg;
     if (!info->display_fg)
         info->display_fg = conp;
+#ifdef CONFIG_SNSC
+    if (nocursor)
+        conp->vc_deccm = 0;
+#endif
 }
 
 
@@ -563,6 +585,10 @@ static void fbcon_setup(int con, int init, int logo)
     if (con != fg_console || (p->fb_info->flags & FBINFO_FLAG_MODULE) ||
         p->type == FB_TYPE_TEXT)
     	logo = 0;
+#ifdef CONFIG_SNSC
+    if (nologo)
+        logo = 0;
+#endif
 
     p->var.xoffset = p->var.yoffset = p->yscroll = 0;  /* reset wrap/pan */
 
@@ -745,6 +771,11 @@ static void fbcon_setup(int con, int init, int logo)
     	conp->vc_top = logo_lines;
     }
     
+#ifdef CONFIG_FBCON_WALLPAPER
+    if (wallpaper) {
+        wallpaper_shown = -2;
+    }
+#endif    
     if (con == fg_console && softback_buf) {
     	int l = fbcon_softback_size / conp->vc_size_row;
     	if (l > 5)
@@ -1547,6 +1578,13 @@ static int fbcon_switch(struct vc_data *conp)
 		      conp->vc_size_row * (conp->vc_bottom - conp->vc_top) / 2);
 	return 0;
     }
+#ifdef CONFIG_FBCON_WALLPAPER
+    if (wallpaper_shown == -2) {
+        wallpaper = fg_console;
+        fbcon_show_wallpaper();
+        return 0;
+    }
+#endif
     return 1;
 }
 
@@ -2490,6 +2528,31 @@ struct display_switch fbcon_dummy = {
     revc:	DUMMY,
 };
 
+#ifdef CONFIG_SNSC
+static int __init fbcon_nologo(char *options)
+{
+        nologo = 1;
+        return 0;
+}
+
+static int __init fbcon_nocursor(char *options)
+{
+        nocursor = 1;
+        return 0;
+}
+
+__setup("nologo", fbcon_nologo);
+__setup("nocursor", fbcon_nocursor);
+
+#ifdef CONFIG_FBCON_WALLPAPER
+static int __init fbcon_nowallpaper(char *options)
+{
+        wallpaper = 0;
+        return 0;
+}
+__setup("nowallpaper", fbcon_nowallpaper);
+#endif
+#endif
 
 /*
  *  Visible symbols for modules

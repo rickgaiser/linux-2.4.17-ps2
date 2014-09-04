@@ -7,6 +7,8 @@
  * Copyright (C) 1998 by Ralf Baechle
  */
 
+#include <asm/asm.h>
+
 /*
  * Activate and deactive the floatingpoint accelerator.
  */
@@ -17,7 +19,7 @@
 		".set\treorder\n\t"					\
 		"mfc0\t$1,$12\n\t"					\
 		"or\t$1,%0\n\t"						\
-		"mtc0\t$1,$12\n\t"					\
+		MTC0_str($1,$12)					\
 		".set\tpop"						\
 		: : "r" (ST0_CU1));
 
@@ -29,6 +31,6 @@
 		"mfc0\t$1,$12\n\t"					\
 		"or\t$1,%0\n\t"						\
 		"xor\t$1,%0\n\t"					\
-		"mtc0\t$1,$12\n\t"					\
+		MTC0_str($1,$12)					\
 		".set\tpop"						\
 		: : "r" (ST0_CU1));

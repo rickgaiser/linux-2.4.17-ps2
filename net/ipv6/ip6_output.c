@@ -1,3 +1,5 @@
+/* $USAGI: ip6_output.c,v 1.31 2002/03/13 13:22:23 yoshfuji Exp $ */
+
 /*
  *	IPv6 output functions
  *	Linux INET6 implementation 
@@ -22,6 +24,7 @@
  *				etc.
  *
  *      H. von Brand    :       Added missing #include <linux/string.h>
+ *	S. Saaristo	:	Support for setting of traffic class.
  *	Imran Patel	: 	frag id should be in NBO
  */
 
@@ -49,6 +52,20 @@
 #include <net/addrconf.h>
 #include <net/rawv6.h>
 #include <net/icmp.h>
+#include <net/mipglue.h>
+
+#ifdef CONFIG_IPV6_IPSEC /* XXX: change ours */
+#include <linux/ipsec.h>
+#include <linux/ipsec6.h>
+#include <linux/ip6packettools.h>
+#include <net/ipsec6_utils.h>
+#else
+struct ipsec_sp;	/* to suppress warning */
+#endif /* CONFIG_IPV6_IPSEC */
+
+/* MIPV6: PATCH BEGIN */
+void  mipv6_free_custom_allocations(void *alloclist[]);
+/* MIPV6: PATCH END   */
 
 static __inline__ void ipv6_select_ident(struct sk_buff *skb, struct frag_hdr *fhdr)
 {
@@ -105,6 +122,8 @@ int ip6_output(struct sk_buff *skb)
 	skb->dev = dev;
 
 	if (ipv6_addr_is_multicast(&skb->nh.ipv6h->daddr)) {
+		struct inet6_dev *idev;
+
 		if (!(dev->flags&IFF_LOOPBACK) &&
 		    (skb->sk == NULL || skb->sk->net_pinfo.af_inet6.mc_loop) &&
 		    ipv6_chk_mcast_addr(dev, &skb->nh.ipv6h->daddr)) {
@@ -124,7 +143,10 @@ int ip6_output(struct sk_buff *skb)
 			}
 		}
 
-		IP6_INC_STATS(Ip6OutMcastPkts);
+		idev = in6_dev_get(dev);
+		IP6_INC_STATS(idev,Ip6OutMcastPkts);
+		if (idev)
+			in6_dev_put(idev);
 	}
 
 	return NF_HOOK(PF_INET6, NF_IP6_POST_ROUTING, skb,NULL, skb->dev,ip6_output_finish);
@@ -177,6 +199,7 @@ static inline int ip6_maybe_reroute(struct sk_buff *skb)
 
 /*
  *	xmit an sk_buff (used by TCP)
+ *      (this does the real work)
  */
 
 int ip6_xmit(struct sock *sk, struct sk_buff *skb, struct flowi *fl,
@@ -188,15 +211,73 @@ int ip6_xmit(struct sock *sk, struct sk_buff *skb, struct flowi *fl,
 	struct ipv6hdr *hdr;
 	u8  proto = fl->proto;
 	int seg_len = skb->len;
-	int hlimit;
+	int hlimit = -1;
+	u8 tclass = 0;
+	int retval = 0;
+	void *encdata = NULL;
+#ifdef CONFIG_IPV6_IPSEC
+	unsigned enclength = 0;
+        /* StS: IPsec handling */
+        struct ipsec_sp *policy_ptr = NULL;
+        int ipsec_action = 0;
+        struct ipv6_txoptions *newopt = NULL;
+#endif /* CONFIG_IPV6_IPSEC */
 
-	if (opt) {
-		int head_room;
+	/* MIPV6: PATCH BEGIN */ /* XXX: we must change to avoid conflicts ipsec-ah and mip6 ah function. (mk) */
+	void *mip_alloclist[8] = { NULL };
+	opt = MIPV6_CALLFUNC(mipv6_modify_xmit_packets, opt)(
+		sk, skb, opt, fl, &dst, mip_alloclist);
+	/* MIPV6: PATCH END   */
+
+#ifdef CONFIG_IPV6_IPSEC
+        /* Determine action(s) */
+	IPSEC6_DEBUG("call ipsec6_output_check\n");
+	ipsec_action = ipsec6_output_check(sk, fl, &policy_ptr);
+	IPSEC6_DEBUG("ipsec_action is %d\n", ipsec_action);
+	if (ipsec_action == IPSEC_ACTION_DROP) {
+		if (net_ratelimit())
+			printk(KERN_DEBUG "ip6_xmit: (ipsec) dropping packet.\n");
+		/* ICMP message would be delivered locally only. So, a return value
+		   should be sufficient. */
+		return -EFAULT;
+	}
+	if (opt && opt->auth) {
+		ipsec_action &= ~IPSEC_ACTION_AUTH;
+		printk(KERN_DEBUG "ip6_xmit: AH header is duplicated!\n"); 
+	}
+
+	/* Insert ah if necessary */
+	if (ipsec_action & IPSEC_ACTION_AUTH) {
+		newopt = ipsec6_ah_insert(opt, policy_ptr);
+                if (newopt) {
+			IPSEC6_DEBUG("get newopt\n");
+			opt = newopt;
+		}
+        }
+        /* Check for encryption */
+        if (ipsec_action & IPSEC_ACTION_ESP) {
+		ipsec6_enc(skb->data, skb->len, fl->proto, &encdata, &enclength, policy_ptr);
+        }
+        /* End StS */
+#endif /* CONFIG_IPV6_IPSEC */
+
+	if (opt || encdata) {
+#ifdef CONFIG_IPV6_IPSEC
+		int encaddsize = 0;
+#endif
+		int head_room = 0;
 
 		/* First: exthdrs may take lots of space (~8K for now)
 		   MAX_HEADER is not enough.
-		 */
-		head_room = opt->opt_nflen + opt->opt_flen;
+		*/
+		if (opt)
+			head_room += opt->opt_nflen + opt->opt_flen;
+#ifdef CONFIG_IPV6_IPSEC
+		if (encdata) {
+			encaddsize = enclength - skb->len;
+			head_room += encaddsize+4; // +8 ging
+		}
+#endif
 		seg_len += head_room;
 		head_room += sizeof(struct ipv6hdr) + ((dst->dev->hard_header_len + 15)&~15);
 
@@ -204,15 +285,37 @@ int ip6_xmit(struct sock *sk, struct sk_buff *skb, struct flowi *fl,
 			struct sk_buff *skb2 = skb_realloc_headroom(skb, head_room);
 			kfree_skb(skb);
 			skb = skb2;
-			if (skb == NULL)
-				return -ENOBUFS;
+			if (skb == NULL) {
+				printk(KERN_DEBUG "Could not allocate new skb!\n");
+				retval = -ENOBUFS;
+				goto out;
+			}
 			if (sk)
 				skb_set_owner_w(skb, sk);
 		}
-		if (opt->opt_flen)
-			ipv6_push_frag_opts(skb, opt, &proto);
-		if (opt->opt_nflen)
-			ipv6_push_nfrag_opts(skb, opt, &proto, &first_hop);
+#ifdef CONFIG_IPV6_IPSEC
+		if (encdata) {
+			/* Copy data */
+			skb->h.raw = skb_push(skb,encaddsize+4); // +8 ging
+			memcpy(skb->h.raw,encdata,enclength);
+			seg_len -= 4; /* Das knallt! */
+			skb_trim(skb,enclength);
+			/* Set new protocol type */
+			fl->proto = NEXTHDR_ESP;
+			proto = fl->proto;
+		}
+#endif
+		if (opt) {
+			if (opt->opt_flen)
+				ipv6_push_frag_opts(skb, opt, &proto);
+			if (opt->opt_nflen)
+				ipv6_push_nfrag_opts(skb, opt, &proto, &first_hop);
+		}
+	}
+
+	if (np) {
+		hlimit = np->hop_limit;
+		tclass = np->tclass;
 	}
 
 	hdr = skb->nh.ipv6h = (struct ipv6hdr*)skb_push(skb, sizeof(struct ipv6hdr));
@@ -221,10 +324,11 @@ int ip6_xmit(struct sock *sk, struct sk_buff *skb, struct flowi *fl,
 	 *	Fill in the IPv6 header
 	 */
 
-	*(u32*)hdr = __constant_htonl(0x60000000) | fl->fl6_flowlabel;
-	hlimit = -1;
-	if (np)
-		hlimit = np->hop_limit;
+	if (fl->fl6_flowlabel)
+		*(u32*)hdr = __constant_htonl(0x60000000) | fl->fl6_flowlabel;
+	else
+		*(u32*)hdr = htonl(0x60000000 | (tclass << 20));
+
 	if (hlimit < 0)
 		hlimit = ((struct rt6_info*)dst)->rt6i_hoplimit;
 
@@ -235,17 +339,65 @@ int ip6_xmit(struct sock *sk, struct sk_buff *skb, struct flowi *fl,
 	ipv6_addr_copy(&hdr->saddr, fl->nl_u.ip6_u.saddr);
 	ipv6_addr_copy(&hdr->daddr, first_hop);
 
+#ifdef CONFIG_IPV6_IPSEC
+	/* StS: Packet building is now complete. Time to fill in the ah data... */
+	if ( (ipsec_action & IPSEC_ACTION_AUTH) && opt && opt->auth) {
+		IPSEC6_DEBUG("call ipsec6_out_calc_ah\n");
+		ipsec6_ah_calc(NULL, 0, NULL, skb, NULL, policy_ptr);
+	}
+	/* StS end */
+#endif /* CONFIG_IPV6_IPSEC */
 	if (skb->len <= dst->pmtu) {
-		IP6_INC_STATS(Ip6OutRequests);
-		return NF_HOOK(PF_INET6, NF_IP6_LOCAL_OUT, skb, NULL, dst->dev, ip6_maybe_reroute);
+		struct inet6_dev *idev = in6_dev_get(dst->dev);
+		IP6_INC_STATS(idev,Ip6OutRequests);
+		if (idev)
+			in6_dev_put(idev);
+		retval = NF_HOOK(PF_INET6, NF_IP6_LOCAL_OUT, skb, NULL, dst->dev, ip6_maybe_reroute);
+		goto out;
 	}
 
+	/* packet is too big */
 	if (net_ratelimit())
 		printk(KERN_DEBUG "IPv6: sending pkt_too_big to self\n");
 	icmpv6_send(skb, ICMPV6_PKT_TOOBIG, 0, dst->pmtu, skb->dev);
 	kfree_skb(skb);
-	return -EMSGSIZE;
+
+	retval = -EMSGSIZE;
+out:
+	/* MIPV6: PATCH BEGIN */
+	MIPV6_CALLPROC(mipv6_finalize_modify_xmit)(mip_alloclist);
+	/* MIPV6: PATCH END   */
+
+#ifdef CONFIG_IPV6_IPSEC
+        /* StS: Cleanup */
+	if (newopt) ipsec6_out_finish(newopt, policy_ptr);
+	if (encdata) kfree(encdata);
+	policy_ptr=NULL;
+        /* StS end */
+#endif /* CONFIG_IPV6_IPSEC */
+	
+	return retval;
 }
+
+/* Patch comments:
+ *
+ * New semantics for mipv6_modify_xmit_packets:
+ *  - returns the original OPT if no modifications are to be made
+ *  - returns copy of the base part of the ipv6_txoptions structure with the
+ *    appropriate pointers modified
+ *  - fills an allocation list which shall contain all allocated memory blocks
+ *    that should be freed. the list is null terminated.
+ */
+
+/*
+ * free everything from alloclist, list is null terminated
+ *
+ *void mipv6_free_custom_allocations(void *alloclist[])
+ *{
+ *	int i;
+ *	for(i=0; alloclist[i] != NULL; i++) kfree(alloclist[i]);
+ *}
+ */
 
 /*
  *	To avoid extra problems ND packets are send through this
@@ -270,7 +422,7 @@ int ip6_nd_hdr(struct sock *sk, struct sk_buff *skb, struct net_device *dev,
 	hdr = (struct ipv6hdr *) skb_put(skb, sizeof(struct ipv6hdr));
 	skb->nh.ipv6h = hdr;
 
-	*(u32*)hdr = htonl(0x60000000);
+	*(u32*)hdr = htonl(0x60000000 | (np->tclass << 20));
 
 	hdr->payload_len = htons(len);
 	hdr->nexthdr = proto;
@@ -283,14 +435,17 @@ int ip6_nd_hdr(struct sock *sk, struct sk_buff *skb, struct net_device *dev,
 }
 
 static struct ipv6hdr * ip6_bld_1(struct sock *sk, struct sk_buff *skb, struct flowi *fl,
-				  int hlimit, unsigned pktlength)
+				  int hlimit, u8 tclass, unsigned pktlength)
 {
 	struct ipv6hdr *hdr;
 	
 	skb->nh.raw = skb_put(skb, sizeof(struct ipv6hdr));
 	hdr = skb->nh.ipv6h;
 	
-	*(u32*)hdr = fl->fl6_flowlabel | htonl(0x60000000);
+	if (fl->fl6_flowlabel)
+		*(u32*)hdr = __constant_htonl(0x60000000) | fl->fl6_flowlabel;
+	else
+		*(u32*)hdr = htonl(0x60000000 | (tclass << 20));
 
 	hdr->payload_len = htons(pktlength - sizeof(struct ipv6hdr));
 	hdr->hop_limit = hlimit;
@@ -321,10 +476,13 @@ static int ip6_frag_xmit(struct sock *sk, inet_getfrag_t getfrag,
 			 const void *data, struct dst_entry *dst,
 			 struct flowi *fl, struct ipv6_txoptions *opt,
 			 struct in6_addr *final_dst,
-			 int hlimit, int flags, unsigned length, int mtu)
+			 int hlimit, u8 tclass, 
+			 int flags, unsigned length, int mtu,
+			 int ipsec_action, struct ipsec_sp *policy_ptr)
 {
 	struct ipv6hdr *hdr;
 	struct sk_buff *last_skb;
+	struct inet6_dev *idev = in6_dev_get(dst->dev);
 	u8 *prev_hdr;
 	int unfrag_len;
 	int frag_len;
@@ -366,6 +524,8 @@ static int ip6_frag_xmit(struct sock *sk, inet_getfrag_t getfrag,
 	/* Unfragmentable part exceeds mtu. */
 	if (frag_len <= 0) {
 		ipv6_local_error(sk, EMSGSIZE, fl, mtu);
+		if (idev)
+			in6_dev_put(idev);
 		return -EMSGSIZE;
 	}
 
@@ -398,31 +558,69 @@ static int ip6_frag_xmit(struct sock *sk, inet_getfrag_t getfrag,
 	if (opt) {
 		if (frag_len < opt->opt_flen) {
 			ipv6_local_error(sk, EMSGSIZE, fl, mtu);
+			if (idev)
+				in6_dev_put(idev);
 			return -EMSGSIZE;
 		}
 		data_off = frag_off - opt->opt_flen;
 	}
 
-	if (flags&MSG_PROBE)
+	if (flags&MSG_PROBE){
+		if (idev)
+			in6_dev_put(idev);
 		return 0;
+	}
 
 	last_skb = sock_alloc_send_skb(sk, unfrag_len + frag_len +
 				       dst->dev->hard_header_len + 15,
 				       flags & MSG_DONTWAIT, &err);
 
-	if (last_skb == NULL)
+	if (last_skb == NULL){
+		if (idev)
+			in6_dev_put(idev);
 		return err;
+	}
 
 	last_skb->dst = dst_clone(dst);
 
 	skb_reserve(last_skb, (dst->dev->hard_header_len + 15) & ~15);
 
-	hdr = ip6_bld_1(sk, last_skb, fl, hlimit, frag_len+unfrag_len);
+	hdr = ip6_bld_1(sk, last_skb, fl, hlimit, tclass, frag_len+unfrag_len);
 	prev_hdr = &hdr->nexthdr;
 
 	if (opt && opt->opt_nflen)
 		prev_hdr = ipv6_build_nfrag_opts(last_skb, prev_hdr, opt, final_dst, 0);
 
+#ifdef CONFIG_IPV6_IPSEC
+        /* StS: Packet building is now complete. Time to fill in the ah data... */
+	if ( (ipsec_action & IPSEC_ACTION_AUTH) && opt && opt->auth) {
+                struct sk_buff *skb = NULL;
+                u8 *skb_prev_hdr = NULL;
+                int prev_hdr_offset;
+		
+                /* The nfrag headers and the ip header are in last_skb. Copy it, and add the
+                 * fragmentable headers. So we can build an unfragmented version of the
+                 * packet, which is necessary for AH calculation. */
+                skb = skb_copy(last_skb, sk->allocation);
+                if (skb) {
+                        prev_hdr_offset = prev_hdr - (u8*)hdr;
+                        skb_prev_hdr = ((u8*)skb->nh.ipv6h) + prev_hdr_offset;
+                        if (opt && opt->opt_flen)
+                                ipv6_build_frag_opts(skb, skb_prev_hdr, opt);
+                        /* Calculate payload length */
+                        if (opt) /* This should always be true :-) */
+                                skb->nh.ipv6h->payload_len = htons(length + opt->opt_flen + opt->opt_nflen);
+			else
+				skb->nh.ipv6h->payload_len = htons(length);
+                        /* Calculate AH and free memory */
+                        ipsec6_ah_calc(data, length, getfrag, skb, (struct ipv6_auth_hdr*)opt->auth, policy_ptr);
+                        kfree_skb(skb);
+                } else
+			printk(KERN_WARNING "Could not allocate memory for ah calculation!\n");
+        }
+        /* StS end */
+#endif /* CONFIG_IPV6_IPSEC */
+ 
 	prev_hdr = ipv6_build_fraghdr(last_skb, prev_hdr, frag_off);
 	fhdr_dist = prev_hdr - last_skb->data;
 
@@ -437,7 +635,9 @@ static int ip6_frag_xmit(struct sock *sk, inet_getfrag_t getfrag,
 			skb = skb_copy(last_skb, sk->allocation);
 
 			if (skb == NULL) {
-				IP6_INC_STATS(Ip6FragFails);
+				IP6_INC_STATS(idev,Ip6FragFails);
+				if (idev)
+					in6_dev_put(idev);
 				kfree_skb(last_skb);
 				return -ENOMEM;
 			}
@@ -465,10 +665,12 @@ static int ip6_frag_xmit(struct sock *sk, inet_getfrag_t getfrag,
 				break;
 			}
 
-			IP6_INC_STATS(Ip6FragCreates);
-			IP6_INC_STATS(Ip6OutRequests);
+			IP6_INC_STATS(idev,Ip6FragCreates);
+			IP6_INC_STATS(idev,Ip6OutRequests);
 			err = NF_HOOK(PF_INET6,NF_IP6_LOCAL_OUT, skb, NULL, dst->dev, ip6_maybe_reroute);
 			if (err) {
+				if (idev)
+					in6_dev_put(idev);
 				kfree_skb(last_skb);
 				return err;
 			}
@@ -476,7 +678,9 @@ static int ip6_frag_xmit(struct sock *sk, inet_getfrag_t getfrag,
 	}
 
 	if (err) {
-		IP6_INC_STATS(Ip6FragFails);
+		IP6_INC_STATS(idev,Ip6FragFails);
+		if (idev)
+			in6_dev_put(idev);
 		kfree_skb(last_skb);
 		return -EFAULT;
 	}
@@ -490,22 +694,48 @@ static int ip6_frag_xmit(struct sock *sk, inet_getfrag_t getfrag,
 
 	skb_put(last_skb, last_len);
 
-	IP6_INC_STATS(Ip6FragCreates);
-	IP6_INC_STATS(Ip6FragOKs);
-	IP6_INC_STATS(Ip6OutRequests);
+	IP6_INC_STATS(idev,Ip6FragCreates);
+	IP6_INC_STATS(idev,Ip6FragOKs);
+	IP6_INC_STATS(idev,Ip6OutRequests);
+	if (idev)
+		in6_dev_put(idev);
 	return NF_HOOK(PF_INET6, NF_IP6_LOCAL_OUT, last_skb, NULL,dst->dev, ip6_maybe_reroute);
 }
 
+#ifdef CONFIG_IPV6_IPSEC
+static int espv6_getfrag(const void *data, struct in6_addr *saddr, 
+			 char *buff, unsigned int offset, unsigned int len)
+{
+	memcpy(buff, ((char*)data)+offset, len);
+	return 0;
+}
+#endif
+
 int ip6_build_xmit(struct sock *sk, inet_getfrag_t getfrag, const void *data,
 		   struct flowi *fl, unsigned length,
-		   struct ipv6_txoptions *opt, int hlimit, int flags)
+		   struct ipv6_txoptions *opt, int hlimit, int aux_tclass, int flags)
 {
 	struct ipv6_pinfo *np = &sk->net_pinfo.af_inet6;
 	struct in6_addr *final_dst = NULL;
-	struct dst_entry *dst;
+	struct dst_entry *dst = NULL;
+	struct ipsec_sp *policy_ptr = NULL;
+	int ipsec_action = 0;
+#ifdef CONFIG_IPV6_IPSEC
+	struct ipv6_txoptions *newopt = NULL;
+	void *newdata = NULL;
+	unsigned int newlength = 0;
+#endif /* CONFIG_IPV6_IPSEC */
+	struct inet6_dev *idev;
 	int err = 0;
 	unsigned int pktlength, jumbolen, mtu;
 	struct in6_addr saddr;
+	u8 tclass;
+
+	/* MIPV6: PATCH BEGIN */
+	void *mip_alloclist[8] = { NULL };
+	opt = MIPV6_CALLFUNC(mipv6_modify_xmit_packets, opt)(
+		sk, NULL, opt, fl, NULL, mip_alloclist);
+	/* MIPV6: PATCH END   */
 
 	if (opt && opt->srcrt) {
 		struct rt0_hdr *rt0 = (struct rt0_hdr *) opt->srcrt;
@@ -515,8 +745,8 @@ int ip6_build_xmit(struct sock *sk, inet_getfrag_t getfrag, const void *data,
 
 	if (!fl->oif && ipv6_addr_is_multicast(fl->nl_u.ip6_u.daddr))
 		fl->oif = np->mcast_oif;
-
-	dst = __sk_dst_check(sk, np->dst_cookie);
+	if (dst == NULL)
+		dst = __sk_dst_check(sk, np->dst_cookie);
 	if (dst) {
 		struct rt6_info *rt = (struct rt6_info*)dst;
 
@@ -551,9 +781,17 @@ int ip6_build_xmit(struct sock *sk, inet_getfrag_t getfrag, const void *data,
 	if (dst == NULL)
 		dst = ip6_route_output(sk, fl);
 
+	idev = in6_dev_get(dst->dev);
+
 	if (dst->error) {
-		IP6_INC_STATS(Ip6OutNoRoutes);
+		IP6_INC_STATS(idev,Ip6OutNoRoutes);	/*XXX(?)*/
+		if (idev)
+			in6_dev_put(idev);
 		dst_release(dst);
+
+		/* MIPV6: PATCH BEGIN */
+		MIPV6_CALLPROC(mipv6_finalize_modify_xmit)(mip_alloclist);
+		/* MIPV6: PATCH END   */
 		return -ENETUNREACH;
 	}
 
@@ -569,6 +807,73 @@ int ip6_build_xmit(struct sock *sk, inet_getfrag_t getfrag, const void *data,
 		}
 		fl->fl6_src = &saddr;
 	}
+
+#ifdef CONFIG_IPV6_IPSEC
+	/* Determine action(s) */
+	/* use sysctl_ipsec6 -mk */
+	IPSEC6_DEBUG("call ipsec6_output_check\n");
+	ipsec_action = ipsec6_output_check(sk, fl, &policy_ptr);
+	IPSEC6_DEBUG("ipsec_action is %d\n", ipsec_action);
+	if (ipsec_action == IPSEC_ACTION_DROP) {
+		if (net_ratelimit())
+			printk(KERN_DEBUG "ip6_build_xmit: (ipsec) dropping packet.\n");
+		return -EFAULT;
+	}
+	if (opt && opt->auth) {  /* why ? */
+		ipsec_action &= ~IPSEC_ACTION_AUTH;
+		printk(KERN_DEBUG "ip6_build_xmit: AH is duplicated!\n"); 
+	}
+	/* Insert ah if necessary */
+	if (ipsec_action & IPSEC_ACTION_AUTH) {
+		IPSEC6_DEBUG("call ipsec6_ah_insert\n");
+		newopt = ipsec6_ah_insert(opt, policy_ptr);
+		if (newopt) 
+			opt = newopt;
+	}
+		
+	/* Check for encryption */
+	if (ipsec_action & IPSEC_ACTION_ESP) {
+		void *olddata;
+		struct in6_addr dummyaddr;
+
+		IPSEC6_DEBUG("IPsec6: action ESP selected.\n");
+		if (fl->fl6_src == NULL) {
+			dst = __sk_dst_check(sk, np->dst_cookie);
+			err = ipv6_get_saddr(dst, fl->fl6_dst, &saddr);
+
+			if (err) {
+				if (net_ratelimit())
+					printk(KERN_DEBUG "ip6_build_xmit: no availiable source address (olddata)\n");
+				goto out;
+			}
+			fl->fl6_src = &saddr;
+		}
+		ipv6_addr_copy(&dummyaddr, fl->nl_u.ip6_u.saddr);
+		olddata = kmalloc(length, GFP_ATOMIC);
+		if (!olddata) {
+			err = -ENOMEM;
+			if (net_ratelimit())
+				printk(KERN_DEBUG "Could not get memory for ESP (olddata)\n");
+			goto out;
+		}
+		err = getfrag(data, &dummyaddr, (char*)olddata, 0, length);
+		if (err) {
+			if (net_ratelimit())
+				printk(KERN_DEBUG "Could not get data for ESP (olddata)\n");
+			kfree(olddata);
+			goto out;
+		}
+		ipsec6_enc(olddata, length, fl->proto, &newdata, &newlength, policy_ptr);
+		if (newdata) {
+			data = newdata;
+			length = newlength;
+			fl->proto = NEXTHDR_ESP;
+			getfrag = espv6_getfrag;
+		}
+		kfree(olddata);
+	}
+	/* End StS */
+#endif  /* CONFIG_IPV6_IPSEC */
 	pktlength = length;
 
 	if (hlimit < 0) {
@@ -605,6 +910,8 @@ int ip6_build_xmit(struct sock *sk, inet_getfrag_t getfrag, const void *data,
 			mtu = IPV6_MIN_MTU;
 	}
 
+	tclass = aux_tclass >= 0 ? aux_tclass : np->tclass;
+
 	/* Critical arithmetic overflow check.
 	   FIXME: may gcc optimize it out? --ANK (980726)
 	 */
@@ -631,7 +938,7 @@ int ip6_build_xmit(struct sock *sk, inet_getfrag_t getfrag, const void *data,
 					  flags & MSG_DONTWAIT, &err);
 
 		if (skb == NULL) {
-			IP6_INC_STATS(Ip6OutDiscards);
+			IP6_INC_STATS(idev,Ip6OutDiscards);
 			goto out;
 		}
 
@@ -643,7 +950,7 @@ int ip6_build_xmit(struct sock *sk, inet_getfrag_t getfrag, const void *data,
 		skb->nh.ipv6h = hdr;
 
 		if (!sk->protinfo.af_inet.hdrincl) {
-			ip6_bld_1(sk, skb, fl, hlimit,
+			ip6_bld_1(sk, skb, fl, hlimit, tclass,
 				  jumbolen ? sizeof(struct ipv6hdr) : pktlength);
 
 			if (opt || jumbolen) {
@@ -660,7 +967,15 @@ int ip6_build_xmit(struct sock *sk, inet_getfrag_t getfrag, const void *data,
 			      0, length);
 
 		if (!err) {
-			IP6_INC_STATS(Ip6OutRequests);
+#ifdef CONFIG_IPV6_IPSEC
+			/* StS: Packet building is now complete. The packet doesn't need to
+			   be fragmented. Time to fill in the ah data... */
+			if ( (ipsec_action & IPSEC_ACTION_AUTH) && opt && opt->auth) {
+				ipsec6_ah_calc(NULL, 0, NULL, skb, NULL, policy_ptr);
+			}
+			/* StS end */
+#endif /* CONFIG_IPV6_IPSEC */
+			IP6_INC_STATS(idev,Ip6OutRequests);
 			err = NF_HOOK(PF_INET6, NF_IP6_LOCAL_OUT, skb, NULL, dst->dev, ip6_maybe_reroute);
 		} else {
 			err = -EFAULT;
@@ -675,16 +990,32 @@ int ip6_build_xmit(struct sock *sk, inet_getfrag_t getfrag, const void *data,
 		}
 
 		err = ip6_frag_xmit(sk, getfrag, data, dst, fl, opt, final_dst, hlimit,
-				    flags, length, mtu);
+				    tclass,
+				    flags, length, mtu, ipsec_action, policy_ptr);
 	}
 
 	/*
 	 *	cleanup
 	 */
 out:
+	if (idev)
+		in6_dev_put(idev);
 	ip6_dst_store(sk, dst, fl->nl_u.ip6_u.daddr == &np->daddr ? &np->daddr : NULL);
 	if (err > 0)
 		err = np->recverr ? net_xmit_errno(err) : 0;
+
+        /* MIPV6: PATCH BEGIN */
+	MIPV6_CALLPROC(mipv6_finalize_modify_xmit)(mip_alloclist);
+        /* MIPV6: PATCH END   */
+
+#ifdef CONFIG_IPV6_IPSEC
+	/* StS: Cleanup */
+	if (newopt) ipsec6_out_finish(newopt, policy_ptr);
+	if (newdata) kfree(newdata);
+	policy_ptr=NULL;
+	/* StS end */
+#endif /* CONFIG_IPV6_IPSEC */
+
 	return err;
 }
 
@@ -723,10 +1054,12 @@ static inline int ip6_forward_finish(struct sk_buff *skb)
 int ip6_forward(struct sk_buff *skb)
 {
 	struct dst_entry *dst = skb->dst;
+	struct inet6_dev *idev = in6_dev_get(dst->dev);
 	struct ipv6hdr *hdr = skb->nh.ipv6h;
 	struct inet6_skb_parm *opt =(struct inet6_skb_parm*)skb->cb;
 	
-	if (ipv6_devconf.forwarding == 0)
+	/* XXX: how about idev_of_input_device->cnf.forwarding? */
+	if (ipv6_devconf.forwarding == 0 && opt->srcrt == 0)
 		goto error;
 
 	skb->ip_summed = CHECKSUM_NONE;
@@ -746,8 +1079,11 @@ int ip6_forward(struct sk_buff *skb)
 	 */
 	if (opt->ra) {
 		u8 *ptr = skb->nh.raw + opt->ra;
-		if (ip6_call_ra_chain(skb, (ptr[2]<<8) + ptr[3]))
+		if (ip6_call_ra_chain(skb, (ptr[2]<<8) + ptr[3])) {
+			if (idev)
+				in6_dev_put(idev);
 			return 0;
+		}
 	}
 
 	/*
@@ -758,7 +1094,8 @@ int ip6_forward(struct sk_buff *skb)
 		skb->dev = dst->dev;
 		icmpv6_send(skb, ICMPV6_TIME_EXCEED, ICMPV6_EXC_HOPLIMIT,
 			    0, skb->dev);
-
+		if (idev)
+			in6_dev_put(idev);
 		kfree_skb(skb);
 		return -ETIMEDOUT;
 	}
@@ -793,11 +1130,28 @@ int ip6_forward(struct sk_buff *skb)
 		goto error;
 	}
 
+#ifdef CONFIG_IPV6_IPSEC
+        /* FH: IPSec handling, check for inbound rules, outbound rules are checked in ip6_output */
+	/* not yet -mk */
+	if (ipsec6_forward_check(skb)) {
+		if (net_ratelimit())
+			printk(KERN_DEBUG "ip6_forward: (ipsec) dropping packet\n");
+		kfree_skb(skb);
+		return -EINVAL;
+	}
+        /* FH End */
+#endif /* CONFIG_IPV6_IPSEC */
+
 	if (skb->len > dst->pmtu) {
 		/* Again, force OUTPUT device used as source address */
 		skb->dev = dst->dev;
+		if (idev)
+			in6_dev_put(idev);
+		idev = in6_dev_get(skb->dev);
 		icmpv6_send(skb, ICMPV6_PKT_TOOBIG, 0, dst->pmtu, skb->dev);
-		IP6_INC_STATS_BH(Ip6InTooBigErrors);
+		IP6_INC_STATS_BH(idev,Ip6InTooBigErrors);
+		if (idev)
+			in6_dev_put(idev);
 		kfree_skb(skb);
 		return -EMSGSIZE;
 	}
@@ -811,12 +1165,16 @@ int ip6_forward(struct sk_buff *skb)
  
 	hdr->hop_limit--;
 
-	IP6_INC_STATS_BH(Ip6OutForwDatagrams);
+	IP6_INC_STATS_BH(idev,Ip6OutForwDatagrams);
+	if (idev)
+		in6_dev_put(idev);
 	return NF_HOOK(PF_INET6,NF_IP6_FORWARD, skb, skb->dev, dst->dev, ip6_forward_finish);
 
 error:
-	IP6_INC_STATS_BH(Ip6InAddrErrors);
+	IP6_INC_STATS_BH(idev,Ip6InAddrErrors);
 drop:
+	if (idev)
+		in6_dev_put(idev);
 	kfree_skb(skb);
 	return -EINVAL;
 }

@@ -1,0 +1,96 @@
+balloc.o: balloc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/quotaops.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/jbd/debug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ext3/check.h)
+bitmap.o: bitmap.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h
+dir.o: dir.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_fs.h
+file.o: file.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+fsync.o: fsync.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+ialloc.o: ialloc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/stat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/quotaops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ext3/check.h)
+inode.o: inode.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/highuid.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/quotaops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/quota.h)
+ioctl.o: ioctl.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/jbd/debug.h)
+namei.o: namei.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcntl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/stat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/quotaops.h
+super.o: super.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blkdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/random.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/jbd/debug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ext3/check.h)
+symlink.o: symlink.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/jbd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ext3_fs.h

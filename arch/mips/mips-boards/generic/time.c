@@ -23,6 +23,7 @@
  *
  */
 
+#include <linux/types.h>
 #include <linux/config.h>
 #include <linux/init.h>
 #include <linux/kernel_stat.h>
@@ -31,8 +32,10 @@
 
 #include <asm/mipsregs.h>
 #include <asm/ptrace.h>
+#include <asm/hardirq.h>
 #include <asm/div64.h>
 
+#include <linux/interrupt.h>
 #include <linux/mc146818rtc.h>
 #include <linux/timex.h>
 
@@ -133,13 +136,15 @@ static int set_rtc_mmss(unsigned long nowtime)
  */
 void mips_timer_interrupt(struct pt_regs *regs)
 {
+	int cpu = smp_processor_id();
 	int irq = 7;
 
 	if (r4k_offset == 0)
 		goto null;
 
+	irq_enter(cpu, irq);
 	do {
-		kstat.irqs[0][irq]++;
+		kstat.irqs[cpu][irq]++;
 		do_timer(regs);
 
 		/* Historical comment/code:
@@ -153,12 +158,13 @@ void mips_timer_interrupt(struct pt_regs *regs)
 		if ((time_status & STA_UNSYNC) == 0 
 		    && xtime.tv_sec > last_rtc_update + 660 
 		    && xtime.tv_usec >= 500000 - (tick >> 1) 
-		    && xtime.tv_usec <= 500000 + (tick >> 1))
+		    && xtime.tv_usec <= 500000 + (tick >> 1)) {
 			if (set_rtc_mmss(xtime.tv_sec) == 0)
 				last_rtc_update = xtime.tv_sec;
 			else
 				/* do it again in 60 s */
 	    			last_rtc_update = xtime.tv_sec - 600; 
+		}
 		read_unlock(&xtime_lock);
 
 		if ((timer_tick_count++ % HZ) == 0) {
@@ -172,6 +178,10 @@ void mips_timer_interrupt(struct pt_regs *regs)
 
 	} while (((unsigned long)read_32bit_cp0_register(CP0_COUNT)
 	         - r4k_cur) < 0x7fffffff);
+	irq_exit(cpu, irq);
+
+	if (softirq_pending(cpu))
+		do_softirq();
 
 	return;
 
@@ -275,7 +285,7 @@ void __init time_init(void)
 
 /* This is for machines which generate the exact clock. */
 #define USECS_PER_JIFFY (1000000/HZ)
-#define USECS_PER_JIFFY_FRAC ((1000000 << 32) / HZ & 0xffffffff)
+#define USECS_PER_JIFFY_FRAC ((u32)((1000000ULL << 32) / HZ))
 
 /* Cycle counter value at the previous timer interrupt.. */
 
@@ -333,8 +343,7 @@ static unsigned long do_fast_gettimeoffset(void)
 			:"r" (timerhi),
 			 "m" (timerlo),
 			 "r" (tmp),
-			 "r" (USECS_PER_JIFFY)
-			:"$1");
+			 "r" (USECS_PER_JIFFY));
 		cached_quotient = quotient;
 #endif
 	}

@@ -232,6 +232,20 @@ static struct us_unusual_dev us_unusual_dev_list[] = {
 	{ 0 }
 };
 
+static struct {
+	__u16  idVendor;
+	__u16  idProduct;
+	u8     sectoralign;
+	u8     sectormax;
+} us_unusual_dev_sectorlimit[] = {
+	{ 0x054c, 0x0046,  0, 64 }, /* Sony MemoryStick Walkman NW-MS9/11 */
+	{ 0x054c, 0x0058, 32,  0 }, /* Sony Clie PEG-N700C/N750C */
+	{ 0x054c, 0x006d, 32,  0 }, /* Sony Clie PEG-S300/S500/N600C/T400/T600C/SJ30 */
+	{ 0x054c, 0x0099, 32,  0 }, /* Sony Clie PEG-NR70/NR70V/T650C */
+	{ 0x054c, 0x0039,  0, 16 }, /* Sony MemoryStick Walkman NW-MS7A */
+	{ 0 }
+};
+
 struct usb_driver usb_storage_driver = {
 	name:		"usb-storage",
 	probe:		storage_probe,
@@ -389,29 +403,26 @@ static int usb_stor_control_thread(void * __us)
 				break;
 			}
 
-			/* handle those devices which can't do a START_STOP */
-			if ((us->srb->cmnd[0] == START_STOP) &&
-			    (us->flags & US_FL_START_STOP)) {
-				US_DEBUGP("Skipping START_STOP command\n");
-				us->srb->result = GOOD << 1;
-
-				set_current_state(TASK_INTERRUPTIBLE);
-				us->srb->scsi_done(us->srb);
-				us->srb = NULL;
-				break;
-			}
-
 			/* lock the device pointers */
 			down(&(us->dev_semaphore));
 
 			/* our device has gone - pretend not ready */
 			if (!us->pusb_dev) {
 				US_DEBUGP("Request is for removed device\n");
+				if (us->srb->cmnd[0] == START_STOP)
+				{
+					memcpy(us->srb->sense_buffer, 
+					       usb_stor_sense_nomedia, 
+					       sizeof(usb_stor_sense_nomedia));
+					us->srb->result = CHECK_CONDITION;
+					US_DEBUGP("usb-storage: CHECK-C nomedia while removed\n"); 
+
+				}
 				/* For REQUEST_SENSE, it's the data.  But
 				 * for anything else, it should look like
 				 * we auto-sensed for it.
 				 */
-				if (us->srb->cmnd[0] == REQUEST_SENSE) {
+				else if (us->srb->cmnd[0] == REQUEST_SENSE) {
 					memcpy(us->srb->request_buffer, 
 					       usb_stor_sense_notready, 
 					       sizeof(usb_stor_sense_notready));
@@ -425,15 +436,33 @@ static int usb_stor_control_thread(void * __us)
 					us->srb->result = GOOD << 1;
 				} else {
 					memcpy(us->srb->sense_buffer, 
-					       usb_stor_sense_notready, 
-					       sizeof(usb_stor_sense_notready));
+					       usb_stor_sense_media_changed, 
+					       sizeof(usb_stor_sense_media_changed));
 					us->srb->result = CHECK_CONDITION << 1;
 				}
-			} else { /* !us->pusb_dev */
 
+			} else { /* !us->pusb_dev */
+				if ( us->device_reconnected )
+				{
+					if (us->srb->cmnd[0] == REQUEST_SENSE) {
+						memcpy(us->srb->request_buffer, 
+						       usb_stor_sense_media_changed, 
+						       sizeof(usb_stor_sense_media_changed));
+						us->srb->result = GOOD << 1;
+						US_DEBUGP("usb-storage:REQUESTSENSE after reconnect\n");
+					} else {
+						memcpy(us->srb->sense_buffer, 
+						       usb_stor_sense_media_changed, 
+						       sizeof(usb_stor_sense_media_changed));
+						us->srb->result = CHECK_CONDITION << 1;
+						US_DEBUGP("usb-storage:scsi cmnd=%d after reconnect\n",
+							  us->srb->cmnd[0]);
+					}
+					us->device_reconnected = 0;
+				}
 				/* Handle those devices which need us to fake 
 				 * their inquiry data */
-				if ((us->srb->cmnd[0] == INQUIRY) &&
+				else if ((us->srb->cmnd[0] == INQUIRY) &&
 				    (us->flags & US_FL_FIX_INQUIRY)) {
 					unsigned char data_ptr[36] = {
 					    0x00, 0x80, 0x02, 0x02,
@@ -441,6 +470,12 @@ static int usb_stor_control_thread(void * __us)
 
 					US_DEBUGP("Faking INQUIRY command\n");
 					fill_inquiry_response(us, data_ptr, 36);
+					us->srb->result = GOOD << 1;
+				}
+				/* handle those devices which can't do a START_STOP */
+				else if ((us->srb->cmnd[0] == START_STOP) &&
+					 (us->flags & US_FL_START_STOP)) {
+					US_DEBUGP("Skipping START_STOP command\n");
 					us->srb->result = GOOD << 1;
 				} else {
 					/* we've got a command, let's do it! */
@@ -558,6 +593,10 @@ static void * storage_probe(struct usb_device *dev, unsigned int ifnum,
 	struct us_data *ss = NULL;
 #ifdef CONFIG_USB_STORAGE_SDDR09
 	int result;
+#endif
+#ifdef CONFIG_USB_STORAGE_REUSE_HOST
+	int reuse_host = 0;
+	struct us_data* tmpss = NULL;
 #endif
 
 	/* these are temporary copies -- we test on these, then put them
@@ -694,9 +733,22 @@ static void * storage_probe(struct usb_device *dev, unsigned int ifnum,
 	 * already on the system
 	 */
 	ss = us_list;
+#ifdef CONFIG_USB_STORAGE_REUSE_HOST
+	while (ss != NULL) {
+		if (!ss->pusb_dev) tmpss = ss;
+		ss = ss->next;
+	}
+	ss = tmpss;
+	if (ss) {
+		reuse_host = 1;
+		goto SET_SS;
+	REUSE_SS:
+	}
+#else
 	while ((ss != NULL) && 
 	       ((ss->pusb_dev) || !GUID_EQUAL(guid, ss->guid)))
 		ss = ss->next;
+#endif
 
 	if (ss != NULL) {
 		/* Existing device -- re-connect */
@@ -722,6 +774,7 @@ static void * storage_probe(struct usb_device *dev, unsigned int ifnum,
 		/* allocate an IRQ callback if one is needed */
 		if ((ss->protocol == US_PR_CBI) && usb_stor_allocate_irq(ss)) {
 			usb_dec_dev_use(dev);
+			up(&(ss->dev_semaphore));
 			return NULL;
 		}
 
@@ -729,6 +782,7 @@ static void * storage_probe(struct usb_device *dev, unsigned int ifnum,
 		ss->current_urb = usb_alloc_urb(0);
 		if (!ss->current_urb) {
 			usb_dec_dev_use(dev);
+			up(&(ss->dev_semaphore));
 			return NULL;
 		}
 
@@ -736,6 +790,23 @@ static void * storage_probe(struct usb_device *dev, unsigned int ifnum,
 		if (unusual_dev && unusual_dev->initFunction)
 			(unusual_dev->initFunction)(ss);
 
+		/*  reconnect after scsi error */
+		if ( ss->scsi_err_processed ) {
+		  if (ss->host && ss->host->host_queue){
+		    if(!ss->host->host_queue->online) {
+		      printk(KERN_DEBUG USB_STORAGE "make scsi layer online\n");
+		      /* FIXME: Scsi_Device lock needed ? */
+		      ss->host->host_queue->online = 1;
+		      ss->scsi_err_processed = 0;
+		    }
+		  }
+		}
+		
+		/* 
+		   remember reconnected status here to say 
+		   upper scsi layer that 'media changed'.
+		*/
+		ss->device_reconnected = 1;
 		/* unlock the device pointers */
 		up(&(ss->dev_semaphore));
 
@@ -767,11 +838,27 @@ static void * storage_probe(struct usb_device *dev, unsigned int ifnum,
 		init_MUTEX(&(ss->current_urb_sem));
 		init_MUTEX(&(ss->dev_semaphore));
 
+#ifdef CONFIG_USB_STORAGE_REUSE_HOST
+	SET_SS:
+#endif
 		/* copy over the subclass and protocol data */
 		ss->subclass = subclass;
 		ss->protocol = protocol;
 		ss->flags = flags;
 		ss->unusual_dev = unusual_dev;
+
+		/* Read/Write sector alignment, maximum sectors */
+		if (ss->flags & US_FL_SECTORLIMIT) {
+			int i;
+			for (i=0; us_unusual_dev_sectorlimit[i].idVendor; i++)
+				if (us_unusual_dev_sectorlimit[i].idVendor
+				    == dev->descriptor.idVendor &&
+				    us_unusual_dev_sectorlimit[i].idProduct
+				    == dev->descriptor.idProduct)
+					break;
+			ss->sectoralign = us_unusual_dev_sectorlimit[i].sectoralign;
+			ss->sectormax = us_unusual_dev_sectorlimit[i].sectormax;
+		}
 
 		/* copy over the endpoint data */
 		if (ep_in)
@@ -956,6 +1043,10 @@ static void * storage_probe(struct usb_device *dev, unsigned int ifnum,
 		}
 		US_DEBUGP("Protocol: %s\n", ss->protocol_name);
 
+#ifdef CONFIG_USB_STORAGE_REUSE_HOST
+		if (reuse_host) goto REUSE_SS;
+#endif
+
 		/* allocate an IRQ callback if one is needed */
 		if ((ss->protocol == US_PR_CBI) && usb_stor_allocate_irq(ss)) {
 			usb_dec_dev_use(dev);
@@ -1041,6 +1132,12 @@ static void storage_disconnect(struct usb_device *dev, void *ptr)
 	/* lock access to the device data structure */
 	down(&(ss->dev_semaphore));
 
+	/* purge inodes cache & buffer cache */
+	if ( ss->host && ss->host->host_queue ) {
+		up(&(ss->dev_semaphore));
+		sd_purge_buffers( ss->host->host_queue );
+		down(&(ss->dev_semaphore));
+	}
 	/* release the IRQ, if we have one */
 	down(&(ss->irq_urb_sem));
 	if (ss->irq_urb) {

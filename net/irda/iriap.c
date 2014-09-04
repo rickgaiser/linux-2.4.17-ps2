@@ -1004,22 +1004,24 @@ int irias_proc_read(char *buf, char **start, off_t offset, int len)
 			
 			switch (attrib->value->type) {
 			case IAS_INTEGER:
-				len += sprintf(buf+len, "%d\n", 
+				len += sprintf(buf+len, "%d", 
 					       attrib->value->t.integer);
 				break;
 			case IAS_STRING:
-				len += sprintf(buf+len, "\"%s\"\n", 
+				len += sprintf(buf+len, "\"%s\"", 
 					       attrib->value->t.string);
 				break;
 			case IAS_OCT_SEQ:
-				len += sprintf(buf+len, "octet sequence (%d bytes)\n", attrib->value->len);
+				len += sprintf(buf+len,
+					       "octet sequence (%d bytes)",
+					       attrib->value->len);
 				break;
 			case IAS_MISSING:
-				len += sprintf(buf+len, "missing\n");
+				len += sprintf(buf+len, "missing");
 				break;
 			default:
 				IRDA_DEBUG(0, __FUNCTION__ 
-				      "(), Unknown value type!\n");
+				      "(), Unknown value type!");
 				return -1;
 			}
 			len += sprintf(buf+len, "\n");
@@ -1028,6 +1030,7 @@ int irias_proc_read(char *buf, char **start, off_t offset, int len)
 				hashbin_get_next(obj->attribs);
 		}
 	        obj = (struct ias_object *) hashbin_get_next(objects);
+		len += sprintf(buf+len, "\n");
  	} 
 	restore_flags(flags);
 

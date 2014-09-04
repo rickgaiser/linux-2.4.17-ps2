@@ -126,31 +126,6 @@ d_iput:		no		no		yes
 
 extern spinlock_t dcache_lock;
 
-/**
- * d_drop - drop a dentry
- * @dentry: dentry to drop
- *
- * d_drop() unhashes the entry from the parent
- * dentry hashes, so that it won't be found through
- * a VFS lookup any more. Note that this is different
- * from deleting the dentry - d_delete will try to
- * mark the dentry negative if possible, giving a
- * successful _negative_ lookup, while d_drop will
- * just make the cache lookup fail.
- *
- * d_drop() is used mainly for stuff that wants
- * to invalidate a dentry for some reason (NFS
- * timeouts or autofs deletes).
- */
-
-static __inline__ void d_drop(struct dentry * dentry)
-{
-	spin_lock(&dcache_lock);
-	list_del(&dentry->d_hash);
-	INIT_LIST_HEAD(&dentry->d_hash);
-	spin_unlock(&dcache_lock);
-}
-
 static __inline__ int dname_external(struct dentry *d)
 {
 	return d->d_name.name != d->d_iname; 
@@ -275,3 +250,34 @@ extern struct vfsmount *lookup_mnt(struct vfsmount *, struct dentry *);
 #endif /* __KERNEL__ */
 
 #endif	/* __LINUX_DCACHE_H */
+
+#if !defined(__LINUX_DCACHE_H_INLINES) && defined(_TASK_STRUCT_DEFINED)
+#define __LINUX_DCACHE_H_INLINES
+
+#ifdef __KERNEL__
+/**
+ * d_drop - drop a dentry
+ * @dentry: dentry to drop
+ *
+ * d_drop() unhashes the entry from the parent
+ * dentry hashes, so that it won't be found through
+ * a VFS lookup any more. Note that this is different
+ * from deleting the dentry - d_delete will try to
+ * mark the dentry negative if possible, giving a
+ * successful _negative_ lookup, while d_drop will
+ * just make the cache lookup fail.
+ *
+ * d_drop() is used mainly for stuff that wants
+ * to invalidate a dentry for some reason (NFS
+ * timeouts or autofs deletes).
+ */
+
+static __inline__ void d_drop(struct dentry * dentry)
+{
+	spin_lock(&dcache_lock);
+	list_del(&dentry->d_hash);
+	INIT_LIST_HEAD(&dentry->d_hash);
+	spin_unlock(&dcache_lock);
+}
+#endif
+#endif

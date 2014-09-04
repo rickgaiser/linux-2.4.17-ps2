@@ -1,0 +1,300 @@
+/*
+ * TLB exception handling code for R5900.
+ * 
+ * Copyright (C) 2000-2002  Sony Computer Entertainment Inc.
+ *
+ * This file is based on tlbex-r4k.S:
+ *
+ * Copyright (C) 1994, 1995, 1996 by Ralf Baechle and Andreas Busse
+ *
+ * Multi-CPU abstraction reworking:
+ * Copyright (C) 1996 David S. Miller (dm@engr.sgi.com)
+ *
+ * Carsten Langgaard, carstenl@mips.com
+ * Copyright (C) 2000 MIPS Technologies, Inc.  All rights reserved.
+ */
+#include <linux/init.h>
+
+#include <asm/asm.h>
+#include <asm/current.h>
+#include <asm/offset.h>
+#include <asm/bootinfo.h>
+#include <asm/cachectl.h>
+#include <asm/fpregdef.h>
+#include <asm/mipsregs.h>
+#include <asm/page.h>
+#include <asm/pgtable.h>
+#include <asm/processor.h>
+#include <asm/regdef.h>
+#include <asm/stackframe.h>
+
+#define TLB_OPTIMIZE /* If you are paranoid, disable this. */
+
+	__INIT
+
+/*	
+ * These handlers much be written in a relocatable manner
+ * because based upon the cpu type an arbitrary one of the
+ * following pieces of code will be copied to the KSEG0
+ * vector location.
+ */
+	/* TLB refill, EXL == 0, R5900 version */
+	.set	noreorder
+	.set	noat
+	LEAF(except_vec0_r5900)
+	.set	mips3
+
+	lw	k1, pgd_current			# get pgd pointer
+	mfc0	k0, CP0_BADVADDR		# Get faulting address
+	srl	k0, k0, 22			# get pgd only bits
+
+	sll	k0, k0, 2
+	addu	k1, k1, k0			# add in pgd offset
+	mfc0	k0, CP0_CONTEXT			# get context reg
+	lw	k1, (k1)
+	srl	k0, k0, 1			# get pte offset
+	and	k0, k0, 0xff8
+	addu	k1, k1, k0			# add in offset
+	lw	k0, 0(k1)			# get even pte
+	bltz	k0, 2f				# PTE for SPR
+	 lw	k1, 4(k1)			# get odd pte (delay slot)
+	srl	k0, k0, 6			# convert to entrylo0
+	mtc0	k0, CP0_ENTRYLO0		# load it
+	srl	k1, k1, 6			# convert to entrylo1
+	mtc0	k1, CP0_ENTRYLO1		# load it
+	b	1f
+	tlbwr					# write random tlb entry
+1:	
+	nop
+	TAS_EXCEPTION_EPILOGUE
+	eret					# return from trap
+
+2:		# trampoline code to jump to the TLB refill routine for SPR
+	la	k0, except_vec0_r5900_spr
+	jr	k0	
+	 nop					# delay slot
+
+	END(except_vec0_r5900)
+
+	__FINIT
+
+/* TLB refill for scratchpad RAM */
+	.set	noreorder
+	.set	noat
+	LEAF(except_vec0_r5900_spr)
+	.set	mips3
+
+	mfc0	k0, CP0_ENTRYHI			# VPN must be 16KB aligned
+	or	k0, k0, (1 << 13)
+	xor	k0, k0, (1 << 13)
+	mtc0	k0, CP0_ENTRYHI
+	li	k0, 0x80000006			# entrylo0: S,D,V
+	mtc0	k0, CP0_ENTRYLO0		# load it
+	li	k1, 0x00000006			# entrylo1:   D,V
+	mtc0	k1, CP0_ENTRYLO1		# load it
+	b	1f
+	tlbwr					# write random tlb entry
+1:
+	nop
+	TAS_EXCEPTION_EPILOGUE
+	eret					# return from trap
+
+	END(except_vec0_r5900_spr)
+
+/*
+ * ABUSE of CPP macros 101.
+ *
+ * After this macro runs, the pte faulted on is
+ * in register PTE, a ptr into the table in which
+ * the pte belongs is in PTR.
+ */
+
+#define GET_PGD(scratch, ptr)    \
+	lw	ptr, pgd_current;
+
+
+#define LOAD_PTE(pte, ptr) \
+	GET_PGD(pte, ptr)          \
+	mfc0	pte, CP0_BADVADDR; \
+	srl	pte, pte, 22; \
+	sll	pte, pte, 2; \
+	addu	ptr, ptr, pte; \
+	mfc0	pte, CP0_BADVADDR; \
+	lw	ptr, (ptr); \
+	srl	pte, pte, 10; \
+	and	pte, pte, 0xffc; \
+	addu	ptr, ptr, pte; \
+	lw	pte, (ptr);
+
+	/* This places the even/odd pte pair in the page
+	 * table at PTR into ENTRYLO0 and ENTRYLO1 using
+	 * TMP as a scratch register.
+	 */
+#define PTE_RELOAD(ptr, tmp) \
+	ori	ptr, ptr, 0x4; \
+	xori	ptr, ptr, 0x4; \
+	lw	tmp, 4(ptr); \
+	lw	ptr, 0(ptr); \
+	srl	tmp, tmp, 6; \
+	mtc0	tmp, CP0_ENTRYLO1; \
+	srl	ptr, ptr, 6; \
+	mtc0	ptr, CP0_ENTRYLO0;
+
+#define DO_FAULT(write) \
+	.set	noat; \
+	SAVE_ALL; \
+	mfc0	a2, CP0_BADVADDR; \
+	STI; \
+	.set	at; \
+	move	a0, sp; \
+	jal	do_page_fault; \
+	 li	a1, write; \
+	j	ret_from_exception; \
+	 nop; \
+	.set	noat;
+
+	/* Check is PTE is present, if not then jump to LABEL.
+	 * PTR points to the page table where this PTE is located,
+	 * when the macro is done executing PTE will be restored
+	 * with it's original value.
+	 */
+#define PTE_PRESENT(pte, ptr, label) \
+	andi	pte, pte, (_PAGE_PRESENT | _PAGE_READ); \
+	xori	pte, pte, (_PAGE_PRESENT | _PAGE_READ); \
+	bnez	pte, label; \
+	 lw	pte, (ptr);
+
+	/* Make PTE valid, store result in PTR. */
+#define PTE_MAKEVALID(pte, ptr) \
+	ori	pte, pte, (_PAGE_VALID | _PAGE_ACCESSED); \
+	sw	pte, (ptr);
+
+	/* Check if PTE can be written to, if not branch to LABEL.
+	 * Regardless restore PTE with value from PTR when done.
+	 */
+#define PTE_WRITABLE(pte, ptr, label) \
+	andi	pte, pte, (_PAGE_PRESENT | _PAGE_WRITE); \
+	xori	pte, pte, (_PAGE_PRESENT | _PAGE_WRITE); \
+	bnez	pte, label; \
+	 lw	pte, (ptr);
+
+	/* Make PTE writable, update software status bits as well,
+	 * then store at PTR.
+	 */
+#define PTE_MAKEWRITE(pte, ptr) \
+	ori	pte, pte, (_PAGE_ACCESSED | _PAGE_MODIFIED | \
+			   _PAGE_VALID | _PAGE_DIRTY); \
+	sw	pte, (ptr);
+
+	.set	noreorder
+	.set	mips3
+
+/*
+ * From the IDT errata for the QED RM5230 (Nevada), processor revision 1.0:
+ * 2. A timing hazard exists for the TLBP instruction.
+ *
+ *      stalling_instruction
+ *      TLBP
+ *
+ * The JTLB is being read for the TLBP throughout the stall generated by the
+ * previous instruction. This is not really correct as the stalling instruction
+ * can modify the address used to access the JTLB.  The failure symptom is that
+ * the TLBP instruction will use an address created for the stalling instruction
+ * and not the address held in C0_ENHI and thus report the wrong results.
+ *
+ * The software work-around is to not allow the instruction preceding the TLBP
+ * to stall - make it an NOP or some other instruction guaranteed not to stall.
+ *
+ * Errata 2 will not be fixed.  This errata is also on the R5000.
+ *
+ * As if we MIPS hackers wouldn't know how to nop pipelines happy ...
+ */
+#define R5K_HAZARD nop
+
+	/*
+	 * Note for many R4k variants tlb probes cannot be executed out
+	 * of the instruction cache else you get bogus results.
+	 */
+	.align	5
+	NESTED(handle_tlbl, PT_SIZE, sp)
+	.set	noat
+invalid_tlbl:
+#ifdef TLB_OPTIMIZE
+	/* Test present bit in entry. */
+	LOAD_PTE(k0, k1)
+	bltz	k0, nopage_tlbl		# for SPR
+	 R5K_HAZARD
+	tlbp
+	PTE_PRESENT(k0, k1, nopage_tlbl)
+	PTE_MAKEVALID(k0, k1)
+	PTE_RELOAD(k1, k0)
+	nop
+	b	1f
+	 tlbwi
+1:
+	nop
+	TAS_EXCEPTION_EPILOGUE
+	eret
+#endif
+
+nopage_tlbl:
+	DO_FAULT(0)
+	END(handle_tlbl)
+
+	.align	5
+	NESTED(handle_tlbs, PT_SIZE, sp)
+	.set	noat
+#ifdef TLB_OPTIMIZE
+	LOAD_PTE(k0, k1)
+	bltz	k0, nopage_tlbs		# for SPR
+	 R5K_HAZARD
+	tlbp				# find faulting entry
+	PTE_WRITABLE(k0, k1, nopage_tlbs)
+	PTE_MAKEWRITE(k0, k1)
+	PTE_RELOAD(k1, k0)
+	nop
+	b	1f
+	 tlbwi
+1:
+	nop
+	TAS_EXCEPTION_EPILOGUE
+	eret
+#endif
+
+nopage_tlbs:
+	DO_FAULT(1)
+	END(handle_tlbs)
+
+	.align	5
+	NESTED(handle_mod, PT_SIZE, sp)
+	.set	noat
+#ifdef TLB_OPTIMIZE
+	LOAD_PTE(k0, k1)
+	bltz	k0, nowrite_mod		# for SPR
+	 R5K_HAZARD
+	tlbp					# find faulting entry
+	andi	k0, k0, _PAGE_WRITE
+	beqz	k0, nowrite_mod
+	 lw	k0, (k1)
+
+	/* Present and writable bits set, set accessed and dirty bits. */
+	PTE_MAKEWRITE(k0, k1)
+#if 0
+	ori	k0, k0, (_PAGE_ACCESSED | _PAGE_DIRTY)
+	sw	k0, (k1)
+#endif
+
+	/* Now reload the entry into the tlb. */
+	PTE_RELOAD(k1, k0)
+	nop
+	b	1f
+	 tlbwi
+1:
+	nop
+	TAS_EXCEPTION_EPILOGUE
+	eret
+#endif
+
+nowrite_mod:
+	DO_FAULT(1)
+	END(handle_mod)

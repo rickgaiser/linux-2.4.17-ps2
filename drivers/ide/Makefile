@@ -33,6 +33,7 @@ ide-obj-$(CONFIG_BLK_DEV_AMD74XX)	+= amd74xx.o
 ide-obj-$(CONFIG_BLK_DEV_BUDDHA)	+= buddha.o
 ide-obj-$(CONFIG_BLK_DEV_CMD640)	+= cmd640.o
 ide-obj-$(CONFIG_BLK_DEV_CMD64X)	+= cmd64x.o
+ide-obj-$(CONFIG_BLK_DEV_CPCI405_IDE)	+= cpci405ide.o
 ide-obj-$(CONFIG_BLK_DEV_CS5530)	+= cs5530.o
 ide-obj-$(CONFIG_BLK_DEV_CY82C693)	+= cy82c693.o
 ide-obj-$(CONFIG_BLK_DEV_DTC2278)	+= dtc2278.o
@@ -66,6 +67,9 @@ ide-obj-$(CONFIG_BLK_DEV_TRM290)	+= trm290.o
 ide-obj-$(CONFIG_BLK_DEV_UMC8672)	+= umc8672.o
 ide-obj-$(CONFIG_BLK_DEV_VIA82CXXX)	+= via82cxxx.o
 ide-obj-$(CONFIG_BLK_DEV_MPC8xx_IDE)	+= ide-m8xx.o
+ide-obj-$(CONFIG_BLK_DEV_REDWOOD_IDE)	+= stb03xxx.o
+ide-obj-$(CONFIG_BLK_DEV_PS2_IDE)	+= ps2ide.o
+ide-obj-$(CONFIG_BLK_DEV_PS2_IDEDMA)	+= ps2dma.o
 
 # The virtualised raid layers MUST come after the ide itself or bad stuff
 # will happen.

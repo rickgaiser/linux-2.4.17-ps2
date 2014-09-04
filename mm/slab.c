@@ -49,7 +49,9 @@
  *  constructors and destructors are called without any locking.
  *  Several members in kmem_cache_t and slab_t never change, they
  *	are accessed without any locking.
- *  The per-cpu arrays are never accessed from the wrong cpu, no locking.
+ *  The per-cpu arrays are never accessed from the wrong cpu, no locking,
+ *  	they are however called with local interrupts disabled so no
+ *  	preempt_disable needed.
  *  The non-constant members are protected with a per-cache irq spinlock.
  *
  * Further notes from the original documentation:
@@ -1566,6 +1568,23 @@ void kmem_cache_free (kmem_cache_t *cachep, void *objp)
 	__kmem_cache_free(cachep, objp);
 	local_irq_restore(flags);
 }
+
+void *
+kmem_cache_zalloc(kmem_cache_t *cachep, int flags)
+{
+	void    *ptr;
+	ptr = __kmem_cache_alloc(cachep, flags);
+	if (ptr)
+#if DEBUG
+		memset(ptr, 0, cachep->objsize -
+			(cachep->flags & SLAB_RED_ZONE ? 2*BYTES_PER_WORD : 0));
+#else
+		memset(ptr, 0, cachep->objsize);
+#endif
+
+	return ptr;
+}
+
 
 /**
  * kfree - free previously allocated memory

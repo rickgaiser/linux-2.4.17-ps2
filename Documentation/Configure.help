@@ -1,3 +1,4 @@
+# $USAGI: Configure.help,v 1.67 2002/03/01 08:20:25 yoshfuji Exp $
 # Maintained by:
 #	Eric S. Raymond <mailto:esr@thyrsus.com>
 #	Steven Cole <mailto:elenstev@mesatop.com>
@@ -111,6 +112,15 @@ CONFIG_OBSOLETE
   that can talk to the same hardware.  Obsolete hardware is things
   like MGA monitors that you are very unlikely to see on today's
   systems.
+
+Prompt for advanced kernel configuration options
+CONFIG_ADVANCED_OPTIONS
+  This option will enable prompting for a variety of advanced kernel
+  configuration options.  These options can cause the kernel to not
+  work if they are set incorrectly, but can be used to optimize certain
+  aspects of kernel memory management.
+
+  Unless you know what you are doing you *should not* enable this option.
 
 Symmetric Multi-Processing support
 CONFIG_SMP
@@ -266,6 +276,63 @@ CONFIG_X86_UP_APIC
   If you have a system with several CPUs, you do not need to say Y
   here: the local APIC will be used automatically.
 
+Interrupt Latency Instrumentation
+CONFIG_ILATENCY
+  This option turns on instrumentation in the kernel to measure the interrupt
+  overhead and interrupt hold off times of the kernel and driver set for
+  a particular system.  The measurement provides interrupt latency data
+  to gain an understanding of what interrupt latencies look like for that
+  system.
+
+  The data is collected in /proc/ilatcurve, outlier data, or the maximum
+  interrupt off offenders are collected in /proc/imaxoff.  This file has
+  the longest interrupt off times and the file and line number of the 
+  interrupt off/on pair.  This file is useful for finding and debugging
+  drivers that have poor interrupt latencies.
+
+  Interrupt Latency Instrumentation should NOT be used in production systems.
+  It has a failry large overhead to measure and collect the data. It also
+  should not be used with kernel Preemption.  
+
+  Say Y to this option if you are trying to understand the interrupt latency
+  curve of your board.  This should be only used in the design and debug
+  phase of your product.
+
+Preemptible Kernel
+CONFIG_PREEMPT
+  This option reduces the latency of the kernel when reacting to
+  real-time or interactive events by allowing a low priority process to
+  be preempted even if it is in kernel mode executing a system call.
+  This allows applications to run more reliably even when the system is
+  under load due to other, lower priority, processes.
+
+  Say Y here if you are building a kernel for a desktop system, embedded
+  system or real-time system.  Say N if you are building a kernel for a
+  system where throughput is more important than interactive response,
+  such as a server system.  Say N if you are unsure.
+
+Break Selected Locks
+CONFIG_LOCK_BREAK
+  This option will break certain locks in high-latency regions
+  throughout the kernel.  It is intended for use in conjunction with
+  the preemptible kernel (CONFIG_PREEMPT).  Since in-kernel preemption
+  can not occur while locks are held, temporarily releasing and then
+  reacquiring long-held locks will further improve system response.
+
+  Say Y if you are compiling for a system with strict latency
+  requirements such as an embedded, real-time, or audio processing
+  system.  Say N otherwise.
+
+Collect preemption latency times
+CONFIG_PREEMPT_TIMES
+  This option will instruct the preemption code to measure in-kernel
+  latencies due to various locking primitives.  The results for the 20
+  worst latency times are accessible via /proc/latencytimes.  They are
+  reset on read.
+
+  Say Y here if you are testing kernel preemption and trying to determine
+  where high-latency problems lie.  Say N if you are unsure.
+
 Kernel math emulation
 CONFIG_MATH_EMULATION
   Linux can emulate a math coprocessor (used for floating point
@@ -289,6 +356,48 @@ CONFIG_MATH_EMULATION
 
   If you are not sure, say Y; apart from resulting in a 66 KB bigger
   kernel, it won't hurt.
+
+Turn OOM Killer on
+CONFIG_OOM_KILLER
+
+  This option turns on the out_of_memory killer.  In 2.4 Linux introduced
+  the out of memory killer as a last resort to being out of memory
+  and being unable to reclaim any via swapping.  This feature causes
+  problems in small memory, embedded systems that have no swap devices.
+
+  The OOM killer is turned off by default in MVL2.1.
+  The killer logs the application pid and name in the message buffer with
+  the following message:
+
+  Out of Memory: Killed process PID no (Process name).
+
+  This option disables the out_of_memory killer and allows small memory
+  embedded systems, that don't completely exhaust physical memory, to
+  keep their applications running indefinitely.  If all of physical
+  memory is completely consumed the system will most likely hang, unless
+  something can run to completion, exit and return memory to the system.
+
+Real Time Scheduler
+CONFIG_RTSCHED
+
+  This option replaces the standard linux scheduler with a real time
+  scheduler.  The real time scheduler provides load independent fast
+  context switch times for real time tasks where as the standard linux
+  scheduler slows down with increasing load (i.e. more tasks ready to
+  run). For non-real time tasks both schedulers context switch times are
+  load dependent.  The real time scheduler also provides a configure
+  option for real time priorities ranging from 1 to a max of 2047 while 
+  the standard schedulers real time priorities range from 1-99. 
+  Real time tasks are tasks that have a scheduling policy of SCHED_FIFO 
+  or SCHED_RR.  Scheduling policy is set by the sched_setscheduler(2)
+  system call and is inherited thru fork and thread creation.
+ 
+Maximum Priority?
+CONFIG_MAX_PRI
+  This option lets you set the number of priorities available to real time
+  tasks.  Priorities 1 thru maximum priority are real time tasks.  The
+  default here is 127.  The system will quietly change any thing less than
+  99 to 99 and any thing greater than 2047 to 2047.
 
 Timer and CPU usage LEDs
 CONFIG_LEDS
@@ -1803,6 +1912,120 @@ CONFIG_MD_MULTIPATH
 
   If unsure, say N.
 
+# BEGINNING OF CRYPTOAPI
+Cryptographic API
+CONFIG_CRYPTO
+  If you answer yes to this option, the cryptographic kernel API
+  framework will be enabled, and you'll be presented with additional
+  questions about cryptographic algorithms and kernel components
+  making use of the cryptographic API.
+
+  See also <file:Documentation/crypto/cryptoapi.txt>
+
+  The latest version of this component can be found at
+  <http://www.kernel.org/pub/linux/crypto/>
+
+  If you don't need cryptographic extensions, say N.
+
+Generic cryptogrpahic filter for loop device driver
+CONFIG_CRYPTOLOOP
+  If you answer yes to this option, the loop driver will be able to
+  use all cryptographic ciphers selected below.
+
+  This loop filter will use the ciphers in CBC-mode which is more
+  secure than ECB-mode.  This module will also initialize the CBC-mode
+  of the cipher with the block-number of the block being encrypted.
+
+  Make sure you have patched your loop driver otherwise this filter
+  won't compile. See <file:Documentation/crypto/cryptoloop.txt> for
+  more information.
+
+  *WARNING* Due to the broken IV metric in the 2.4.x kernel series,
+  this filter is not compatible with the on-disc format of encrypted
+  volumes encrypted up to version 2.4.3 of the international patch! 
+  You will have to convert your "old" encrypted volumes to the new IV
+  metric.
+
+Crypto ciphers
+CONFIG_CIPHERS
+  Ciphers basically help us scramble data so that other people don't
+  get access to it. Useful applications for this include hiding hard
+  drive contents or network traffic from unauthorized eyes. Compare a
+  file encrypted with a cipher with very good safe: The document is in
+  it, you can carry the document with you (if the safe is not too
+  heavy), but others can steal it, too. However, they will not be able
+  to read the document if the safe is any good.
+
+  Mathematically speaking, a cipher is a parameter-dependant function
+  E(K, ) that takes a fixed-length block M (usually 64 or 128 bits)
+  and maps it onto another (usually equal-sized) block C=E(K,M) in such
+  a way that, without knowledge of the "key" K, it is hard to compute
+
+  1. M, if C and the function E are given,
+
+  2. C, if M is given and the function E is known.
+
+  M is called the 'plaintext' and C the 'ciphertext'. The above
+  properties are commonly described as "All the security of the cipher
+  lies in its key". However, there always exists the inverse function
+  D(K, ) of E(K, ) such that D(K,E(K,M))=M for any M.  The ideal
+  cipher is one where it is impossible to compute M if you have C, but
+  not K. In this case, the easiest way to break the cipher is to use
+  'brute-force', i.e. try all K in turn until you hit the right
+  one. With most ciphers in this library, K is a 128-bit number. Here,
+  brute-force attacks are infeasible since they require testing all
+  2^128 possible keys K, which would take far too long on any
+  conceivable computer (some big multiple of the age of the universe
+  for example).
+
+  Unfortunately, the ideal cipher has not been found yet, so most
+  ciphers in this library, or certain 'reduced-round' versions
+  thereof, can be broken faster than brute-force. A cipher is secure,
+  if it cannot be broken _much_ faster than brute-force and
+  brute-force is infeasible.
+
+  If you say 'Y' or 'M' here, you are able to select a variety of
+  ciphers for the Cipher-API. Ciphers you select below can then be
+  used by cryptographic kernel modules. If you say 'N' here, those
+  modules will use their own implementations or even not work at all.
+
+  If unsure, say 'N'.
+
+Digest algorithms
+CONFIG_DIGESTS
+  A message digest (or 'one-way function' or 'hash') is a function H
+  that maps an arbitrary-length message M onto a 128-bit or 160-bit
+  number h=H(M) such that the following conditions are satisfied:
+
+  1. For a given M, it is easy to compute h=H(M).
+
+  2. For a given h, it is hard to find M such that h=H(M).
+
+  3. For a given M, it is hard to find another message M' such that
+     H(M')=H(M).
+
+  4. It is hard to find M, M' such that H(M)=H(M').
+
+  This makes the name 'one-way function' plausible. Hashes are widely
+  used by cryptographic programs. E.g. the Linux kernel uses a hash to
+  generate random numbers.
+
+# Marc Mutz <Marc@Mutz.com>: this will be the help text, once this
+# functionality is in place:
+#  If you say 'Y' here and select the SHA-1 message digest below,
+#  then the drivers for /dev/random and /dev/urandom will use the
+#  digest api instead of their own implementation. This will not work
+#  if you build as modules.
+#
+  If you say 'Y' or 'M' here, cryptographic modules are able to use
+  the Digest-API if they need a hash function. If you say 'N' here,
+  they will use their own implementations (which will probably
+  increase the size of the compiled kernel if there are more than one
+  such modules).
+
+  If unsure, say 'N'.
+# END OF CRYPTOAPI
+
 Support for IDE Raid controllers
 CONFIG_BLK_DEV_ATARAID
   Say Y or M if you have an IDE Raid controller and want linux
@@ -2404,6 +2627,15 @@ CONFIG_IP_NF_MATCH_LIMIT
   If you want to compile it as a module, say M here and read
   <file:Documentation/modules.txt>.  If unsure, say `N'.
 
+Aggregated address check (EXPERIMENTAL)
+CONFIG_IP6_NF_MATCH_AGR
+  This module is perform checking on the IPv6 IP address
+  Compares the last 64 bits with the aggregated (delivered
+  from the MAC address)
+
+  If you want to compile it as a module, say M here and read
+  Documentation/modules.txt.  If unsure, say `N'.
+
 MAC address match support
 CONFIG_IP_NF_MATCH_MAC
   MAC matching allows you to match packets based on the source
@@ -2613,6 +2845,15 @@ CONFIG_IP_NF_MATCH_TCPMSS
   If you want to compile it as a module, say M here and read
   <file:Documentation/modules.txt>.  If unsure, say `N'.
 
+REJECT target support
+CONFIG_IP6_NF_TARGET_REJECT
+  The REJECT target allows a filtering rule to specify that an ICMPv6
+  error should be issued in response to an incoming packet, rather
+  than silently being dropped.
+
+  If you want to compile it as a module, say M here and read
+  Documentation/modules.txt.  If unsure, say `N'.
+
 LOG target support
 CONFIG_IP_NF_TARGET_LOG
   This option adds a `LOG' target, which allows you to create rules in
@@ -2656,6 +2897,14 @@ CONFIG_IP6_NF_MATCH_MARK
   Netfilter mark matching allows you to match packets based on the
   `nfmark' value in the packet.  This can be set by the MARK target
   (see below).
+
+  If you want to compile it as a module, say M here and read
+  <file:Documentation/modules.txt>.  If unsure, say `N'.
+
+length match support
+CONFIG_IP6_NF_MATCH_LENGTH
+  This option allows you to match the length of a packet against a
+  specific value or range of values.
 
   If you want to compile it as a module, say M here and read
   <file:Documentation/modules.txt>.  If unsure, say `N'.
@@ -2706,6 +2955,54 @@ CONFIG_IP6_NF_TARGET_MARK
 
   If you want to compile it as a module, say M here and read
   <file:Documentation/modules.txt>.  If unsure, say `N'.
+
+IP Security Support (IPsec)
+CONFIG_IPSEC
+
+  You can say Y here if you want to enable IPsec.
+  This options enable PF_KEY(V2), Security Association Database and
+  Security Policy Database.
+
+  And also you must enable each IP version IPsec.
+
+IP Security Support (IPsec) debugging
+CONFIG_IPSEC_DEBUG
+
+  You can say Y here if you want to get additional messages useful in
+  debugging the IPsec(IPsec6,PFKEY,SADB,SPD) code. 
+
+  You can enable/disable these parameters via sysctl(/proc/net/ipsec/).
+
+IP Security Support (IPsec) debugging off by default
+CONFIG_IPSEC_DEBUG_DISABLE_DEFAULT
+
+  Normally IPsec debugging messages are activated by default, 
+  if you set CONFIG_IPSEC_DEBUG.
+
+  If you say Y here, it'll change this to off by default(boot time).
+  NOTICE: If you don't say Y here, you will receive tons of log messages.
+
+IPv6 Security Support (IPsec for IPv6)
+CONFIG_IPV6_IPSEC
+  In the specification of IPv6, IPsec support is mandatory.
+
+  USAGI IPsec for IPv6 support is not stable and developers only.
+  If unsure, say 'N'.
+
+  NOTICE!:
+       USAGI IPsec(IPv6) stack and FreeS/WAN IPsec(IPv4) stack are
+       currently NOT compatible.
+
+  If you want to try to compile it, 
+  please read the usagi/doc/HOWTO/IPSEC.
+
+IP Security Support (IPsec for IPv6) apply to ICMPv6 packets
+CONFIG_APPLY_ICMPV6_IPSEC
+
+  You can say Y here if you want to apply IPsec to ICMPv6 packets.
+
+  NOTICE:
+  	currently we can't apply to NDISC packets(NA or RA receiving).
 
 TCP Explicit Congestion Notification support
 CONFIG_INET_ECN
@@ -3600,6 +3897,11 @@ CONFIG_TCIC
   "Bridge" is the name used for the hardware inside your computer that
   PCMCIA cards are plugged into. If unsure, say N.
 
+MPC8xx PCMCIA support
+CONFIG_PCMCIA_M8XX
+  Say Y here to include support for the PCMCIA controller in MPC8xx 
+  processors.
+
 System V IPC
 CONFIG_SYSVIPC
   Inter Process Communication is a suite of library functions and
@@ -3938,6 +4240,13 @@ CONFIG_FB_PM2_PCI
   Say Y to enable support for Permedia2 AGP frame buffer card from
   3Dlabs (aka `Graphic Blaster Exxtreme') on the PCI bus.
 
+Permedia3 support (EXPERIMENTAL)
+CONFIG_FB_PM3
+  This is the frame buffer device driver for the 3DLabs Permedia3
+  chipset, used in Formac ProFormance III, 3DLabs Oxygen VX1 &
+  similar boards, 3DLabs Permedia3 Create!, Appian Jeronimo 2000
+  and maybe other boards.
+
 Phase5 CVisionPPC/BVisionPPC support
 CONFIG_FB_PM2_CVPPC
   Say Y to enable support for the Amiga Phase 5 CVisionPPC BVisionPPC
@@ -4048,6 +4357,26 @@ S3 Trio frame buffer device support
 CONFIG_FB_S3TRIO
   If you have a S3 Trio say Y. Say N for S3 Virge.
 
+RPX LCD display support
+CONFIG_FB_RPX
+  This driver supports the PowerPC MPC823's on-chip LCD controller. If
+  you have an MPC823 (such as is present in the Embedded Planet RPX
+  Lite boards), say Y.
+
+  The driver is also available as a module ( = code which can be
+  inserted and removed from the running kernel whenever you want). The
+  module will be called rpxfb.o. If you want to compile it as a
+  module, say M here and read <file:Documentation/modules.txt>.
+
+  If unsure, say N.
+
+Debug RPX frame buffer
+CONFIG_FB_RPX_DEBUG
+  If you want the RPX frame buffer driver to display debugging
+  information, say Y.
+
+  If unsure, say N.
+
 3Dfx Banshee/Voodoo3 display support
 CONFIG_FB_3DFX
   This driver supports graphics boards with the 3Dfx Banshee/Voodoo3
@@ -4068,6 +4397,29 @@ CONFIG_FB_RIVA
   inserted and removed from the running kernel whenever you want). The
   module will be called rivafb.o. If you want to compile it as a
   module, say M here and read <file:Documentation/modules.txt>.
+
+Intel 810 display support (EXPERIMENTAL)
+CONFIG_FB_I810
+  This driver supports the on-board graphics built-in to the Intel 810
+  chipset.  Say Y if you have and plan to use such a board.
+
+  The driver is also available as a module ( = code which can be
+  inserted and removed from the running kernel whenever you want). The
+  module will be called i810fb.o. If you want to compile it as a
+  module, say M here and read Documentation/modules.txt.
+
+  For more information, please read Documentation/fb/intel810.txt
+
+Intel 810 nonstandard video timings (EXPERIMENTAL)
+CONFIG_FB_I810_NONSTD
+  Enabling this option will allow the use of a range of horizontal
+  resolutions (640 to 1600) and vertical refresh rates (limited by
+  hardware) instead of being fixed to a limited set of timings.  For
+  those with less-than-capbable monitors, you'll be able to maximize
+  the display area and still get a comfortable refresh rate.
+
+  The timings will not be compliant with Intel's recommended values.
+  Use at your own risk.
 
 ATI Mach64 display support
 CONFIG_FB_ATY
@@ -4597,6 +4949,69 @@ CONFIG_FB_VIRTUAL
 
   If unsure, say N.
 
+Intel 810/815 display support (EXPERIMENTAL)
+CONFIG_FB_I810
+  This driver supports the on-board graphics built-in to the Intel 810 
+  and 815 chipsets.  Say Y if you have and plan to use such a board.
+
+  The driver is also available as a module ( = code which can be
+  inserted and removed from the running kernel whenever you want). 
+  The module will be called i810fb.o. If you want to compile it as a
+  module, say M here and read Documentation/modules.txt.
+
+  For more information, please read Documentation/fb/intel810.txt
+ 
+Intel 810/815 VESA Generalized Timing Formula  (EXPERIMENTAL)
+CONFIG_FB_I810_GTF
+  If you say Y, then the VESA standard, Generalized Timing  Formula, 
+  or GTF, will be used to calculate the required video timing
+  values per video mode.  Since the GTF allows nondiscrete timings 
+  (nondiscrete being a range of values as opposed to discrete being a
+  set of values), you'll be able to use a range of resolutions 
+  (640 to 1600), vertical refresh rates (limited only by hardware), 
+  and variable display aspect ratios. If you want to maximize the 
+  capability of your display, or if you have a display with 
+  nonstandard dimensions (aspect ratio != 4:3), then select this 
+  option. The timings may not be compliant with Intel's recommended 
+  values. Use at your own risk.
+
+  If you say N, the driver will revert to a set of timing values as
+  recommended by Intel in their documentation.
+  
+  If unsure, say N.
+
+Intel 810/815 Hardware Acceleration Code (EXPERIMENTAL)
+CONFIG_FB_I810_ACCEL
+  To enable accelerated console drawing functions, enable this option, 
+  then pass the "accel" boot option or "accel=1" module option.  You 
+  will also need to select this option if you need console display 
+  rotation. Selecting this option will add 2 KB to your kernel.
+
+  If unsure, say N.
+
+Intel 810/815 Console Display Rotation Code (EXPERIMENTAL)
+CONFIG_FB_I810_ROTATE
+  If you select this option, you'll be able to rotate the console 
+  display 90 degrees to the left or to the right, or 180 degrees. You'll 
+  have to pass the "rotate=" boot parameter/module option to select the 
+  axis of rotation. Please read /usr/src/linux/Documentation/fb/intel810.txt 
+  for more information. Selecting this option will add 4 KB to your kernel.
+
+  If unsure, say N.
+
+Intel 810/815 Hardware Interface (VERY EXPERIMENTAL!)
+CONFIG_FB_I810_IFACE
+  If you select this option, a user-to-kernel interface will be included 
+  with the driver. Through this interface, userland programs can pass 
+  instructions to the driver and access the hardware's "accelerated" 
+  functions.  This is a very likely security risk, so unless you need this 
+  feature, do NOT select this option. Selecting this option will add 2 KB 
+  to your kernel.
+
+  This interface is necessary if you want to try the Directfb 
+  (http://www.direcfb.org) gfxdriver for the Intel 810.  The driver is 
+  available at http://www.sourceforge.net/projects/i810fb.
+
 Mach64 CT/VT/GT/LT (incl. 3D RAGE) support
 CONFIG_FB_ATY_CT
   Say Y here to support use of ATI's 64-bit Rage boards (or other
@@ -5113,6 +5528,12 @@ CONFIG_NET_IPIP
   be inserted in and removed from the running kernel whenever you
   want). Most people won't need this and can say N.
 
+IPv6 over IPv4 tunneling support (replaces sitXX devices)
+CONFIG_NET_IPIP_IPV6
+  If you say Y here, you can transport IPv6 packet over the tunlXX 
+  devices;  The sitXX devices will be dissappeared with this option.
+  Note: tunnel manipulation commands such as iptunnel should be updated.
+
 GRE tunnels over IP
 CONFIG_NET_IPGRE
   Tunneling means encapsulating data of one protocol type within
@@ -5161,6 +5582,12 @@ CONFIG_IP_PIMSM_V2
   gated-5). This routing protocol is not used widely, so say N unless
   you want to play with it.
 
+Moderate SO_REUSEADDR behavior
+CONFIG_NET_MODERATE_REUSE
+  With this option, kernel restrict effect of SO_REUSEADDR to prevent 
+  other users from performing 'binding closer' type attacks like NFS 
+  theft.  Say Y.
+
 Unix domain sockets
 CONFIG_UNIX
   If you say Y here, you will include support for Unix domain sockets;
@@ -5204,7 +5631,12 @@ CONFIG_IPV6
   want). The module will be called ipv6.o. If you want to compile it
   as a module, say M here and read <file:Documentation/modules.txt>.
 
-  It is safe to say N here for now.
+  Say Y. :-)
+
+IPv6: Verbose debugging messages
+CONFIG_IPV6_DEBUG
+  Verbose kernel message for debugging IPv6 stack.
+  If unsure, it is safe to say N.
 
 # 2.5 tree only
 IPv6: routing messages via old netlink
@@ -5213,6 +5645,162 @@ CONFIG_IPV6_NETLINK
   through the old netlink interface. However, a better option is to
   say Y to "Kernel/User network link driver" and to "Routing
   messages" instead.
+
+IPv6: inter-module support.
+CONFIG_IPV6_IM
+  Export some interface via the inter-module feature.
+  This is needed if you want to use generic tunnel (CONFIG_NET_IPGRE)
+  with modulized ipv6.  Say Y in such case, otherwise say N.
+
+IPv6: enable gre tunnel support with modulized ipv6
+CONFIG_IPV6_MODULE_IP_GRE
+  Use generic tunnel support with modulized ipv6 via
+  inter-module interface.
+ 
+IPv6: drop pakcets with fake ipv4-mapped address(es)
+CONFIG_IPV6_DROP_FAKE_V4MAPPED
+  Drop incoming packets with fake ipv4-mapped address(es) that
+  may cause security problems.  It is safe and recommended to 
+  say Y.
+
+IPv6: Anycast support
+  Anycast support for IPv6.  If unsure, say N.
+
+IPv6: Privacy Extensions (RFC 3041) support
+CONFIG_IPV6_PRIVACY
+  Privacy Extensions for Stateless Address Autoconfiguration in IPv6
+  support.  With this option, additional periodically-alter 
+  pseudo-random global-scope unicast address(es) will assigned to
+  your interface(s).
+
+  By default, kernel generates temporary addresses but it won't use 
+  them unless application explicitly bind them.  To prefer temporary 
+  address, do
+
+    echo 2 >/proc/sys/net/ipv6/conf/all/use_tempaddr 
+
+IPv6: Loose scope_id
+CONFIG_IPV6_LOOSE_SCOPE_ID
+  It is recommended to say N.
+  NOTE: This option is disabled by default.
+
+IPv6: Moderate double binding behavior
+CONFIG_IPV6_MODERATE_DOUBLE_BIND
+  With this option, kernel will not allow other users to do double 
+  binding.  Say Y.
+
+IPv6: IPv6 over IPv6 Tunneling (EXPERIMENTAL)
+CONFIG_IPV6_IPV6_TUNNEL
+
+  Experimental IP6-IP6 tunneling.  You must select this, if you want
+  to use CONFIG_IPV6_MOBILITY.  More information in MIPL Mobile IPv6
+  instructions.
+
+  If you don't want IP6-IP6 tunnels and Mobile IPv6, say N.
+
+IPv6: Mobility Support (EXPERIMENTAL)
+CONFIG_IPV6_MOBILITY
+  This is experimental support for the upcoming specification of
+  Mobile IPv6. Mobile IPv6 allows nodes to seamlessly move between
+  networks without changing their IP addresses, thus allowing them
+  to maintain upper layer connections (e.g. TCP).
+
+  Currently Mobile IPv6 support is available only as a module.
+
+  For more information and configuration details, see
+  <http://www.mipl.mediapoli.com/>.
+
+  If unsure, say N.
+
+MIPv6: AH Support
+CONFIG_IPV6_MOBILITY_AH
+  Mobile IPv6 draft revision 13 requires IPSec Authentication Header
+  support. MIPL Mobile IPv6 provides limited AH support. Say Y to
+  authenticate signaling messages with AH. MIPv6 nodes with AH support
+  cannot interoperate with MIPv6 nodes without it.
+
+  AH requirement was removed in a later draft revision. You might want
+  to use draft 15 mandated Authentication Data Sub-Option instead. If
+  so, you should probably say N here.
+
+  If unsure, say N.
+
+MIPv6: Debug messages
+CONFIG_IPV6_MOBILITY_DEBUG
+  MIPL Mobile IPv6 can produce a lot of debugging messages. There are
+  eight debug levels (0 through 7) and the level is controlled via
+  /proc/sys/net/ipv6/mobility/debuglevel. Since MIPL is still
+  experimental, you might want to say Y here.
+  
+  Be sure to say Y and record debug messages when submitting a bug 
+  report.
+
+IPv6: Prefix List support
+CONFIG_IPV6_PREFIXLIST
+  Added Prefix List described as a conceptual data structure in RFC2461.
+  Say N at this moment.
+
+IPv6: Neighbor Discovery debugging
+CONFIG_IPV6_NDISC_DEBUG
+  Verbose kernel message to debug Neighbor Discovery Protocol for 
+  IPv6.  Say N.
+
+IPv6: Stateless Address Autoconfiguration debugging
+CONFIG_IPV6_ACONF_DEBUG
+  Verbose kernel message to debug the IPv6 Stateless Address 
+  Autoconfiguration.  Say N.
+
+IPv6: Debug on source address selection
+CONFIG_IPV6_ACONF_DEBUG_SADDR
+  Verbose kernel message to debug IPv6 source address selection.
+  Say N.
+
+IPv6: ignore too small Valid Lifetime for Address Autoconfiguration
+CONFIG_IPV6_ACONF_MIN_VALID_LFT
+  Do not update valid-lifetime with small value to avoid particular 
+  DoS attack.  See RFC 2461 section 6.3.6 and RFC 2462 section 5.5.3.
+  Say Y.
+
+IPv6: Routing Information debugging
+CONFIG_IPV6_RT6_DEBUG
+  Verbose kernel message to debug IPv6 routing.  Say N.
+
+IPv6: allow default route when forwarding is enabled
+CONFIG_IPV6_EN_DFLT
+  When a Linux box is Configured as an IPv6 router, Linux kernel
+  recognizes IPv6 default routes as default routes of IPv6.  If 
+  you want to use a Linux box as an IPv6 router, Say Y.
+
+IPv6: Multicast Listener Discovery debugging
+CONFIG_IPV6_MLD6_DEBUG
+  Verbose kernel message to debug Multicast Listeners
+  Discovery for IPv6.  Say N.
+
+IPv6: Do not suppress MLD6 Done message
+CONFIG_IPV6_MLD6_NO_SUPPRESS_DONE
+  When a node ceases to listen to a multicast address on an
+  interface, it should send a single Done message.  If its recent
+  Report was suppressed by hearing another Report, it MAY send 
+  nothing.  You can turn off this optimization by 
+  CONFIG_IPV6_MLD6_NO_SUPPRESS_DONE.  See RFC 2710.
+  Say N.  
+
+IPv6: enable Node Information Queries
+CONFIG_IPV6_NODEINFO
+  Support ICMPv6 Node Information Queries defined in 
+  draft-ietf-ipngwg-icmp-name-lookups-07.txt.
+
+IPv6: regard NIS domain as DNS domain
+CONFIG_IPV6_NODEINFO_USE_UTS_DOMAIN
+  When the NI DNS Query requests FQDN of your Linux box, it will 
+  try to add the (NIS) domain to your hostname.  Generally, this is 
+  not a good idea, so say N; your box will reply as FQDN if its
+  hostname includes two or more dots, otherwise it will reply
+  as hostname.
+
+IPv6: ICMPv6 NI debug message (very verbose)
+CONFIG_IPV6_NODEINFO_DEBUG
+  Very verbose debug message.  Say N.
 
 Kernel httpd acceleration
 CONFIG_KHTTPD
@@ -5232,6 +5820,10 @@ CONFIG_KHTTPD
 
   The kHTTPd is experimental. Be careful when using it on a production
   machine. Also note that kHTTPd doesn't support virtual servers yet.
+
+Use IPv6 socket for khttpd
+CONFIG_KHTTPD_IPV6
+  Use IPv6 socket for khttpd module.
 
 The IPX protocol
 CONFIG_IPX
@@ -6033,6 +6625,12 @@ CONFIG_ATM_CLIP_NO_ICMP
   briefly removed during revalidation. If you say Y here, packets to
   such neighbours are silently discarded instead.
 
+IPv6 Enhance for ATM (EXPERIMENTAL)
+CONFIG_ATM_IPV6
+  IPv6 support on a PVC link. To install and for usage, please refer
+  usagi/doc/HOWTO/ATM. If unsure, say N.
+
+
 LAN Emulation (LANE) support
 CONFIG_ATM_LANE
   LAN Emulation emulates services of existing LANs across an ATM
@@ -6429,7 +7027,7 @@ PPP over ATM
 CONFIG_PPPOATM
   Support PPP (Point to Point Protocol) encapsulated in ATM frames.
   This implementation does not yet comply with section 8 of RFC2364,
-  which can lead to bad results idf the ATM peer loses state and 
+  which can lead to bad results if the ATM peer loses state and 
   changes its encapsulation unilaterally.
 
 Fusion MPT device support
@@ -8650,6 +9248,17 @@ CONFIG_AIRONET4500_PROC
         to compile it as a module and remove the module after
         configuration.
 
+Cisco/Aironet 340/350/4500/4800
+CONFIG_AIRO
+ Provides support for ISA/PCI/PCMCIA 802.11b ethernet cards from
+ Cisco.  Before being acquired by Cisco they were Aironet cards.
+ Supports wireless extensions.
+
+Cisco/Aironet 340/350/4500/4800 PCMCIA Card Service
+CONFIG_AIRO_CS
+ Provides support for PCMCIA 802.11b ethernet cards.  This is just
+ glue to the core airo driver.
+
 LAPB over Ethernet driver
 CONFIG_LAPBETHER
   This is a driver for a pseudo device (typically called /dev/lapb0)
@@ -8733,6 +9342,19 @@ CONFIG_PCMCIA_PCNET
   inserted in and removed from the running kernel whenever you want).
   The module will be called pcnet_cs.o.  If you want to compile it as
   a module, say M here and read <file:Documentation/modules.txt>. If
+  unsure, say N.
+
+Asix AX88190 PCMCIA support
+CONFIG_PCMCIA_AXNET
+  Say Y here if you intend to attach an Asix AX88190-based PCMCIA
+  (PC-card) Fast Ethernet card to your computer.  These cards are
+  nearly NE2000 compatible but need a separate driver due to a few
+  misfeatures.
+
+  This driver is also available as a module ( = code which can be
+  inserted in and removed from the running kernel whenever you want).
+  The module will be called axnet_cs.o.  If you want to compile it as
+  a module, say M here and read <file:Documentation/modules.txt>.  If
   unsure, say N.
 
 Asix AX88190 PCMCIA support
@@ -9279,7 +9901,7 @@ CONFIG_NET_SCH_CBQ
   whenever you want).  If you want to compile it as a module, say M
   here and read <file:Documentation/modules.txt>.
 
-CSZ packet scheduler
+CSZ packet scheduler (experimental)
 CONFIG_NET_SCH_CSZ
   Say Y here if you want to use the Clark-Shenker-Zhang (CSZ) packet
   scheduling algorithm for some of your network devices.  At the
@@ -10180,6 +10802,12 @@ CONFIG_8139TOO_8129
   instead of an internal one.  Disabling this option will save some
   memory by making the code size smaller.  If unsure, say Y.
 
+Support for Dreamcast Broad Band Adaptor
+CONFIG_8139TOO_DREAMCAST
+  This enables support for the SEGA Broad Band Adaptor for Dreamcast.
+  It uses 16KB buffer and doesn't support mapping main memory to DMA.
+  If unsure, say N.
+ 
 SiS 900/7016 PCI Fast Ethernet Adapter support
 CONFIG_SIS900
   This is a driver for the Fast Ethernet PCI network cards based on
@@ -10346,6 +10974,20 @@ CONFIG_STNIC
   ST-NIC Serial Network Interface Controller for Twisted Pair.  This
   is a 10Mbit/sec Ethernet controller.  Product overview and specs at
   <http://www.national.com/pf/DP/DP83902A.html>.
+
+CPU Cache and PCI Bus Coherency
+CONFIG_SH_PCIDMA_NONCOHERENT
+  This option indicates that the use of external PCI mastering devices
+  requires software to ensure consistency between PCI-visible memory
+  (on the bus) and CPU-visible memory (which may be in cache).  If you
+  answer Y, kernel functions pci_{map,dma_sync}_{single,sg} will flush
+  the writeback cache as necessary to provide consistency; otherwise
+  they take no action (other than checking the direction argument.)
+
+  If your hardware ensures coherency or has no external PCI master 
+  devices, or you know that your drivers have other means of ensuring
+  consistency, you can answer N to avoid the overhead of unnecessary 
+  cache flushing.  Otherwise, it is safest to answer Y.
 
   If unsure, say N.
 
@@ -11316,6 +11958,17 @@ CONFIG_TMSPCI
   The module will be called tmspci.o. If you want to compile it
   as a module, say M here and read <file:Documentation/modules.txt>.
 
+Altera ether00 support
+CONFIG_ETHER00
+  This is the driver for Altera's ether00 ethernet mac IP core. Say
+  Y here if you want to build support for this into the kernel. It
+  is also available as a module (say M here) that can be inserted/
+  removed from the kernel at the same time as the PLD is configured. 
+  If this driver is running on an epxa10 development board then it 
+  will generate a suitable hw address based on the board serial 
+  number (MTD support is required for this). Otherwise you will 
+  need to set a suitable hw address using ifconfig.
+
 Generic TMS380 ISA support
 CONFIG_TMSISA
   This tms380 module supports generic TMS380-based ISA cards.
@@ -11347,6 +12000,7 @@ CONFIG_MADGEMC
   inserted in and removed from the running kernel whenever you want).
   The module will be called madgemc.o. If you want to compile it
   as a module, say M here and read <file:Documentation/modules.txt>.
+
 
 SMC ISA/MCA Token Ring adapter support
 CONFIG_SMCTR
@@ -11807,6 +12461,20 @@ CONFIG_ISP16_CDI
   The module will be called isp16.o. If you want to compile it as a
   module, say M here and read <file:Documentation/modules.txt>.
 
+Posix Access Control Lists
+CONFIG_FS_POSIX_ACL
+  Posix Access Control Lists (ACLs) support permissions for users and
+  groups beyond the owner/group/world scheme.
+
+  To learn more about Access Control Lists, visit the Posix ACLs for
+  Linux website <http://acl.bestbits.at/>.
+
+  If you plan to use Access Control Lists, you may also need the
+  getfacl and setfacl utilities, along with some additional patches
+  from the website.
+
+  If you don't know what Access Control Lists are, say N.
+
 iSeries Virtual I/O CD Support
 CONFIG_VIOCD
   If you are running Linux on an IBM iSeries system and you want to
@@ -12009,6 +12677,11 @@ Support 32-bit buswidth
 CONFIG_MTD_CFI_B4
   If you wish to support CFI devices on a physical bus which is
   32 bits wide, say 'Y'.
+
+Support 64-bit buswidth
+CONFIG_MTD_CFI_B8
+  If you wish to support CFI devices on a physical bus which is
+  64 bits wide, say 'Y'.
 
 Support 1-chip flash interleave
 CONFIG_MTD_CFI_I1
@@ -12269,6 +12942,17 @@ CONFIG_MTD_MIXMEM
   you probably want to enable this mapping driver. More info is at
   <http://www.itc.hu/>.
 
+Flash chip mapping on Motorola Falcon/Hawk-based PowerPlus boards
+CONFIG_MTD_POWERPLUS
+  This is a  mapping driver for Motorola Computer Group
+  Falcon/Hawk-based PowerPlus boards.  It detects the size of Flash
+  bank A and divides it into 2 equal MTD partitions.  Flash Bank B
+  (1MB) is ignored in order to preserve the PPCBUG firmware.
+
+  If the 'Specific CFI Flash geometry selection' option is selected,
+  then it is necessary to enable the 'Support 64-bit buswidth' and
+  'Support 4-chip flash interleave' options for this mapping to work.
+
 JEDEC Flash device mapped on Octagon 5066 SBC
 CONFIG_MTD_OCTAGON
   This provides a 'mapping' driver which supports the way in which
@@ -12282,6 +12966,25 @@ CONFIG_MTD_VMAX
   the flash chips are connected in the Tempustech VMAX SBC301 Single
   Board Computer. More information on the board is available at
   <http://www.tempustech.com/tt301.htm>.
+
+Flash mapped as on Hitachi SuperH Solution Engine
+CONFIG_MTD_SOLUTIONENGINE
+  Provides a mapping driver for FLASH and PROM on the Solution Engine
+  and similar boards.  Assumes 4M FLASH and PROM at 0x00000000 and
+  0x010000000, or vice versa based on probing.  Will look for RedBoot
+  partition table if CONFIG_MTD_REDBOOT_PARTS is on (non-modular);
+  else (or if no table is found) will partition a FLASH into read-only
+  and writable portions based on CONFIG_MTD_SUPERH_RESERVE.
+
+Size of read-only FLASH partition
+CONFIG_MTD_SUPERH_RESERVE
+  Specifies the (hex) size of an initial portion of flash, mapped into
+  a separate read-only partition.  Used if CONFIG_MTD_REDBOOT_PARTS is 
+  not configured, or if a RedBoot partition table is not found.  To
+  get a single writable partition for all flash, specify 0.
+
+  May leave a gap between the read-only and writable partitions due to
+  alignment constraints on writable partitions.
 
 Support for NAND flash devices
 CONFIG_MTD_NAND
@@ -12886,6 +13589,16 @@ CONFIG_USB_SERIAL_GENERIC
   support" be compiled as a module for this driver to be used
   properly.
 
+Altera's uart00 serial driver
+CONFIG_SERIAL_UART00
+  Say Y here if you want to use the hard logic uart on Excalibur. This 
+  driver also supports soft logic implentations of this uart core.
+
+Serial console on uart00 
+CONFIG_SERIAL_UART00_CONSOLE
+  Say Y here if you want to support a serial console on an Excalibur
+  hard logic uart or uart00 IP core.
+
 USB ConnectTech WhiteHEAT Serial Driver
 CONFIG_USB_SERIAL_WHITEHEAT
   Say Y here if you want to use a ConnectTech WhiteHEAT 4 port
@@ -13488,6 +14201,16 @@ CONFIG_USB_DSBR
   inserted in and removed from the running kernel whenever you want).
   The module will be called dsbr100.o. If you want to compile it as a
   module, say M here and read <file:Documentation/modules.txt>.
+
+MPC850/823 USB HCI support
+CONFIG_USB_MPC8xx
+  Say Y here to include a driver for the MPC850/MPC823 CPM USB device
+  operating as a Host Controller Interface.
+
+MPC850/823 USB Function (Client) support
+CONFIG_USB_CLIENT_MPC8xx
+  Say Y here to include a driver for the MPC850/MPC823 CPM USB device
+  operating as a USB client.
 
 Always do synchronous disk IO for UBD
 CONFIG_BLK_DEV_UBD_SYNC
@@ -14677,6 +15400,54 @@ CONFIG_UFS_FS_WRITE
   Say Y here if you want to try writing to UFS partitions. This is
   experimental, so you should back up your UFS partitions beforehand.
 
+SGI XFS file system support
+CONFIG_XFS_FS
+  XFS is a high performance journaling filesystem which originated
+  on the SGI IRIX platform.  It is completely multi-threaded, can
+  support large files and large filesystems, extended attributes,
+  variable block sizes, is extent based, and makes extensive use of
+  Btrees (directories, extents, free space) to aid both performance
+  and scalability.
+
+  Refer to the documentation at <http://oss.sgi.com/projects/xfs/>
+  for complete details.  This implementation is on-disk compatible
+  with the IRIX version of XFS.
+
+  If you want to compile this file system as a module ( = code which
+  can be inserted in and removed from the running kernel whenever you
+  want), say M here and read <file:Documentation/modules.txt>.  The
+  modules will be called xfs.o and xfs_support.o.  Be aware however
+  that if the file system of your root partition is compiled as a
+  module, you will need to use an initial ramdisk (initrd) to boot.
+
+Enable XFS DMAPI
+CONFIG_XFS_DMAPI
+  The Data Management API is a system interface used to implement
+  the interface defined in the X/Open document:
+    "Systems Management: Data Storage Management (XDSM) API",
+  dated February 1997.  This interface is used by hierarchical
+  storage management systems.
+
+  If unsure, say N.
+
+Enable XFS Quota
+CONFIG_XFS_QUOTA
+  If you say Y here, you will be able to set per user limits for disk
+  usage (also called disk quotas) under XFS.  XFS considers quota
+  information as filesystem metadata and uses journaling to provide
+  a higher level guarantee of consistency.  The on-disk quota file
+  format is also compatible with the IRIX version of XFS, allowing
+  filesystems to be migrated between Linux and IRIX without need for
+  any conversion.
+
+Enable XFS Realtime Subdevice
+CONFIG_XFS_RT
+  If you say Y here you will be able to mount and use XFS filesystems
+  which contain a realtime subvolume. The realtime subvolume is a
+  separate area of disk space where only file data is stored. The
+  realtime subvolume is designed to provide very deterministic
+  data rates suitable for media streaming applications.
+
 Advanced partition selection
 CONFIG_PARTITION_ADVANCED
   Say Y here if you would like to use hard disks under Linux which
@@ -15531,32 +16302,66 @@ CONFIG_STI_CONSOLE
 
 Use MDIO for PHY configuration
 CONFIG_USE_MDIO
-  On some boards the hardware configuration of the ethernet PHY can be
-  used without any software interaction over the MDIO interface, so
-  all MII code can be omitted. Say N here if unsure or if you don't
-  need link status reports.
+  The MDIO interface is used to communicate with the external PHY
+  attached to the MPC8xx Fast Ethernet Controller.  MDIO
+  communication is required for reliable Ethernet operation, but
+  some configurations may work without it.
+
+  If unsure, say Y.
+
+LXT970 PHY Support
+CONFIG_FEC_LXT970
+  Include support in the MPC8xx Fast Ethernet driver for the
+  Level One LXT970 PHY.
+
+  If unsure, say Y.
+
+LXT971/LXT972 PHY Support
+CONFIG_FEC_LXT971
+  Include support in the MPC8xx Fast Ethernet driver for the
+  Level One LXT971/LXT972 PHY.
+
+  If unsure, say Y.
+
+QS6612 PHY Support
+CONFIG_FEC_QS6612
+  Include support in the MPC8xx Fast Ethernet driver for the
+  Quality Semiconductor QS6612 PHY.
+
+  If unsure, say Y.
+
+AM79C874 PHY Support
+CONFIG_FEC_AM79C874
+  Include support in the MPC8xx Fast Ethernet driver for the
+  AMD AM79C874 PHY.
+
+  If unsure, say Y.
+
+BCM5221 PHY Support
+CONFIG_FEC_BCM5221
+  Include support in the MPC8xx Fast Ethernet driver for the
+  Broadcom BCM5221 PHY.
+
+  If unsure, say Y.
+
+Generic PHY Support
+CONFIG_FEC_GENERIC_PHY
+  Include support in the MPC8xx Fast Ethernet driver for a generic
+  PHY.  If enabled, the generic PHY support will only be used as a
+  fallback in case the driver does not have specific support for the
+  particular PHY chip detected.
+
+  If unsure, say Y.
 
 860T FEC Ethernet
 CONFIG_FEC_ENET
-  Enable Ethernet support via the Fast Ethernet Controller (FCC) on
-  the Motorola MPC8260.
-
-Ethernet on FCC1
-CONFIG_FCC1_ENET
-  Use MPC8260 fast Ethernet controller 1 to drive Ethernet (default).
-
-Ethernet on FCC2
-CONFIG_FCC2_ENET
-  Use MPC8260 fast Ethernet controller 2 to drive Ethernet.
-
-Ethernet on FCC3
-CONFIG_FCC3_ENET
-  Use MPC8260 fast Ethernet controller 3 to drive Ethernet.
+  Enable Ethernet support via the Fast Ethernet Controller (FEC) on
+  the Motorola MPC8xx processor.
 
 CPM SCC Ethernet
 CONFIG_SCC_ENET
   Enable Ethernet support via the Motorola MPC8xx serial
-  commmunications controller.
+  communications controller.
 
 # Choice: scc_ethernet
 Ethernet on SCC1
@@ -15574,8 +16379,86 @@ CONFIG_SCC3_ENET
 
 Use Big CPM Ethernet Buffers
 CONFIG_ENET_BIG_BUFFERS
-  Allocate large buffers for MPC8xx Etherenet.  Increases throughput
-  and decreases the likelihood of dropped packets, but costs memory.
+  Allocate extra buffer descriptors for MPC8xx Ethernet.  This option
+  applies to both SCC and FEC Ethernet.  This may increase throughput,
+  but costs memory.
+
+  If unsure, say N.
+
+Use MDIO for PHY configuration
+CONFIG_FCC_USE_MDIO
+  The MDIO interface is used to communicate with the external PHY
+  attached to the MPC8260 Fast Communication Controller when used for
+  Ethernet.  MDIO communication is required for reliable Ethernet
+  operation, but some configurations may work without it.
+
+  If unsure, say Y.
+
+LXT970 PHY Support
+CONFIG_FCC_LXT970
+  Include support in the MPC8260 Fast Ethernet driver for the
+  Level One LXT970 PHY.
+
+  If unsure, say Y.
+
+LXT971/LXT972 PHY Support
+CONFIG_FCC_LXT971
+  Include support in the MPC8260 Fast Ethernet driver for the
+  Level One LXT971/LXT972 PHY.
+
+  If unsure, say Y.
+
+QS6612 PHY Support
+CONFIG_FCC_QS6612
+  Include support in the MPC8260 Fast Ethernet driver for the
+  Quality Semiconductor QS6612 PHY.
+
+  If unsure, say Y.
+
+AM79C874 PHY Support
+CONFIG_FCC_AM79C874
+  Include support in the MPC8260 Fast Ethernet driver for the
+  AMD AM79C874 PHY.
+
+  If unsure, say Y.
+
+BCM5221 PHY Support
+CONFIG_FCC_BCM5221
+  Include support in the MPC8260 Fast Ethernet driver for the
+  Broadcom BCM5221 PHY.
+
+  If unsure, say Y.
+
+Generic PHY Support
+CONFIG_FCC_GENERIC_PHY
+  Include support in the MPC8260 Fast Ethernet driver for a generic
+  PHY.  If enabled, the generic PHY support will only be used as a
+  fallback in case the driver does not have specific support for the
+  particular PHY chip detected.
+
+  If unsure, say Y.
+
+MPC8260 SCC Ethernet
+CONFIG_8260_SCC_ENET
+  Enable Ethernet support via the Motorola MPC8260 Serial
+  Communications Controller.
+
+MPC8260 FCC Ethernet
+CONFIG_FCC_ENET
+  Enable Ethernet support via a Fast Communication Controller (FCC) on
+  the Motorola MPC8260 processor.
+
+Ethernet on FCC1
+CONFIG_FCC1_ENET
+  Use MPC8260 Fast Communication Controller 1 to drive Ethernet.
+
+Ethernet on FCC2
+CONFIG_FCC2_ENET
+  Use MPC8260 Fast Communication Controller 2 to drive Ethernet.
+
+Ethernet on FCC3
+CONFIG_FCC3_ENET
+  Use MPC8260 Fast Communication Controller 3 to drive Ethernet.
 
 Apple Desktop Bus (ADB) support
 CONFIG_ADB
@@ -15596,13 +16479,10 @@ CONFIG_ADB_CUDA
 
 Support for PMU-based PowerMacs
 CONFIG_ADB_PMU
-  On the PowerBook 3400 and 2400, the PMU is a 6805 microprocessor
-  core whose primary function is to control battery charging and
-  system power.  The PMU also controls the ADB (Apple Desktop Bus)
-  which connects to the keyboard and mouse, as well as the
-  non-volatile RAM and the RTC (real time clock) chip.  Say Y to
-  enable support for this device; you should do so if your machine
-  is one of these PowerBooks.
+  This provides support for PMU based Power Macintosh systems.  This
+  includes all PowerBooks and all AGP-based machines.
+  
+  If unsure say Y.
 
 Include MacIO ADB driver
 CONFIG_ADB_MACIO
@@ -15777,6 +16657,15 @@ CONFIG_SERIAL_CONSOLE
   If you don't have a VGA card installed and you say Y here, the
   kernel will automatically use the first serial line, /dev/ttyS0, as
   system console.
+
+  If unsure, say N.
+
+Use a non standard baud rate on serial console
+CONFIG_SERIAL_CONSOLE_NONSTD
+  By default the serial console code assumes that all of the registers
+  for setting up the baud rate are set.  In some cases, such as the IBM
+  Spruce boards, this is not the case.  If you answer Y here, you can fill
+  in the desired baud rate to use at console (eg 9600).
 
   If unsure, say N.
 
@@ -16225,6 +17114,24 @@ CONFIG_COBALT_RULER
   If you have a Cobalt Networks system, you should say Y here,
   unless you are absolutely sure.
 
+UltraSPARC-III bootbus i2c controller driver
+CONFIG_BBC_I2C
+  The BBC devices on the UltraSPARC III have two I2C controllers.  The
+  first I2C controller connects mainly to configuration PROMs (NVRAM,
+  CPU configuration, DIMM types, etc.).  The second I2C controller
+  connects to environmental control devices such as fans and
+  temperature sensors.  The second controller also connects to the
+  smartcard reader, if present.  Say Y to enable support for these.
+
+I2C /proc support
+CONFIG_I2C_PROC
+  This provides support for i2c device entries in the /proc filesystem.
+  The entries will be found in /proc/sys/dev/sensors.
+
+  This code is also available as a module. If you want to compile
+  it as a module, say M here and read <file:Documentation/modules.txt>.
+  The module will be called i2c-proc.o.
+
 I2C support
 CONFIG_I2C
   I2C (pronounce: I-square-C) is a slow serial bus protocol used in
@@ -16248,15 +17155,6 @@ CONFIG_I2C
   compile it as a module, say M here and read
   <file:Documentation/modules.txt>.
   The module will be called i2c-core.o.
-
-UltraSPARC-III bootbus i2c controller driver
-CONFIG_BBC_I2C
-  The BBC devices on the UltraSPARC III have two I2C controllers.  The
-  first I2C controller connects mainly to configuration PROMs (NVRAM,
-  CPU configuration, DIMM types, etc.).  The second I2C controller
-  connects to environmental control devices such as fans and
-  temperature sensors.  The second controller also connects to the
-  smartcard reader, if present.  Say Y to enable support for these.
 
 I2C bit-banging interfaces
 CONFIG_I2C_ALGOBIT
@@ -16343,6 +17241,15 @@ CONFIG_I2C_PROC
   This code is also available as a module. If you want to compile
   it as a module, say M here and read <file:Documentation/modules.txt>.
   The module will be called i2c-proc.o.
+
+MPC8xx CPM I2C Interface
+CONFIG_I2C_ALGO8XX
+  Say Y here to include a driver for the I2C device in the MPC8xx CPM.
+
+MPC8260 CPM I2C Interface
+CONFIG_I2C_ALGO8260
+  Say Y here to include a driver for the I2C device in the MPC8260
+  CPM.
 
 Bus Mouse Support
 CONFIG_BUSMOUSE
@@ -16479,6 +17386,12 @@ CONFIG_ATIXL_BUSMOUSE
 
   If you are unsure, say N and read the HOWTO nevertheless: it will
   tell you what you have.
+
+Redwood IR mouse support
+CONFIG_RWMOUSE
+  Enable this if you are using the IR device on either 
+  the redwood 4 or redwood 5 IBM PPC4xx evaluation board
+  and want mouse support. The module is called rw4mouse.o
 
 QIC-02 tape support
 CONFIG_QIC02_TAPE
@@ -17347,6 +18260,17 @@ CONFIG_SOFT_WATCHDOG
   If you want to compile it as a module, say M here and read
   <file:Documentation/modules.txt>. The module will be called
    softdog.o.
+
+SA1100 Internal Watchdog
+CONFIG_SA1100_WATCHDOG
+  Watchdog timer embedded into SA11x0 chips. This will reboot your
+  system when timeout is reached.
+  NOTE, that once enabled, this timer cannot be disabled.
+
+  This driver is also available as a module ( = code which can be
+  inserted in and removed from the running kernel whenever you want).
+  If you want to compile it as a module, say M here and read
+  Documentation/modules.txt. The module will be called sa1100_wdt.o.
 
 Berkshire Products PC Watchdog
 CONFIG_PCWATCHDOG
@@ -18802,6 +19726,30 @@ CONFIG_SOUND_RME96XX
   Say Y or M if you have a Hammerfall, Hammerfall light or Hammerfall
   DSP card from RME.
 
+Assabet audio (UDA1341) support
+CONFIG_SOUND_ASSABET_UDA1341
+  Say Y or M if you have an Intel Assabet evaluation board and want to
+  use the Philips UDA 1341 audio chip (the one that drives the stereo
+  audio output) on the SA1100 SSP port.
+
+Compaq iPAQ audio support
+CONFIG_SOUND_H3600_UDA1341
+  Say Y or M if you have a Compaq iPaq handheld computer and want to
+  use its Philips UDA 1341 audio chip.
+
+Audio support for SA1111/UDA1341
+CONFIG_SOUND_SA1111_UDA1341
+  Say Y or M if you have an SA11x0 system with a Philips UDA 1341
+  connected to the SA11x1. An example of such a system is the Intel
+  Assabet evaluation board connected to a Neponset expansion board.
+
+Generic DAC on the SA11x0 SSP port
+CONFIG_SOUND_SA1100SSP
+  Say Y or M if you have an SA-11x0 system with a DAC on the SSP port.
+  The LART has an Burr-Brown PCM 1710 digital to analog convertor on
+  the SSP port, so you want to say Y or M for the LART. It might work
+  on other SA-1100 platforms, too, but this is not tested.
+
 Are you using a crosscompiler
 CONFIG_CROSSCOMPILE
   Say Y here if you are compiling the kernel on a different
@@ -18934,6 +19882,90 @@ CONFIG_MAGIC_SYSRQ
   send a BREAK and then within 5 seconds a command keypress. The
   keys are documented in <file:Documentation/sysrq.txt>. Don't say Y
   unless you really know what this hack does.
+
+Include kgdb kernel debugger
+CONFIG_KGDB
+  If you say Y here, the system will be compiled with the debug option
+  (-g) and a debugging stub will be included in the kernel.  This stub
+  communicates with gdb on another (host) computer via a serial port.
+  The host computer should have access to the kernel binary file
+  (vmlinux) and a serial port that is connected to the target machine. 
+  Gdb can be made to configure the serial port or you can use stty and 
+  setserial to do this. See the 'target' command in gdb. This option also
+  configures in the ability to request a breakpoint early in
+  the boot process.  To request the breakpoint just include 'kgdb' as a 
+  boot option when booting the target machine.  The system will then
+  break as soon as it looks at the boot options.  This option also
+  installs a breakpoint in panic and sends any kernel faults to the 
+  debugger. For more information see the Documentation/i386/kgdb.txt file.
+  
+
+Debug serial port BAUD
+CONFIG_KGDB_9600BAUD
+  Gdb and the kernel stub need to agree on the baud rate to be used.  
+  Some systems (x86 family at this writing) allow this to be configured.
+
+hex I/O port address of the debug serial port
+CONFIG_KGDB_PORT
+  Some systems (x86 family at this writing) allow the port address to be
+  configured.  The number entered is assumed to be hex, don't put 0x in
+  front of it.  The standard address are: COM1  3f8 , irq 4 and 
+  COM2 2f8   irq 3.  Setserial /dev/ttySx will tell you what you have.
+  It is good to test the serial connection with a live system before trying
+  to debug.
+
+Kgdb event macros
+CONFIG_KGDB_TS
+  Kgdb event macros allow you to instrument your code with calls to the
+  kgdb event recording function.  The event log may be examined with gdb
+  at a break point.  Turning on this capability also allows you to choose
+  how many events to keep. Kgdb always keeps the lastest events.
+
+Stack overflow test (part of kgdb option) 
+CONFIG_STACK_OVERFLOW_TEST
+  This option enables code in the front line interrupt handlers to check
+  for kernel stack overflow on interrupts and system calls.  This is part
+  of the kgdb code on x86 systems.
+
+
+IRQ of the debug serial port
+CONFIG_KGDB_IRQ
+  This is the irq for the debug port.  If everything is working correctly
+  and the kernel has interrupts on a control C to the port should cause a
+  break into the kernel debug stub. 
+
+Enable compile options
+CONFIG_KGDB_MORE
+  Saying yes here turns on the ability to enter additional compile options.
+
+Additional compile options
+CONFIG_KGDB_OPTIONS
+  This option allows you enter additional compile options for the whole
+  kernel compile.  Each platform will have a default that seems right
+  for it.  For example on PPC "-ggdb -O1", and for i386 "-O1".  Note that
+  by configuring KGDB "-g" is already turned on.  In addition, on i386
+  and SH platforms "-fomit-frame-pointer" is deleted from the standard
+  compile options.
+
+SysRq Gdb command
+CONFIG_KGDB_SYSRQ
+  This option includes an option in the SysRq code that allows you to enter
+  SysRq G which generates a breakpoint to the KGDB stub.  This will work if 
+  the keyboard is alive and can interrupt the system.  Because of constraints
+  on when the serial port interrupt can be enabled, this code may allow you
+  to interrupt the system before the serial port control C is available.
+  Just say yes here.
+
+KGDB console
+CONFIG_KGDB_CONSOLE
+  This option enables the command line "console=kgdb" option.  When the
+  system is booted with this option in the command line all kernel printk
+  output is sent to gdb (as well as to other consoles).  For this to work
+  gdb must be connected.  For this reason, this command line option will
+  generate a breakpoint if gdb has not yet connected.  After the gdb
+  continue command is given all pent up console output will be printed
+  by gdb on the host machine.  Neither this option, nor KGDB require the
+  serial driver to be configured.
 
 ISDN support
 CONFIG_ISDN
@@ -19794,6 +20826,44 @@ CONFIG_CF_AREA5
 
   "Area6" will work for most boards. For ADX, select "Area5".
 
+Kernel events tracing support
+CONFIG_TRACE
+  It is possible for the kernel to log important events to a tracing
+  driver. Doing so, enables the use of the generated traces in order
+  to reconstruct the dynamic behavior of the kernel, and hence the
+  whole system.
+
+  The tracing process contains 4 parts :
+      1) The logging of events by key parts of the kernel.
+      2) The trace driver that keeps the events in a data buffer.
+      3) A trace daemon that opens the trace driver and is notified
+         every time there is a certain quantity of data to read
+         from the trace driver (using SIG_IO).
+      4) A trace event data decoder that reads the accumulated data
+         and formats it in a human-readable format.
+
+  If you say Y or M here, the first part of the tracing process will
+  always take place. That is, critical parts of the kernel will call
+  upon the kernel tracing function. The data generated doesn't go
+  any further until a trace driver registers himself as such with the
+  kernel. Therefore, if you answer Y, then the driver will be part of
+  the kernel and the events will always proceed onto the driver and
+  if you say M, then the events will only proceed onto the driver when
+  it's module is loaded. Note that event's aren't logged in the driver
+  until the profiling daemon opens the device, configures it and
+  issues the "start" command through ioctl().
+
+  The impact of a fully functionnal system (kernel event logging +
+  driver event copying + active trace daemon) is of 2.5% for core events.
+  This means that for a task that took 100 seconds on a normal system, it
+  will take 102.5 seconds on a traced system. This is very low compared
+  to other profiling or tracing methods.
+
+  For more information on kernel tracing, the trace daemon or the event
+  decoder, please check the following address :
+       http://www.opersys.com/LTT
+
+
 #
 # m68k-specific kernel options
 # Documented by Chris Lawrence <mailto:quango@themall.net> et al.
@@ -20409,7 +21479,7 @@ CONFIG_DMASOUND_ATARI
   <file:Documentation/modules.txt>.
 
 PowerMac DMA sound support
-CONFIG_DMASOUND_AWACS
+CONFIG_DMASOUND_PMAC
   If you want to use the internal audio of your PowerMac in Linux,
   answer Y to this question. This will provide a Sun-like /dev/audio,
   compatible with the Linux/i386 sound system. Otherwise, say N.
@@ -20522,7 +21592,7 @@ CONFIG_8xx_CPU6
   Reference" on Motorola's website.  This option also incurs a
   performance hit.
 
-  If in doubt, say N here.
+  If in doubt, say Y here.
 
 MPC8xx direct IDE support on PCMCIA port
 CONFIG_BLK_DEV_MPC8xx_IDE
@@ -20569,9 +21639,23 @@ CONFIG_ALTSMC2
 Enable SCC2 and SCC3 for UART
 CONFIG_USE_SCC_IO
   If your MPC8xx board has other SCC ports that you would like to use
-  for for a serial port, say Y here.
+  for a serial port, say Y here.
 
   If in doubt, say N here.
+
+Embedded Planet HIOX Audio
+CONFIG_HTDMSOUND
+  Say Y here to include a driver for the audio device on an Embedded
+  Planet HIOX board.
+
+Embedded Planet HIOX Touch Panel
+CONFIG_RPXTOUCH
+  Say Y here to include a driver for the touch panel interface on an
+  Embedded Planet HIOX board.
+
+Enable SCC Console
+CONFIG_8260_SCC_CONSOLE
+  Say Y here to use SCC1 as the serial console instead of SMC1.
 
 # Choice: ppc6xxtype
 Machine Type
@@ -20605,6 +21689,155 @@ CONFIG_APUS
   Select APUS if configuring for a PowerUP Amiga.
   More information is available at:
   <http://linux-apus.sourceforge.net/>.
+
+IBM Spruce Baud Clock Support
+CONFIG_SPRUCE_BAUD_33M
+  IBM Spruce reference platforms are equipped with either a 30Mhz or
+  33Mhz CPC700 input oscillator.  Enable this option only if you
+  have the 33Mhz oscillator.
+
+Embedded 8xx Board Type
+CONFIG_RPXLITE
+  RPX-Lite:
+    Embedded Planet RPX Lite
+
+  RPX-Classic:
+    Embedded Planet RPX Classic Low-fat.
+
+  BSE-IP: 
+    Bright Star Engineering ip-Engine.
+
+  FADS: Motorola FADS Board
+
+  TQM823L:
+  TQM850L:
+  TQM855L:
+  TQM860L:
+    MPC8xx based family of mini modules, half credit card size,
+    up to 64 MB of RAM, 8 MB Flash, (Fast) Ethernet, 2 x serial ports,
+    2 x CAN bus interface, ...
+      Manufacturer: TQ Components, www.tq-group.de
+      Date of Release: October (?) 1999
+      End of Life: not yet :-)
+      URL:
+      - module: http://www.denx.de/PDF/TQM8xxLHWM201.pdf
+      - starter kit: http://www.denx.de/PDF/STK8xxLHWM201.pdf
+      - images: http://www.denx.de/embedded-ppc-en.html
+
+  FPS850L:
+    FingerPrint Sensor System (based on TQM850L)
+      Manufacturer: IKENDI AG, http://www.ikendi.com/
+      Date of Release: November 1999
+      End of life: end 2000 ?
+      URL: see TQM850L
+
+  SPD823TS:
+    MPC823 based board used in the "Tele Server" product
+    Manufacturer: Speech Design, http://www.speech-design.de/
+    Date of Release: Mid 2000 (?)
+    End of life: -
+    URL: http://www.speech-design.de/
+         select "English", then "Teleteam Solutions", then "TeleServer"
+
+  IVMS8:
+    MPC860 based board used in the "Integrated Voice Mail System",
+    Small Version (8 voice channels)
+    Manufacturer: Speech Design, http://www.speech-design.de/
+    Date of Release: December 2000 (?)
+    End of life: -
+    URL: http://www.speech-design.de/
+
+  IVML24:
+    MPC860 based board used in the "Integrated Voice Mail System", 
+    Large Version (24 voice channels)
+    Manufacturer: Speech Design, http://www.speech-design.de/
+    Date of Release: March 2001  (?)
+    End of life: -
+    URL: http://www.speech-design.de/
+
+  SM850:
+    Service Module (based on TQM850L)
+    Manufacturer: Dependable Computer Systems, http://www.decomsys.com/
+    Date of Release: end 2000 (?)
+    End of life: mid 2001 (?)
+    URL: http://www.tz-mikroelektronik.de/ServiceModule/index.html
+
+  HERMES_PRO:
+    Hermes-Pro ISDN/LAN router with integrated 8 x hub
+    Manufacturer: Multidata Gesellschaft für Datentechnik und Informatik
+      http://www.multidata.de/
+    Date of Release: 2000 (?)
+    End of life: -
+    URL: http://www.multidata.de/english/products/hpro.htm
+
+  IP860:	
+    VMEBus IP (Industry Pack) carrier board with MPC860
+    Manufacturer: MicroSys GmbH, http://www.microsys.de/
+    Date of Release: ?
+    End of life: -
+    URL: http://www.microsys.de/html/ip860.html
+
+  LWMON:
+    Monitor Controller for Mobile Cranes
+    Manufacturer: Liebherr Werke Ehingen
+    Date of Release: ?
+    End of life: -
+    URL: http://www.liebherr.com/us/ ==> Products ==> Mobile Cranes
+
+  PCU_E:
+    Peripheral Controller Unit, Extended
+    Manufacturer: Siemens AG, ICN (Information and Communication Networks)
+    	http://www.siemens.de/page/1,3771,224315-1-999_2_226207-0,00.html
+    Date of Release: April 2001
+    End of life: August 2001
+    URL: n. a.
+
+  CCM:
+    Card Controller Module
+    Manufacturer: Siemens AG, ICN (Information and Communication Networks)
+    	http://www.siemens.de/page/1,3771,224315-1-999_2_226207-0,00.html
+    Date of Release: August 2001
+    End of life: -
+    URL: n. a.
+
+  LANTEC:
+    Automaton Controller
+    Manufacturer: Lantec AG
+    Date of Release: ?
+    End of life: -
+    URL: http://www.lantec.de/html/english/start.html
+
+  MBX: Motorola MBX8xx board
+
+  WinCept: sorry, no description yet
+
+Embedded 82xx Board Type
+CONFIG_EST8260
+  EST8260: Wind River System, Inc. EST SBC8260
+
+  TQM8260:
+    MPC8260 based module, little larger than credit card,
+    up to 128 MB global + 64 MB local RAM, 32 MB Flash,
+    32 kB EEPROM, 256 kB L@ Cache, 10baseT + 100baseT Ethernet,
+    2 x serial ports, ...
+    Manufacturer: TQ Components, www.tq-group.de
+    Date of Release: June 2001
+    End of Life: not yet :-)
+    URL: http://www.denx.de/PDF/TQM82xx_SPEC_Rev005.pdf
+
+  PM826:
+    Modular system with MPC8260 CPU
+    Manufacturer: MicroSys GmbH, http://www.microsys.de/
+    Date of Release: mid 2001
+    End of life: -
+    URL: http://www.microsys.de/html/pm826.html
+
+  CU824:
+    VMEBus Board with PCI extension with MPC8240 CPU
+    Manufacturer: MicroSys GmbH, http://www.microsys.de/
+    Date of Release: early 2001 (?)
+    End of life: -
+    URL: http://www.microsys.de/html/cu824.html
 
 AltiVec kernel support
 CONFIG_ALTIVEC
@@ -20653,6 +21886,12 @@ CONFIG_TAU_AVERAGE
   a lot, or the TAU hardware is broken (likely on some G4's). If the range
   is small (around 4 degrees), the temperature is relatively stable.
 
+MVME5100 configured with an IPMC761
+CONFIG_MVME5100_IPMC761_PRESENT
+  The MVME5100 supports a special IPMC761 PMC module in PMC site 1.
+  This option enables the use of the onboard i8259 PIC and ISA I/O
+  to support the legacy peripherals on the module.
+
 Power management support for PowerBooks
 CONFIG_PMAC_PBOOK
   This provides support for putting a PowerBook to sleep; it also
@@ -20668,6 +21907,14 @@ CONFIG_PMAC_PBOOK
   You may also want to compile the dma sound driver as a module and
   have it autoloaded. The act of removing the module shuts down the
   sound hardware for more power savings.
+
+APM emulation
+CONFIG_PMAC_APM_EMU
+  This driver provides an emulated /dev/apm_bios and /proc/apm. The
+  first one is mostly intended for XFree to sleep & wakeup properly,
+  the second ones provides some battery informations to allow existing
+  APM utilities to work. It provides less useful informations than
+  tools specifically designed for PowerBooks or /proc/pmu/battery_x
 
 Backlight control for LCD screens
 CONFIG_PMAC_BACKLIGHT
@@ -20961,12 +22208,20 @@ CONFIG_MAC_ADBKEYCODES
 
   If unsure, say Y here.
 
-I2C/SPI Microcode Patch
+I2C/SPI (or USB) Microcode Patch
 CONFIG_UCODE_PATCH
-  Motorola releases microcode updates for their 8xx CPM modules.  The
-  microcode update file has updates for IIC, SMC and USB.  Currently only
-  the USB update is available by default, if the MPC8xx USB option is
-  enabled.  If in doubt, say 'N' here.
+  There are two patches for the MPC8xx CPM microcode that may be
+  required to support certain hardware configurations.  At most one
+  of these patches can be installed by the kernel when the CPM is
+  initialized.  If the microcode patch is enabled and the MPC8xx
+  Host Controller Interface USB driver is also enabled, then the
+  USB microcode patch will be installed.  Otherwise, if the
+  microcode patch is enabled then the I2C/SPI microcode patch will
+  be installed.  The I2C/SPI microcode patch is required if SCC1
+  is used for Ethernet and the CPM I2C device is enabled, or if SCC2
+  is used for Ethernet and the CPM SPI device is enabled.  Consult
+  Motorola documentation on the microcode patches for more
+  information.
 
 Mouse button 2+3 emulation support
 CONFIG_MAC_EMUMOUSEBTN
@@ -20977,6 +22232,38 @@ CONFIG_MAC_EMUMOUSEBTN
       /proc/sys/dev/mac_hid/mouse_button_emulation
       /proc/sys/dev/mac_hid/mouse_button2_keycode
       /proc/sys/dev/mac_hid/mouse_button3_keycode
+
+Set high memory pool address
+CONFIG_HIGHMEM_START_BOOL
+  Unless you know what you are doing you *should not* set this option.
+
+  It can be used to override the default PKMAP_BASE address which
+  is the location of the high memory pool.  This can be useful in
+  optimizing virtual memory usage in a system.
+
+Set maximum low memory
+CONFIG_LOWMEM_SIZE_BOOL
+  Unless you know what you are doing you *should not* set this option.
+
+  It can be used to override the standard calculated value of
+  MAX_LOW_MEM. This can be useful in optimizing virtual memory usage
+  in a system.
+
+Set custom kernel base address
+CONFIG_KERNEL_START_BOOL
+  Unless you know what you are doing you *should not* set this option.
+
+  It can be used to override the standard PAGE_OFFSET/KERNELBASE
+  value used by the kernel.  This can be useful in controlling
+  amount of virtual address space available to the kernel.
+
+Set custom user task size
+CONFIG_TASK_SIZE_BOOL
+  Unless you know what you are doing you *should not* set this option.
+
+  It can be used to override the standard TASK_SIZE value used
+  by the kernel.  This can be useful in controlling amount of
+  virtual address space available to user tasks.
 
 Enhanced Real Time Clock Support (/dev/rtc)
 CONFIG_PPC_RTC
@@ -21550,7 +22837,7 @@ CONFIG_VIDEO_W9966
   otherwise say N.
   This driver is also available as a module (w9966.o).
 
-  Check out <file:drivers/media/video4linux/w9966.txt> and
+  Check out <file:Documentation/video4linux/w9966.txt> and
   <file:drivers/media/video/w9966.c> for more information.
 
 CPiA Video For Linux
@@ -21840,6 +23127,267 @@ CONFIG_PROCESS_DEBUG
   a debugging option; you probably do not want to set it unless you
   are an S390 port maintainer.
 
+Linux Security Modules (LSM) Support
+CONFIG_SECURITY
+  This enables the ability to have different security modules
+  in the kernel.  If this option is not selected, the default
+  capabilities functionality will be enabled.
+  If you are unsure how to answer this questions, answer N.
+
+Capabilities Support
+CONFIG_SECURITY_CAPABILITIES
+  This enables the "default" Linux capabilities functionality.
+  If you are unsure how to answer this question, answer Y.
+
+LSM port of Openwall
+CONFIG_SECURITY_OWLSM
+  This enables the LSM port of the Openwall kernel patch.  This is NOT
+  official Openwall.  For more information on the Openwall kernel patch
+  go to <http://www.openwall.com/>
+  
+Enforce RLIMIT_NPROC on execve(2)
+CONFIG_OWLSM_RLIMIT_NPROC
+  This option is an LSM port of the Openwall CONFIG_SECURE_RLIMIT_NPROC
+  patch. It is derived from Openwall but is not official Openwall.  This
+  option is only valid if you have chosen to build the LSM port of
+  Openwall (CONFIG_SECURITY_OWLSM).
+
+  Linux lets you set a limit on how many processes a user can have, via
+  a setrlimit(2) call with RLIMIT_NPROC. Unfortunately, this limit is
+  only looked at when a new process is created on fork(2). If a process
+  changes its UID, it might exceed the limit for its new UID. This is
+  not a security issue by itself, as changing the UID is a privileged
+  operation. However, there're privileged programs that want to switch
+  to a user's context, including setting up some resource limits. The
+  only fork(2) required (if at all) is done before switching the UID,
+  and thus doesn't result in a check against RLIMIT_NPROC. Enable this
+  option to enforce RLIMIT_NPROC on execve(2) calls.
+
+  If you are unsure how to answer this question, answer N.
+
+Restricted links in /tmp
+CONFIG_OWLSM_LINK
+  This option is an LSM port of the Openwall CONFIG_SECURE_LINK patch.
+  It is derived from Openwall but is not official Openwall.  This option
+  is only valid if you have chosen to build the LSM port of Openwall
+  (CONFIG_SECURITY_OWLSM).
+
+  There's a very common attack that involves a malicious user creating
+  a symbolic link in /tmp, with a carefully chosen name, pointing at
+  another user's file. When the victim then writes to that file name,
+  without the required precautions, they inadvertently write to the
+  wrong file. Enabling this option reduces the impact of this class of
+  holes (some get fixed, many others allow for DoS attacks only, most
+  of the rest become harder to exploit) by preventing a process from
+  following a link which is in a +t directory, unless the link owner
+  is trusted (that is, it's the user we're running as or the directory
+  owner). To prevent from using a hard link in an attack instead, this
+  option does not allow users to create hard links to files they don't
+  own. This might break things. Say Y if security is more important.
+
+Special handling of fd 0, 1, and 2
+CONFIG_OWLSM_FD
+  This option is an LSM port of the Openwall CONFIG_SECURE_FD_0_1_2
+  patch.  It is derived from Openwall but is not official Openwall.
+  This option is only valid if you have chosen to build the LSM port of
+  Openwall (CONFIG_SECURITY_OWLSM).
+
+  File descriptors 0, 1, and 2 have a special meaning for the C library
+  and lots of programs. Thus, they're often referenced by number. Still,
+  it is normally possible to execute a program with one or more of these
+  fd's closed, and any open(2) calls it might do will happily provide
+  these fd numbers. The program (or the libraries it is linked with)
+  will continue using the fd's for their usual purposes, in reality
+  accessing files the program has just opened. If such a program is
+  installed SUID and/or SGID, then we might have a security problem.
+  Enable this option to ensure that fd's 0, 1, and 2 are always open on
+  execution of a SUID/SGID binary.
+
+Intrusion Detection System support (EXPERIMENTAL)
+CONFIG_LIDS
+  LIDS - Linux Intrusion Detection System can let you protect your linux
+  kernel. 
+  
+  In order to use LIDS, you need to download the lidstools first from 
+  http://www.lids.org/
+   
+  Please read help provided with each option carefully. At the end of
+  each option we indicate what answer will increase security.
+  Be aware that security always has side effects, and some programs could
+  break.   
+
+  If you have any questions about LIDS, mail to the authors :
+                   Huagang Xie ( xie@www.lids.org)
+                   Philippe.biondi (philippe.biondi@webmotion.net)
+                   Steve Bremer (steve@clublinux.org)              
+
+  or visit lids home ,
+                http://www.lids.org/
+  
+  And you can get help from the LIDS Mailing list at
+                http://www.lids.org/maillist.html
+  and the FAQ by Steve Bremer at
+                http://www.clublinux.org/lids/
+
+  If your want to make LIDS as module, say "M" here , or if you want to build it into
+  the kernel, say "Y" here. otherwise, say "N".
+
+Hang up console when raising a security alert
+CONFIG_LIDS_SA_EXEC_UP
+  Saying yes will generate a security alert for each unprotected program 
+  that is executed before LIDS is sealed (with lidsadm -I).
+  This can help a lot to check whether your boot sequence is secured.
+  This can also warn you if a weakness has been exploited and an
+  unprotected program has been added to the boot process.
+
+  Saying yes increases security.
+
+Do not execute unprotected programs before sealing
+CONFIG_LIDS_NO_EXEC_UP
+  This option makes LIDS refuse the execution of the unprotected programs
+  before it is sealed. Be aware that you can prevent the system from 
+  booting with an incomplete lids.conf.
+
+  Saying yes increases security. 
+
+  Warning: Selecting this may cause your system to fail to boot, you must 
+           create proper ACLs to protect all the programs running before 
+           sealing. So, if you got problem with booting, disable this option, 
+           recompile and boot again.
+
+Logging behaviour
+CONFIG_LIDS_NO_FLOOD_LOG
+  If you say Yes here, LIDS will try not to flood logs with the
+  same message repeated a lot of times.
+
+  Saying yes will increase security.
+
+Time between two logs
+CONFIG_LIDS_TIMEOUT_AFTER_FLOOD
+  This is the minimum time (in seconds) allowed between two different
+  security alerts. When a security alert occurs, no more alerts will be
+  logged before expiration of this timeout. (Except the first alert, with
+  a flood warning).
+
+Allow switching normal/security mode
+CONFIG_LIDS_ALLOW_SWITCH
+  If you say Yes here, you will enable the possibility to switch
+  LIDS on and off.
+
+  Note: You must set a password with 'lidsconf -P'
+  
+  Saying no increases security.
+
+Restrict mode switching to specified terminal types
+CONFIG_LIDS_RESTRICT_MODE_SWITCH
+  If you enable this option, mode switching will be only allowed
+  from specified terminal types.
+
+Allow mode switching from Linux Console
+CONFIG_LIDS_MODE_SWITCH_CONSOLE
+  Allow mode switching from a Linux Console.
+
+Allow mode switching from serial Console
+CONFIG_LIDS_MODE_SWITCH_SERIAL
+  Allow mode switching from a serial Console.
+
+Allow mode switching from a PTY
+CONFIG_LIDS_MODE_SWITCH_PTY
+  Allow mode switching from a PTY. 
+
+Number of attempts to submit password
+CONFIG_LIDS_MAX_TRY
+  Here you put the number of tries you will allow before disabling the
+  switch capability for a while.
+
+  The lower it is, the more secure the system will be.
+
+Time to wait after a fail
+CONFIG_LIDS_TTW_FAIL
+  Here you put the time (in seconds) the switch capability will be
+  disabled when the authorised number of fails is reached.
+
+  The higher it is, the more secure the system will be.
+
+Allow any program to switch LIDS on/off
+CONFIG_LIDS_ALLOW_ANY_PROG_SWITCH
+  If you say Yes here, you will allow programs others than
+  /sbin/lidsadm to feed /proc/sys/lids/locks.
+  
+  Notes : * It is strongly recommended to leave this option
+            unmarked ! Don't say yes !
+          * I don't know what it could be useful for :)
+
+  Say no.
+
+Allow reloading config file when switched off
+CONFIG_LIDS_RELOAD_CONF
+  Saying Yes here will compile the necessary code to reload the config
+  file. Each time you pass +RELOAD_CONF argument to lidsadm, LIDS reloads 
+  /etc/lids.conf and re-reads dev/inode numbers of special programs
+  (/sbin/lidsadm and every program you allow to do something LIDS
+  forbids)
+
+  If an error occurs during the reload phase, the kernel does not panic
+  as it does at startup, because it considers you see the error 
+  immediately and correct it.
+
+Send security alerts through network
+CONFIG_LIDS_SA_THROUGH_NET
+  Say yes here if you want to send LIDS security alerts to
+  a remote machine through the network, directly from the 
+  kernel, without the help of any potentially corrupted
+  user space program (especially mailer programs)
+  You can send them via mail or via UDP datagrams to a 
+  remote syslog, http POST, or anything else you can imagine.
+
+  A pseudo scripting language a la expect is provided to
+  use some communication protocols (as the mail one).
+
+  Below is a summary of the important parameters for the
+  connection. See their respective help section for more
+  help.
+
+  You must provide
+     - the IP of the remote machine
+     - the TCP/UDP port for the connection
+
+  If you choose to use the provided mailer script
+     - Name of the source machine
+     - Name of the sender
+     - Mail address of the receiver
+     - Subject of the mail
+
+  If you choose to use your own script 
+  (or the remote syslog one, provided) :
+     - Socket type (TCP/UDP)
+     - Path of the script
+     
+Number of connection tries before giving up
+CONFIG_LIDS_NET_MAX_TRIES
+  How many times klids will try to send the security alert, if
+  it can't connect (you forgot a firewall ? :) ), or if there 
+  is a protocol error (remote sendmail doesn't accept your mail ?).
+  After this number of tries, the message is deleted, even
+  if it was not send (we can imagine that, for some unknown 
+  reason (protocol error, defectious IP stack on the road,..)
+  the message can't be send and block the remaining of the
+  queue). 
+  
+  If you don't want to loose any messages, put a big number
+  of tries here, and give a reasonnable sleep period.
+  
+Sleep time after a failed connection
+CONFIG_LIDS_NET_TIMEOUT
+  When klids fails to send the security alert, how many seconds
+  will it sleep before retrying ?
+
+Message queue size
+CONFIG_LIDS_MSGQUEUE_SIZE
+  The security alerts are stored in a message queue. Give 
+  the number of messages that could be queued before loosing
+  new messages here.
+
 #
 # ARM options
 #
@@ -21905,6 +23453,20 @@ CONFIG_ARCH_EBSA285_HOST
   in host ("central function") mode.
 
   Saying N will reduce the size of the Footbridge kernel.
+
+IQ80310
+CONFIG_ARCH_IQ80310
+  Say Y here if you want to run your kernel on the Intel IQ80310
+  evaluation kit for the IOP310 chipset.
+
+Run IQ80310 @ 733MHz
+CONFIG_IQ80310_TURBO_CHARGE
+  Say Y here if you want to run your IQ80310 a 733MHz kernel. 
+  Note that if you do so, you are doing at your own risk and
+  cannot hold anyone else liable for any hardware failures this
+  might cause.  Having said that, this should not cause any 
+  hardware failures as many people have been running their IQ80310
+  boards at that speed for months.
 
 LinkUp Systems L7200 SDB
 CONFIG_ARCH_L7200
@@ -22060,6 +23622,13 @@ CONFIG_SA1100_PANGOLIN
   Say Y if configuring for a Pangolin.
   Say N otherwise.
 
+Shannon
+CONFIG_SA1100_SHANNON
+  The Shannon (also known as a Tuxscreen, and also as a IS2630) was a
+  limited edition webphone produced by Philips. The Shannon is a SA1100
+  platform with a 640x480 LCD, touchscreen, CIR keyboard, PCMCIA slots,
+  and a telco interface.
+
 Victor
 CONFIG_SA1100_VICTOR
   Say Y here if you are using a Visu Aide Intel(R) StrongARM(R)
@@ -22133,6 +23702,36 @@ CONFIG_CPU_ARM920T
 
   Say Y if you want support for the ARM920T processor.
   Otherwise, say N.
+
+Support ARM922T processor
+CONFIG_CPU_ARM922T
+  The ARM922T is a version of the ARM920T, but with smaller
+  instruction and data caches. It is used in Altera's 
+  Excalibur XA device family.
+
+  Say Y if you want support for the ARM922T processor.
+  Otherwise, say N.
+
+Support low power wait for interrupt
+CONFIG_CPU_ARM922_CPU_IDLE
+  Saying Y here will allow the processor to enter a low power 
+  mode whilst waiting for an interrupt in idle. If you're unsure
+  say Y.
+
+Enable ARM922T instruction cache
+CONFIG_CPU_ARM922_I_CACHE_ON
+  Say Y here to enable the processor instruction cache. Unless 
+  you have a reason not to, say Y.
+
+Enable ARM922T data cache
+CONFIG_CPU_ARM922_D_CACHE_ON
+  Say Y here to enable the processor data cache. Unless 
+  you have a reason not to, say Y.
+
+Use data cache in writethrough mode
+CONFIG_CPU_ARM922_WRITETHROUGH
+  Say Y here to use the data cache in writethough mode. Unless you 
+  specifically require this, say N.
 
 Support ARM1020 processor
 CONFIG_CPU_ARM1020
@@ -23766,6 +25365,46 @@ CONFIG_IA64_PALINFO
   To use this option, you have to check that the "/proc file system
   support" (CONFIG_PROC_FS) is enabled, too.
 
+Blue Logic DMA
+CONFIG_405_DMA
+  Select this to use the 405's built-in DMA features.
+
+ttyS0 device
+CONFIG_UART0_TTYS0
+  This option reverses the mapping between the hardware UART and software
+  device.  Selecting UART0 gives the normal mapping of UART0=ttyS0 and
+  UART1=ttyS1.  Selecting UART1 gives the reverse mapping of UART0=ttyS1
+  and UART1=ttyS0.  Most people will use UART0.
+
+PowerPC 405 on-chip ethernet
+CONFIG_PPC405_ENET
+  If you want to use the 405 built-in ethernet select this.
+
+CONFIG_PPC405_ENET_ERROR_MSG
+  Enable this option to print verbose debug messages for troubleshooting.
+
+PowerPC 405 on-chip ethernet -- Number of receive buffers
+CONFIG_PPC405_ENET_RX_BUFF
+  Number of ethernet receive (read) buffers.  Unless you know what you
+  are doing the default should be fine.
+
+PowerPC 405 on-chip ethernet -- Number of transmit buffers
+CONFIG_PPC405_ENET_TX_BUFF
+  Number of ethernet transmit (write) buffers.  Unless you know what
+  you are doing the default should be fine.
+
+PPC 405 I2C Algorithm
+CONFIG_PPC405_I2C_ALGO
+  Enable this option to use the built-in I2C on your 405.
+
+PPC 405 I2C Adapter
+CONFIG_PPC405_I2C_ADAP
+  Enable this option to use the built-in I2C on your 405.
+
+BM PPC 405 Watchdog Timer
+CONFIG_PPC405_WDT
+  Enable this option to use the built-in watch dog timer on your 405.
+
 Kernel support for IA-32 emulation
 CONFIG_IA32_SUPPORT
   IA64 processors can run IA32 (that is, x86) binaries by emulating
@@ -23887,6 +25526,23 @@ Include xmon kernel debugger
 CONFIG_XMON
   Include in-kernel hooks for the xmon kernel monitor/debugger
   supported by the PPC port.
+
+Include BDI2000 debugger support
+CONFIG_BDI_SWITCH
+  Include in-kernel support for the Abatron BDI2000 debugger.
+
+Add additional CFLAGS to the kernel build
+CONFIG_MORE_COMPILE_OPTIONS
+  If you want to add additional CFLAGS to the kernel build, such as
+  -g for KGDB, XMON or the BDI2000, enable this option and then
+  enter what you would like to add in the next question.
+
+Add additional CFLAGS to the kernel build
+CONFIG_KGDB_MORE_COMPILE_OPTIONS
+  If you want to add additional CFLAGS to the kernel build, such as
+  -ggdb or -O1, enable this option and then enter what you would
+  like to add in the next question.  Otherwise only -g will be added.
+  Note, if you enable this, you will need to specify the use of -g.
 
 Include kgdb kernel debugger
 CONFIG_KWDB
@@ -24231,11 +25887,425 @@ CONFIG_DEBUG_KERNEL_WITH_GDB_STUB
   remotely using gdb.  This is only useful for kernel hackers.  If
   unsure, say N.
 
+Include KGDB kernel debugger
+CONFIG_SH_KGDB
+  If you say Y here, the system will be compiled with the debug option
+  (-g) and a debugging stub will be included in the kernel, making it
+  possible to debug remotely debug the SH kernel using GDB. This will
+  enlarge your kernel image disk size by several megabytes.  To use
+  this feature you will need to perform some basic setup described
+  briefly in Documentation/sh/kgdb.txt; please refer to that file for
+  more information.
+
+  This is only useful for kernel hackers. If unsure, say N.
+
+Include KGDB thread support
+CONFIG_KGDB_THREAD
+  With thread analysis enabled, GDB can communicate with the kernel to
+  list threads and to get a stack trace for a thread. (Note that while
+  threads can be listed and their registers examined, only the thread
+  which entered KGDB can be executed -- i.e. continued or stepped.)
+
+Console messages through GDB
+CONFIG_SH_KGDB_CONSOLE
+  If you say Y here, console messages will appear through GDB.
+  Other consoles will continue to work as usual.
+
+  (Note: even without this option, if the console and KGDB are using
+  the same SCI/F [ttySCn] then console messages will be encapsulated
+  for GDB when the system is in GDB mode.)
+
+Include KGDB kernel asserts
+CONFIG_KGDB_KERNEL_ASSERTS
+  This option enables kernel asserts. A kernel assert is a condition,
+  which, if false during an execution path, results in a call to KGDB.
+
+  Kernel assertions help in modifying the kernel or writing drivers
+  - bugs can be traced sooner with kernel asserts because invalid
+  conditions are checked at various places. Kernel asserts add the
+  overhead of checking asserted conditions - you can disable this
+  option if you do not want the overhead. Kernel asserts are defined
+  in kgdb.h.
+
+Enter KGDB on NMI
+CONFIG_KGDB_NMI
+  This option allows an NMI to be used to enter KGDB, as used on the
+  Hitachi Solution Engine boards.
+
+Default KGDB port setup
+CONFIG_KGDB_DEFPORT
+  These options allow you to configure attributes of the KGDB serial
+  port; only ports ttySCn (e.g. ttySC0, ttySC1) can be selected here.
+  The kgdb option can be used on the command line to override these
+  settings, e.g. "kgdb=ttySC1,115200E7".
+
 Console output to GDB
 CONFIG_GDB_CONSOLE
   If you are using GDB for remote debugging over a serial port and
   would like kernel messages to be formatted into GDB $O packets so
   that GDB prints them as program output, say 'Y'.
+
+I2C mainboard interfaces
+CONFIG_I2C_MAINBOARD
+  Many modern mainboards have some kind of I2C interface integrated. This
+  is often in the form of a SMBus, or System Management Bus, which is
+  basically the same as I2C but which uses only a subset of the I2C
+  protocol.
+
+  You will also want the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Acer Labs ALI 1535
+CONFIG_I2C_ALI1535
+  If you say yes to this option, support will be included for the Acer
+  Labs ALI 1535 mainboard I2C interface. This can also be 
+  built as a module.
+
+Acer Labs ALI 1533 and 1543C
+CONFIG_I2C_ALI15X3
+  If you say yes to this option, support will be included for the Acer
+  Labs ALI 1533 and 1543C mainboard I2C interfaces. This can also be 
+  built as a module which can be inserted and removed while the kernel
+  is running.
+
+AMD 756/766
+CONFIG_I2C_AMD756
+  If you say yes to this option, support will be included for the AMD
+  756/766 mainboard I2C interfaces. This can also be 
+  built as a module which can be inserted and removed while the kernel
+  is running.
+
+Apple Hydra Mac I/O
+CONFIG_I2C_HYDRA
+  If you say yes to this option, support will be included for the 
+  Hydra mainboard I2C interface. This can also be built as a module 
+  which can be inserted and removed while the kernel is running.
+
+Intel I801
+CONFIG_I2C_I801
+  If you say yes to this option, support will be included for the 
+  Intel I801 mainboard I2C interfaces. "I810" mainboard sensor chips are
+  generally located on the I801's I2C bus. This can also be
+  built as a module which can be inserted and removed while the kernel
+  is running.
+
+Intel I810/I815
+CONFIG_I2C_I810
+  If you say yes to this option, support will be included for the 
+  Intel I810/I815 mainboard I2C interfaces. The I2C busses these chips
+  are generally used only for video devices. For "810" mainboard sensor
+  chips, use the I801 I2C driver instead. This can also be
+  built as a module which can be inserted and removed while the kernel
+  is running.
+
+Intel 82371AB PIIX4(E) / ServerWorks OSB4 and CSB5
+CONFIG_I2C_PIIX4
+  If you say yes to this option, support will be included for the 
+  Intel PIIX4 and PIIX4E and Serverworks OSB4/CSB5 mainboard
+  I2C interfaces. This can also be
+  built as a module which can be inserted and removed while the kernel
+  is running.
+
+Silicon Integrated Systems Corp. SiS5595
+CONFIG_I2C_SIS5595
+  If you say yes to this option, support will be included for the 
+  SiS5595 mainboard I2C interfaces. For integrated sensors on the
+  Sis5595, use CONFIG_SENSORS_SIS5595. This can also be
+  built as a module which can be inserted and removed while the kernel
+  is running.
+
+VIA Technologies, Inc. VT82C586B
+CONFIG_I2C_VIA
+  If you say yes to this option, support will be included for the VIA
+  Technologies I2C adapter found on some motherboards. This can also 
+  be built as a module which can be inserted and removed while the 
+  kernel is running.
+
+VIA Technologies, Inc. VT82C596, 596B, 686A/B
+CONFIG_I2C_VIAPRO
+  If you say yes to this option, support will be included for the VIA
+  Technologies I2C adapter on these chips. For integrated sensors on the
+  Via 686A/B, use CONFIG_SENSORS_VIA686A. This can also be
+  be built as a module which can be inserted and removed while the 
+  kernel is running.
+
+3DFX Banshee / Voodoo3
+CONFIG_I2C_VOODOO3
+  If you say yes to this option, support will be included for the 
+  3DFX Banshee and Voodoo3 I2C interfaces. The I2C busses on the these
+  chips are generally used only for video devices.
+  This can also be
+  built as a module which can be inserted and removed while the kernel
+  is running.
+
+DEC Tsunami 21272
+CONFIG_I2C_TSUNAMI
+  If you say yes to this option, support will be included for the DEC
+  Tsunami chipset I2C adapter. Requires the Alpha architecture;
+  do not enable otherwise. This can also be built as a module which
+  can be inserted and removed while the kernel is running.
+
+Pseudo ISA adapter (for hardware sensors modules)
+CONFIG_I2C_ISA
+  This provides support for accessing some hardware sensor chips over
+  the ISA bus rather than the I2C or SMBus. If you want to do this, 
+  say yes here. This feature can also be built as a module which can 
+  be inserted and removed while the kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Analog Devices ADM1021 and compatibles
+CONFIG_SENSORS_ADM1021 
+  If you say yes here you get support for Analog Devices ADM1021 
+  and ADM1023 sensor chips and clones: Maxim MAX1617 and MAX1617A,
+  Genesys Logic GL523SM, National Semi LM84, TI THMC10,
+  and the XEON processor built-in sensor. This can also 
+  be built as a module which can be inserted and removed while the 
+  kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Analog Devices ADM1024
+CONFIG_SENSORS_ADM1024
+  If you say yes here you get support for Analog Devices ADM1024 sensor
+  chips.  This can also be built as a module.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Analog Devices ADM1025
+CONFIG_SENSORS_ADM1025
+  If you say yes here you get support for Analog Devices ADM1025 sensor
+  chips.  This can also be built as a module which can be inserted and
+  removed while the kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Analog Devices ADM9240 and compatibles
+CONFIG_SENSORS_ADM9240
+  If you say yes here you get support for Analog Devices ADM9240 
+  sensor chips and clones: the Dallas Semiconductor DS1780 and
+  the National Semiconductor LM81. This can also be built as a 
+  module which can be inserted and removed while the kernel is
+  running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Dallas DS1621 and DS1625
+CONFIG_SENSORS_DS1621
+  If you say yes here you get support for the Dallas DS1621 and DS1625x
+  sensor chips.  This can also be built as a module.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Fujitsu-Siemens Poseidon
+CONFIG_SENSORS_FSCPOS
+  If you say yes here you get support for the Fujitsu-Siemens Poseidon
+  sensor chip.  This can also be built as a module.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Genesys Logic GL518SM
+CONFIG_SENSORS_GL518SM
+  If you say yes here you get support for Genesys Logic GL518SM sensor
+  chips.  This can also be built as a module which can be inserted and
+  removed while the kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Genesys Logic GL520SM
+CONFIG_SENSORS_GL520SM
+  If you say yes here you get support for Genesys Logic GL518SM sensor
+  chips.  This can also be built as a module which can be inserted and
+  removed while the kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+HP Maxilife
+CONFIG_SENSORS_MAXILIFE
+  If you say yes here you get support for the HP Maxilife
+  sensor chip.  This can also be built as a module.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+ITE 8705, 8712, Sis950
+CONFIG_SENSORS_IT87
+  If you say yes here you get support for the ITE 8705 and 8712 and
+  SiS950 sensor chips.  This can also be built as a module.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Myson MTP008
+CONFIG_SENSORS_MTP008
+  If you say yes here you get support for the Myson MTP008
+  sensor chip.  This can also be built as a module.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+National Semiconductor LM75 and compatibles
+CONFIG_SENSORS_LM75 
+  If you say yes here you get support for National Semiconductor LM75
+  sensor chips and clones: Dallas Semi DS75 and DS1775, TelCon
+  TCN75, and National Semi LM77. This can also be built as a module which
+  can be inserted and removed while the kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+National Semiconductor LM78
+CONFIG_SENSORS_LM78
+  If you say yes here you get support for National Semiconductor LM78
+  sensor chips family: the LM78-J and LM79. Many clone chips will
+  also work at least somewhat with this driver. This can also be built
+  as a module which can be inserted and removed while the kernel is 
+  running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+National Semiconductor LM80
+CONFIG_SENSORS_LM80
+  If you say yes here you get support for National Semiconductor LM80
+  sensor chips. This can also be built as a module which can be 
+  inserted and removed while the kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+National Semiconductor LM87
+CONFIG_SENSORS_LM87
+  If you say yes here you get support for National Semiconductor LM87
+  sensor chips. This can also be built as a module which can be 
+  inserted and removed while the kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Silicon Integrated Systems Corp. SiS5595
+CONFIG_SENSORS_SIS5595
+  If you say yes here you get support for the integrated sensors in 
+  SiS5595 South Bridges. This can also be built as a module 
+  which can be inserted and removed while the kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Texas Instruments THMC50 / Analog Devices ADM1022
+CONFIG_SENSORS_THMC50
+  If you say yes here you get support for Texas Instruments THMC50
+  sensor chips and clones: the Analog Devices ADM1022.
+  This can also be built as a module which
+  can be inserted and removed while the kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Via VT82C686A/B
+CONFIG_SENSORS_VIA686A
+  If you say yes here you get support for the integrated sensors in 
+  Via 686A/B South Bridges. This can also be built as a module 
+  which can be inserted and removed while the kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+Winbond W83781D, W83782D, W83783S, W83627HF, AS99127F
+CONFIG_SENSORS_W83781D
+  If you say yes here you get support for the Winbond W8378x series 
+  of sensor chips: the W83781D, W83782D, W83783S and W83682HF,
+  and the similar Asus AS99127F. This
+  can also be built as a module which can be inserted and removed
+  while the kernel is running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+EEprom (DIMM) reader
+CONFIG_SENSORS_EEPROM
+  If you say yes here you get read-only access to the EEPROM data 
+  available on modern memory DIMMs, and which could theoretically
+  also be available on other devices. This can also be built as a 
+  module which can be inserted and removed while the kernel is 
+  running.
+
+  You will also need the latest user-space utilties: you can find them
+  in the lm_sensors package, which you can download at 
+  http://www.lm-sensors.nu
+
+
+MontaVista(tm) Net CompactPCI Backplane Networking
+CONFIG_HHNET
+  MontaVista(tm) Net is a PCI backplane networking system which allows
+  selected PCI devices to use the PCI backpanel as a virtual network.
+  It presents a standard network device to the kernel (pci0), which
+  may be used and managed in a manner similar to a real Ethernet
+  interface. Support is currently limited to target devices that use a
+  Dec/Intel 21554 bridge as their interface with the PCI bus. For
+  additional details and configuration information, see the hhnet.txt
+  file in the Linux networking documentation directory.
+
+
+MontaVista(tm) Net DMA Support
+CONFIG_HHNET_DMA
+  MontaVista(tm) Net includes a driver for the DMA engine contained in the
+  MPC8240 and the MPC107 bridge. This driver increases performance but
+  can introduce some additional latency.
+
+  This option is currently available only for the MEN-F1 and the Force
+  680. If building for the MEN-F1 or the Force 680 and MontaVista(tm) Net
+  DMA support is desired, answer Y. The MPC106 used on the Force 6750
+  does not have a DMA engine. If building for the Force 6750, answer
+  N.
+
+
+Work-around Mips __init bug
+CONFIG_REMOTE_DEBUG_NO_INIT
+  There is a versioning issue between the mips kernel and tool chain.
+  This bug causes the gdb to fail to map symbols to address correctly
+  for .text.init (__init) and similar init sections.
+
+  This fix eliminates the init sections and thus the kernel uses more
+  memory because nothing will be freed by "free_initmem()".
+
+  This option is NOT needed in the following cases:  1) You are not
+  debugging any __init code.  2) You have limited memory and __init
+  is required.  You will still be able to debug, but will not be able
+  to use symbols (you will need to use addresses only).
+
+  If unsure set this option any time CONFIG_REMOTE_DEBUG is set.
+
 
 #
 # A couple of things I keep forgetting:
@@ -24552,7 +26622,8 @@ CONFIG_GDB_CONSOLE
 # LocalWords:  CramFs Cramfs uid cramfs AVM's kernelcapi PCIV cdrdao Cdparanoia
 # LocalWords:  DMX Domex dmx wellington ftdi sio Accton Billington Corega FEter
 # LocalWords:  MELCO LUA PNA Linksys SNC chkdsk AWACS Webcam RAMFS Ramfs ramfs
-# LocalWords:  ramfiles MAKEDEV pty WDTPCI APA apa
+# LocalWords:  ramfiles MAKEDEV pty WDTPCI APA apa keypress kgdb stty ggdb
+# LocalWords:  fomit printk
 #
 # The following sets edit modes for GNU EMACS
 # Local Variables:

@@ -1,4 +1,4 @@
-/*
+ /*
  *  linux/mm/oom_kill.c
  * 
  *  Copyright (C)  1998,2000  Rik van Riel
@@ -20,6 +20,7 @@
 #include <linux/swap.h>
 #include <linux/swapctl.h>
 #include <linux/timex.h>
+#include <linux/security.h>
 
 /* #define DEBUG */
 
@@ -89,7 +90,7 @@ static int badness(struct task_struct *p)
 	 * Superuser processes are usually more important, so we make it
 	 * less likely that we kill those.
 	 */
-	if (cap_t(p->cap_effective) & CAP_TO_MASK(CAP_SYS_ADMIN) ||
+	if (!security_capable(p,CAP_SYS_ADMIN) ||
 				p->uid == 0 || p->euid == 0)
 		points /= 4;
 
@@ -99,7 +100,7 @@ static int badness(struct task_struct *p)
 	 * tend to only have this flag set on applications they think
 	 * of as important.
 	 */
-	if (cap_t(p->cap_effective) & CAP_TO_MASK(CAP_SYS_RAWIO))
+	if (!security_capable(p,CAP_SYS_RAWIO))
 		points /= 4;
 #ifdef DEBUG
 	printk(KERN_DEBUG "OOMkill: task %d (%s) got %d points\n",
@@ -153,7 +154,7 @@ void oom_kill_task(struct task_struct *p)
 	p->flags |= PF_MEMALLOC | PF_MEMDIE;
 
 	/* This process has hardware access, be more careful. */
-	if (cap_t(p->cap_effective) & CAP_TO_MASK(CAP_SYS_RAWIO)) {
+	if (!security_capable(p,CAP_SYS_RAWIO)) {
 		force_sig(SIGTERM, p);
 	} else {
 		force_sig(SIGKILL, p);
@@ -202,6 +203,17 @@ void out_of_memory(void)
 	unsigned long now, since;
 
 	/*
+	 * This is a trade off for embedded systems that typically
+	 * have no swap devices.  By just returning here we run
+	 * the risk of getblk looping forever and hanging the system. . .
+	 * having your embedded application killed doesn't quite work,
+	 * but neither does hanging the system.  If the apps don't
+	 * completely exhaust memory they'll keep running forever, as our
+	 * QA tests have shown.
+	 */
+#ifdef CONFIG_EMBEDDED_OOM_KILLER
+
+	/*
 	 * Enough swap space left?  Not OOM.
 	 */
 	if (nr_swap_pages > 0)
@@ -242,4 +254,5 @@ void out_of_memory(void)
 reset:
 	first = now;
 	count = 0;
+#endif /* CONFIG_OOM_KILLER */
 }

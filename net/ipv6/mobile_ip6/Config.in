@@ -1,0 +1,7 @@
+if [ "$CONFIG_IPV6_IPV6_TUNNEL" != "n" ]; then
+  dep_tristate '    IPv6: Mobility Support (EXPERIMENTAL)' CONFIG_IPV6_MOBILITY m
+  if [ "$CONFIG_IPV6_MOBILITY" = "m" ]; then
+     bool '      MIPv6: AH Support' CONFIG_IPV6_MOBILITY_AH
+     bool '      MIPv6: Debug messages' CONFIG_IPV6_MOBILITY_DEBUG
+  fi
+fi

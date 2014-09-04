@@ -12,6 +12,8 @@
 /*
  * Nov 2000, Ivan Kokshaysky <ink@jurassic.park.msu.ru>
  *	     PCI-PCI bridges cleanup, sorted resource allocation
+ * May 2001, Russell King <rmk@arm.linux.org.uk>
+ *           Allocate prefetchable memory regions where available.
  */
 
 #include <linux/init.h>
@@ -31,6 +33,28 @@
 #endif
 
 #define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
+
+#if	defined(__arm__)
+static inline void
+pdev_adjust_mem_ranges(struct resource *res, struct pbus_set_ranges_data *ranges)
+{
+	unsigned long *end = &ranges->mem_end;
+
+	/*
+	 * We can't use this resources prefetch flag to determine which
+	 * region it belongs to - we may have allocated it in the non-
+	 * prefetchable region.  Use the parent resource instead.
+	 */
+	if (res->parent->flags & IORESOURCE_PREFETCH) {
+		end = &ranges->prefetch_end;
+		if (ranges->prefetch_valid == 0)
+			BUG();
+	}
+
+	if (*end < res->end)
+		*end = res->end;
+}
+#endif
 
 static int __init
 pbus_assign_resources_sorted(struct pci_bus *bus,
@@ -89,9 +113,14 @@ pbus_assign_resources_sorted(struct pci_bus *bus,
 	for (list = head_mem.next; list;) {
 		res = list->res;
 		idx = res - &list->dev->resource[0];
+#if	!defined(__arm__)
 		if (pci_assign_resource(list->dev, idx) == 0
 		    && ranges->mem_end < res->end)
 			ranges->mem_end = res->end;
+#else
+		if (pci_assign_resource(list->dev, idx) == 0)
+			pdev_adjust_mem_ranges(res, ranges);
+#endif
 		tmp = list;
 		list = list->next;
 		kfree(tmp);
@@ -113,9 +142,16 @@ pbus_assign_resources_sorted(struct pci_bus *bus,
 		ranges->io_end += 1;
 	if (ranges->mem_end == ranges->mem_start)
 		ranges->mem_end += 1;
+#if	defined(__arm__)
+	if (ranges->prefetch_end == ranges->prefetch_start)
+		ranges->prefetch_end += 1;
+#endif
 #endif
 	ranges->io_end = ROUND_UP(ranges->io_end, 4*1024);
 	ranges->mem_end = ROUND_UP(ranges->mem_end, 1024*1024);
+#if	defined(__arm__)
+	ranges->prefetch_end = ROUND_UP(ranges->prefetch_end, 1024*1024);
+#endif
 
 	return found_vga;
 }
@@ -134,11 +170,20 @@ pci_setup_bridge(struct pci_bus *bus)
 	ranges.io_end = bus->resource[0]->end;
 	ranges.mem_start = bus->resource[1]->start;
 	ranges.mem_end = bus->resource[1]->end;
+#if	defined(__arm__)
+	ranges.prefetch_start = bus->resource[2]->start;
+	ranges.prefetch_end = bus->resource[2]->end;
+#endif
+
 	pcibios_fixup_pbus_ranges(bus, &ranges);
 
 	DBGC((KERN_ERR "PCI: Bus %d, bridge: %s\n", bus->number, bridge->name));
 	DBGC((KERN_ERR "  IO window: %04lx-%04lx\n", ranges.io_start, ranges.io_end));
 	DBGC((KERN_ERR "  MEM window: %08lx-%08lx\n", ranges.mem_start, ranges.mem_end));
+#if	defined(__arm__)
+	DBGC((KERN_ERR "  PREFETCH window: %08lx-%08lx\n",
+		ranges.prefetch_start, ranges.prefetch_end));
+#endif
 
 	/* Set up the top and bottom of the PCI I/O segment for this bus. */
 	pci_read_config_dword(bridge, PCI_IO_BASE, &l);
@@ -161,13 +206,20 @@ pci_setup_bridge(struct pci_bus *bus)
 	pci_write_config_dword(bridge, PCI_MEMORY_BASE, l);
 
 	/* Set up PREF base/limit. */
+#if	!defined(__arm__)
 	l = (bus->resource[2]->start >> 16) & 0xfff0;
 	l |= bus->resource[2]->end & 0xfff00000;
+#else
+	l = (ranges.prefetch_start >> 16) & 0xfff0;
+	l |= ranges.prefetch_end & 0xfff00000;
+#endif
 	pci_write_config_dword(bridge, PCI_PREF_MEMORY_BASE, l);
 
 	/* Check if we have VGA behind the bridge.
 	   Enable ISA in either case. */
-	l = (bus->resource[0]->flags & IORESOURCE_BUS_HAS_VGA) ? 0x0c : 0x04;
+	l = (bus->resource[0]->flags & IORESOURCE_BUS_HAS_VGA) ?
+		PCI_BRIDGE_CTL_VGA | PCI_BRIDGE_CTL_NO_ISA :
+		PCI_BRIDGE_CTL_NO_ISA;
 	pci_write_config_word(bridge, PCI_BRIDGE_CONTROL, l);
 }
 
@@ -195,11 +247,25 @@ pbus_assign_resources(struct pci_bus *bus, struct pbus_set_ranges_data *ranges)
 
 		b->resource[0]->start = ranges->io_start = ranges->io_end;
 		b->resource[1]->start = ranges->mem_start = ranges->mem_end;
+#if	defined(__arm__)
+		if (ranges->prefetch_valid)
+			b->resource[2]->start = ranges->prefetch_start =
+					 ranges->prefetch_end;
+#endif
 
 		pbus_assign_resources(b, ranges);
 
 		b->resource[0]->end = ranges->io_end - 1;
 		b->resource[1]->end = ranges->mem_end - 1;
+#if	defined(__arm__)
+		if (ranges->prefetch_valid)
+			b->resource[2]->end = ranges->prefetch_end - 1;
+
+		request_resource(bus->resource[0], b->resource[0]);
+		request_resource(bus->resource[1], b->resource[1]);
+		if (ranges->prefetch_valid)
+			request_resource(bus->resource[2], b->resource[2]);
+#endif
 
 		pci_setup_bridge(b);
 	}
@@ -219,6 +285,13 @@ pci_assign_unassigned_resources(void)
 		ranges.mem_start = b->resource[1]->start + PCIBIOS_MIN_MEM;
 		ranges.io_end = ranges.io_start;
 		ranges.mem_end = ranges.mem_start;
+#if	defined(__arm__)
+		ranges.prefetch_valid = b->resource[2] != NULL;
+		if (ranges.prefetch_valid) {
+			ranges.prefetch_start = b->resource[2]->start + PCIBIOS_MIN_MEM;
+			ranges.prefetch_end = ranges.prefetch_start;
+		}
+#endif
 		ranges.found_vga = 0;
 		pbus_assign_resources(b, &ranges);
 	}

@@ -675,10 +675,17 @@ static void do_shutdown(socket_info_t *s)
 static void parse_events(void *info, u_int events)
 {
     socket_info_t *s = info;
+
     if (events & SS_DETECT) {
 	int status;
 
 	get_socket_status(s, &status);
+
+	/*
+	 * If our socket state indicates that a card is present and
+	 * either the socket has not been suspended (for some reason)
+	 * or the card has been removed, shut down the socket first.
+	 */
 	if ((s->state & SOCKET_PRESENT) &&
 	    (!(s->state & SOCKET_SUSPEND) ||
 	     !(status & SS_DETECT)))

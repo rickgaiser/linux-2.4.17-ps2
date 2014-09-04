@@ -46,7 +46,7 @@ char serial_console[20];
 extern void set_debug_traps(void);
 extern void rs_kgdb_hook(int);
 extern void breakpoint(void);
-static int remote_debug = 0;
+int remote_debug = 0;
 #endif
 
 extern struct ide_ops std_ide_ops;
@@ -84,6 +84,12 @@ void __init malta_setup(void)
 	 * Enable DMA channel 4 (cascade channel) in the PIIX4 south bridge.
 	 */
 	enable_dma(4);
+
+       argptr = prom_getcmdline();
+       if ((argptr = strstr(argptr, "ip=")) == NULL) {
+		argptr = prom_getcmdline();
+	       strcat(argptr, " ip=bootp");
+       }                                   
 
 #ifdef CONFIG_SERIAL_CONSOLE
 	argptr = prom_getcmdline();

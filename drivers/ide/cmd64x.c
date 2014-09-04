@@ -11,6 +11,8 @@
  * Copyright (C) 1998       Eddie C. Dost  (ecd@skynet.be)
  * Copyright (C) 1998       David S. Miller (davem@redhat.com)
  * Copyright (C) 1999-2000  Andre Hedrick <andre@linux-ide.org>
+ *
+ * 2002/04/24 Modified for MPU-300 by Sony Corporation.
  */
 
 #include <linux/config.h>
@@ -749,7 +751,7 @@ unsigned int __init pci_init_cmd64x (struct pci_dev *dev, const char *name)
 	}
 #endif /* DISPLAY_CMD64X_TIMINGS && CONFIG_PROC_FS */
 
-	return 0;
+	return dev->irq;
 }
 
 unsigned int __init ata66_cmd64x (ide_hwif_t *hwif)
@@ -796,4 +798,22 @@ void __init ide_init_cmd64x (ide_hwif_t *hwif)
 			break;
 	}
 #endif /* CONFIG_BLK_DEV_IDEDMA */
+
+#ifdef CONFIG_SNSC
+        /* Ide controllers must be passed hardware reset protocol 
+           because no check is done in boot ROM */
+        {
+                unsigned long timeout;
+                ide_drive_t *drive = &hwif->drives[0];
+
+                timeout = jiffies + WAIT_WORSTCASE;
+                while (IN_BYTE(IDE_ALTSTATUS_REG) & BUSY_STAT) {
+                        if (time_after(jiffies, timeout)) {
+                                printk("%s: hardware reset timeout\n", hwif->name);
+                                break;
+                        }
+                        ide_delay_50ms();
+                }
+        }
+#endif /* CONFIG_SNSC_MPU300 */
 }

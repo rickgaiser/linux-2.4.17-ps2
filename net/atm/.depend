@@ -1,0 +1,390 @@
+addr.o: addr.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   signaling.h \
+   addr.h
+addr.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h
+	@touch addr.h
+atm_misc.o: atm_misc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sonet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/errno.h
+clip.o: clip.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/notifier.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmclip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmarp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inetdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/route.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/icmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/param.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   common.h \
+   resources.h \
+   ipcommon.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/atmclip.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/clip/no/icmp.h)
+common.o: common.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kmod.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmclip.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/ipv6.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmipv6.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/atmipv6.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmarp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sonet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/socket.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/capability.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/time.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ioctls.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/lane.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/lane/module.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmlec.h \
+   lec.h \
+   lec_arpc.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/mpoa.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/mpoa/module.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmmpc.h \
+   mpc.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/tcp.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/tcp/module.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm_tcp.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/pppoatm.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/pppoatm/module.h) \
+   resources.h \
+   common.h \
+   protocols.h \
+   addr.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/clip.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/atmclip.h \
+   signaling.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bridge.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bridge/module.h)
+common.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h
+	@touch common.h
+ipcommon.o: ipcommon.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmclip.h \
+   common.h \
+   ipcommon.h
+ipcommon.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h
+	@touch ipcommon.h
+ipv6atm.o: ipv6atm.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/notifier.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmipv6.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inetdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/route.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/icmp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/param.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   common.h \
+   resources.h \
+   ipcommon.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/atmipv6.h
+lec.o: lec.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_ether.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/dst.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/tr.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/trdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmlec.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bridge.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bridge/module.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_bridge.h \
+   ../bridge/br_private.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   lec.h \
+   lec_arpc.h \
+   resources.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/param.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inetdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/route.h
+lec.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmlec.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bridge.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/bridge/module.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_bridge.h
+	@touch lec.h
+lec_arpc.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_ether.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmlec.h
+	@touch lec_arpc.h
+mpc.o: mpc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_ether.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/checksum.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/dst.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmlec.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmmpc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   lec.h \
+   mpc.h \
+   resources.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+mpc.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmmpc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   mpoa_caches.h
+	@touch mpc.h
+mpoa_caches.o: mpoa_caches.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmmpc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/time.h \
+   mpoa_caches.h \
+   mpc.h
+mpoa_caches.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmmpc.h
+	@touch mpoa_caches.h
+mpoa_proc.o: mpoa_proc.c \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/time.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmmpc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   mpc.h \
+   mpoa_caches.h
+pppoatm.o: pppoatm.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ppp_defs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_ppp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ppp_channel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmppp.h
+proc.o: proc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/stat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmclip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmarp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/param.h \
+   resources.h \
+   common.h \
+   signaling.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/clip.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/atmclip.h \
+   ipcommon.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/lane.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/lane/module.h) \
+   lec.h \
+   lec_arpc.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/ipv6.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/atmipv6.h
+pvc.o: pvc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmclip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/atm/clip.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/atmclip.h \
+   resources.h \
+   common.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+raw.o: raw.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   common.h \
+   protocols.h
+resources.o: resources.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ctype.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   common.h \
+   resources.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+resources.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h
+	@touch resources.h
+signaling.o: signaling.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmsap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmsvc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   resources.h \
+   signaling.h
+signaling.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmsvc.h
+	@touch signaling.h
+svc.o: svc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcntl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmsap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmsvc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/atmdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/sock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   resources.h \
+   common.h \
+   signaling.h \
+   addr.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+.PRECIOUS:	addr.h \
+	common.h \
+	ipcommon.h \
+	lec.h \
+	lec_arpc.h \
+	mpc.h \
+	mpoa_caches.h \
+	resources.h \
+	signaling.h \
+

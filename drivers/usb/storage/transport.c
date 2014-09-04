@@ -431,6 +431,11 @@ int usb_stor_control_msg(struct us_data *us, unsigned int pipe,
 	status = us->current_urb->status;
 	if (status >= 0)
 		status = us->current_urb->actual_length;
+	else {
+		US_DEBUG_PRINTSTALL("Control-URB%4d %s #%d ", status,
+					us->product, us->pusb_dev->devnum);
+		US_DEBUG_PRINTSTALL_CMD(us->current_urb);
+	}
 
 	/* release the lock and return status */
 	up(&(us->current_urb_sem));
@@ -478,6 +483,17 @@ int usb_stor_bulk_msg(struct us_data *us, void *data, int pipe,
 
 	/* release the lock and return status */
 	up(&(us->current_urb_sem));
+#ifdef DEBUG_PRINTSTALL
+	if (us->current_urb->status < 0) {
+	    US_DEBUG_PRINTSTALL("Bulk-URB%4d %s #%d ", us->current_urb->status,
+					us->product, us->pusb_dev->devnum);
+	    US_DEBUG_PRINT_SRBCMD(us->srb);
+	} else if (us->current_urb->actual_length != len) {
+	    US_DEBUG_PRINTSTALL("ShortTransfer %d/%d %s #%d ", us->current_urb
+		->actual_length, len, us->product, us->pusb_dev->devnum);
+	    US_DEBUG_PRINT_SRBCMD(us->srb);
+	}
+#endif
 	return us->current_urb->status;
 }
 
@@ -533,6 +549,12 @@ int usb_stor_transfer_partial(struct us_data *us, char *buf, int length)
 		/* -ENOENT -- we canceled this transfer */
 		if (result == -ENOENT) {
 			US_DEBUGP("usb_stor_transfer_partial(): transfer aborted\n");
+			return US_BULK_TRANSFER_ABORTED;
+		}
+
+		/* -ECONNRESET -- command_abort() called. */
+		if (result == -ECONNRESET) {
+			US_DEBUGP("usb_stor_transfer_partial(): aborted by command_abort()\n");
 			return US_BULK_TRANSFER_ABORTED;
 		}
 
@@ -614,11 +636,13 @@ void usb_stor_transfer(Scsi_Cmnd *srb, struct us_data* us)
  * This is used by the protocol layers to actually send the message to
  * the device and recieve the response.
  */
-void usb_stor_invoke_transport(Scsi_Cmnd *srb, struct us_data *us)
+static void do_invoke_transport(Scsi_Cmnd *srb, struct us_data *us)
 {
 	int need_auto_sense;
 	int result;
+	int retry_count = 0;
 
+sendcommand:
 	/* send the command to the transport layer */
 	result = us->transport(srb, us);
 
@@ -643,7 +667,13 @@ void usb_stor_invoke_transport(Scsi_Cmnd *srb, struct us_data *us)
 	 * of determining status on it's own, we need to auto-sense almost
 	 * every time.
 	 */
+#ifdef CONFIG_USB_STORAGE_CB_WINLIKE
+	if ((us->protocol == US_PR_CB || us->protocol == US_PR_DPCM_USB)
+			&& !((us->flags & US_FL_CB_WINLIKE) &&
+				srb->result == US_BULK_TRANSFER_GOOD)) {
+#else
 	if (us->protocol == US_PR_CB || us->protocol == US_PR_DPCM_USB) {
+#endif
 		US_DEBUGP("-- CB transport device requiring auto-sense\n");
 		need_auto_sense = 1;
 
@@ -730,6 +760,14 @@ void usb_stor_invoke_transport(Scsi_Cmnd *srb, struct us_data *us)
 
 		/* issue the auto-sense command */
 		temp_result = us->transport(us->srb, us);
+
+		/* we're done here, let's clean up */
+		srb->request_buffer = old_request_buffer;
+		srb->request_bufflen = old_request_bufflen;
+		srb->use_sg = old_sg;
+		srb->sc_data_direction = old_sc_data_direction;
+		memcpy(srb->cmnd, old_cmnd, MAX_COMMAND_SIZE);
+
 		if (temp_result != USB_STOR_TRANSPORT_GOOD) {
 			US_DEBUGP("-- auto-sense failure\n");
 
@@ -740,7 +778,11 @@ void usb_stor_invoke_transport(Scsi_Cmnd *srb, struct us_data *us)
 			if (!(us->flags & US_FL_SCM_MULT_TARG)) {
 				us->transport_reset(us);
 			}
-			srb->result = DID_ERROR << 16;
+
+			if (temp_result == USB_STOR_TRANSPORT_ABORTED)
+				srb->result = DID_ABORT << 16;
+			else
+				srb->result = DID_ERROR << 16;
 			return;
 		}
 
@@ -760,16 +802,24 @@ void usb_stor_invoke_transport(Scsi_Cmnd *srb, struct us_data *us)
 		/* set the result so the higher layers expect this data */
 		srb->result = CHECK_CONDITION << 1;
 
-		/* we're done here, let's clean up */
-		srb->request_buffer = old_request_buffer;
-		srb->request_bufflen = old_request_bufflen;
-		srb->use_sg = old_sg;
-		srb->sc_data_direction = old_sc_data_direction;
-		memcpy(srb->cmnd, old_cmnd, MAX_COMMAND_SIZE);
-
 		/* If things are really okay, then let's show that */
 		if ((srb->sense_buffer[2] & 0xf) == 0x0)
 			srb->result = GOOD << 1;
+
+		/* 
+		 *  It seems many USB storage devices need some time 
+		 *  to start-up, so delay here on a TEST_UNIT_READY 
+		 *  that returned CHECK_CONDITION. 
+		 */
+		else if ((us->flags & US_FL_STARTUPDELAY) &&
+			 srb->cmnd[0] == TEST_UNIT_READY && retry_count < 3) {
+			retry_count++;
+			US_DEBUGP("Retrying TEST_UNIT_READY count%d\n", retry_count);
+			set_current_state(TASK_UNINTERRUPTIBLE);
+			schedule_timeout(HZ);
+			set_current_state(TASK_RUNNING);
+			goto sendcommand;
+		}
 	} else /* if (need_auto_sense) */
 		srb->result = GOOD << 1;
 
@@ -779,6 +829,12 @@ void usb_stor_invoke_transport(Scsi_Cmnd *srb, struct us_data *us)
 	if (result == USB_STOR_TRANSPORT_FAILED)
 		srb->result = CHECK_CONDITION << 1;
 
+	/* force SCSI-layer to retry (fix for Sony devices) */
+ 	if (result == USB_STOR_TRANSPORT_FAILED
+ 	    && (srb->sense_buffer[2]&0xf) == ILLEGAL_REQUEST
+ 	    && srb->sense_buffer[12] == 0x20)
+ 		srb->result = DID_ERROR << 16;
+
 	/* If we think we're good, then make sure the sense data shows it.
 	 * This is necessary because the auto-sense for some devices always
 	 * sets byte 0 == 0x70, even if there is no error
@@ -787,6 +843,265 @@ void usb_stor_invoke_transport(Scsi_Cmnd *srb, struct us_data *us)
 	    (result == USB_STOR_TRANSPORT_GOOD) &&
 	    ((srb->sense_buffer[2] & 0xf) == 0x0))
 		srb->sense_buffer[0] = 0x0;
+}
+
+/* lapper routine for usb_stor_invoke_transport() 
+ */
+void usb_stor_invoke_transport(Scsi_Cmnd *srb, struct us_data *us)
+{
+	void* org_request_buffer;
+	int org_sg;
+	int org_request_bufflen;
+	unsigned char org_cmnd[MAX_COMMAND_SIZE];
+	unsigned char org_sc_data_direction, org_cmd_len;
+	unsigned int block, count, left, transferred;
+	struct scatterlist* sg = 0;
+
+#ifdef CONFIG_USB_STORAGE_FIXWRITEPROTECT
+	/* some devices could not detect WriteProtect by MODE_SENSE */
+	if ((us->flags & US_FL_FIXWRITEPROTECT) &&
+	    (srb->cmnd[0] == MODE_SENSE || srb->cmnd[0] == MODE_SENSE_10)) {
+		int fWriteProtect=0, fWriteProtect_MS;
+		int dspec = (srb->cmnd[0] == MODE_SENSE) ? 2 : 3;
+		unsigned char* req_buf = (unsigned char*)srb->request_buffer;
+
+		US_DEBUGP("Issuing READ_10 & WRITE_10 on sector 15 for detecting WriteProtect\n");
+
+		/* save the original command */
+		memcpy(org_cmnd, srb->cmnd, MAX_COMMAND_SIZE);
+		org_request_buffer = srb->request_buffer;
+		org_request_bufflen = srb->request_bufflen;
+		org_sg = srb->use_sg;
+		org_sc_data_direction = srb->sc_data_direction;
+		org_cmd_len = srb->cmd_len;
+
+		if (!(srb->request_buffer = kmalloc(512, GFP_KERNEL))) {
+			srb->result = DID_ERROR << 16;
+			srb->request_buffer = org_request_buffer;
+			return;
+		}
+
+		/* do command READ_10, sector15, count1 */
+		srb->cmnd[0] = READ_10;
+		srb->cmnd[1] = srb->cmnd[2] = srb->cmnd[3] = srb->cmnd[4] = 0;
+		srb->cmnd[5] = 15;
+		srb->cmnd[6] = srb->cmnd[7] = srb->cmnd[9] = 0;
+		srb->cmnd[8] = 1;
+		srb->request_bufflen = 512;
+		srb->use_sg = 0;
+		srb->sc_data_direction = SCSI_DATA_READ;
+		srb->cmd_len = 10;
+		US_DEBUGP("Issuing READ_10 ...\n");
+		do_invoke_transport(srb, us);
+
+		/* check result of READ_10 */
+		if (srb->result != GOOD << 1) {
+			US_DEBUGP("READ_10 sector15 count1 failed.\n");
+			goto DONE;
+		}
+
+		/* do command WRITE_10, sector15, count1 */
+		srb->cmnd[0] = WRITE_10;
+		srb->sc_data_direction = SCSI_DATA_WRITE;
+		US_DEBUGP("Issuing WRITE_10 ...\n");
+		do_invoke_transport(srb, us);
+
+		US_DEBUGP("-- WRITE_10 Result %x code: 0x%x, "
+			  "key: 0x%x, ASC: 0x%x, ASCQ: 0x%x\n", srb->result,
+			    srb->sense_buffer[0], srb->sense_buffer[2] & 0xf,
+			    srb->sense_buffer[12], srb->sense_buffer[13]);
+
+		if ((srb->result != GOOD << 1) &&
+		    (srb->sense_buffer[2] & 0xf) == 0x07) {
+			fWriteProtect = 1;
+			srb->result = GOOD << 1;
+		}
+
+		US_DEBUGP("-- Write Protect is %s (by WRITE_10)\n",
+			  fWriteProtect ? "On " : "Off");
+
+		/* we're done here, let's clean up */
+	DONE:	kfree(srb->request_buffer);
+		srb->request_buffer = org_request_buffer;
+		srb->request_bufflen = org_request_bufflen;
+		srb->use_sg = org_sg;
+		srb->sc_data_direction = org_sc_data_direction;
+		srb->cmd_len = org_cmd_len;
+		memcpy(srb->cmnd, org_cmnd, MAX_COMMAND_SIZE);
+
+		/* check result of READ_10 & WRITE_10 */
+		if (srb->result != GOOD << 1) {
+			US_DEBUGP("Detecting WriteProtect failed.\n");
+			return;
+		}
+
+		/* do original command MODE_SENSE */
+		US_DEBUGP("Issuing MODE_SENSE ...\n");
+		do_invoke_transport(srb, us);
+
+		/* check result */
+		fWriteProtect_MS = ((req_buf[dspec] & 0x80) != 0);
+		US_DEBUGP("-- Write Protect is %s (by MODE_SENSE)\n",
+		       fWriteProtect_MS ? "On " : "Off");
+
+		/* if WRITE_10 says it's protected, set flag */
+		if (fWriteProtect)
+			req_buf[dspec] |= 0x80;
+		return;
+	}
+#endif /* CONFIG_USB_STORAGE_FIXWRITEPROTECT */
+
+#ifdef CONFIG_USB_STORAGE_CB_WINLIKE
+	/* some devices need TEST_UNIT_READY before every command */
+	if ((us->flags & US_FL_CB_WINLIKE) &&
+	    srb->cmnd[0] != REQUEST_SENSE && srb->cmnd[0] != TEST_UNIT_READY) {
+		/* save the original command */
+		memcpy(org_cmnd, srb->cmnd, MAX_COMMAND_SIZE);
+		org_request_buffer = srb->request_buffer;
+		org_request_bufflen = srb->request_bufflen;
+		org_sg = srb->use_sg;
+		org_cmd_len = srb->cmd_len;
+
+		srb->request_buffer = NULL;
+		srb->request_bufflen = 0;
+		srb->use_sg = 0;
+		srb->cmd_len = 6;
+
+		/* do TEST_UNIT_READY */
+		memset(srb->cmnd, 0, MAX_COMMAND_SIZE);
+		do_invoke_transport(srb, us);
+
+		/* we're done here, let's clean up */
+		srb->request_buffer = org_request_buffer;
+		srb->request_bufflen = org_request_bufflen;
+		srb->use_sg = org_sg;
+		srb->cmd_len = org_cmd_len;
+		memcpy(srb->cmnd, org_cmnd, MAX_COMMAND_SIZE);
+
+		/* check result of TEST_UNIT_READY */
+		if (srb->result != GOOD << 1) {
+			US_DEBUGP("TEST_UNIT_READY failed. result=%d "
+				"Command=[%02x]\n", srb->result, org_cmnd[0]);
+			return;
+		}
+	}
+#endif /* CONFIG_USB_STORAGE_CB_WINLIKE */
+
+	/* sector alignment, maximum sector limit */
+	if (!( (us->flags & US_FL_SECTORLIMIT) &&
+	       (srb->cmnd[0] == READ_10 || srb->cmnd[0] == WRITE_10))) {
+		do_invoke_transport(srb, us);
+		return;
+	}
+
+	/* save the original command */
+	memcpy(org_cmnd, srb->cmnd, MAX_COMMAND_SIZE);
+	org_request_buffer = srb->request_buffer;
+	org_request_bufflen = srb->request_bufflen;
+	org_sg = srb->use_sg;
+
+	/* malloc scattterlist memory */
+	if (org_sg) {
+		sg = kmalloc(sizeof(struct scatterlist) * org_sg, GFP_KERNEL);
+		if (!sg) {
+			srb->result = DID_ERROR << 16;
+			return;
+		}
+	}
+
+	block = (srb->cmnd[2] << 24) | (srb->cmnd[3] << 16) |
+		(srb->cmnd[4] <<  8) |  srb->cmnd[5];
+	left = (srb->cmnd[7] << 8) | srb->cmnd[8];
+	transferred = 0;
+
+	US_DEBUGP("Request: block %x total %x, %d bytes\n",
+		  block, left, left*512);
+
+	do {
+		/* calculate number of sectors to write/read */
+		count = left;
+		if (us->sectoralign) {
+			if (block % us->sectoralign == 0) {
+				if (left > us->sectoralign)
+					count = left - left % us->sectoralign;
+				else
+					count = left;
+			} else {
+				count = us->sectoralign - block % us->sectoralign;
+				if (count > left)
+					count = left;
+			}
+		}
+		if (us->sectormax && count > us->sectormax)
+			count = us->sectormax;
+
+		srb->cmnd[2] = (unsigned char) (block >> 24) & 0xff;
+		srb->cmnd[3] = (unsigned char) (block >> 16) & 0xff;
+		srb->cmnd[4] = (unsigned char) (block >>  8) & 0xff;
+		srb->cmnd[5] = (unsigned char) (block      ) & 0xff;
+		srb->cmnd[7] = (unsigned char) (count >> 8) & 0xff;
+		srb->cmnd[8] = (unsigned char) (count     ) & 0xff;
+
+		/* set scatter-gather list */
+		if (org_sg) {
+			int i,c,bsum;
+			int len, reqlen;
+			struct scatterlist* sg_org = (struct scatterlist*)
+				org_request_buffer;
+
+			for (i=0,bsum=0; bsum < transferred; i++)
+				bsum += sg_org[i].length;
+
+			if ( transferred < bsum ) {
+				int q = bsum - transferred;
+				sg[0].address = sg_org[i-1].address
+					+ sg_org[i-1].length - q;
+				sg[0].length  = q;
+			} else {	/* transferred == bsum */
+				sg[0].address = sg_org[i].address;
+				sg[0].length  = sg_org[i].length;
+				i++;
+			}
+			len = sg[0].length;
+			reqlen = count * 512;
+			c = 1;
+
+			for ( ; len < reqlen; c++,i++ ) {
+				sg[c].address = sg_org[i].address;
+				sg[c].length  = sg_org[i].length;
+				len += sg[c].length;
+			}
+
+			if ( len > reqlen )
+				sg[c-1].length -= len - reqlen;
+			srb->use_sg = c;
+			srb->request_buffer = sg;
+			srb->request_bufflen = reqlen;
+
+			US_DEBUGP("++ split to: block %x count %x, %d bytes\n",
+				  block, count, reqlen);
+		} else {
+			srb->request_buffer = org_request_buffer + transferred;
+			srb->request_bufflen = count * 512;
+		}
+
+		/* do transport */
+		do_invoke_transport(srb, us);
+
+		/* if error occurred, break */
+		if (srb->result) break;
+
+		block += count;
+		left -= count;
+		transferred += count * 512;
+	} while( left > 0 );
+
+	/* we're done here, let's clean up */
+	if (org_sg) kfree(sg);
+	srb->request_buffer = org_request_buffer;
+	srb->request_bufflen = org_request_bufflen;
+	srb->use_sg = org_sg;
+	memcpy(srb->cmnd, org_cmnd, MAX_COMMAND_SIZE);
 }
 
 /*
@@ -813,12 +1128,6 @@ void usb_stor_CBI_irq(struct urb *urb)
 	/* is the device removed? */
 	if (urb->status == -ENOENT) {
 		US_DEBUGP("-- device has been removed\n");
-		return;
-	}
-
-	/* was this a command-completion interrupt? */
-	if (us->irqbuf[0] && (us->subclass != US_SC_UFI)) {
-		US_DEBUGP("-- not a command-completion IRQ\n");
 		return;
 	}
 
@@ -890,8 +1199,13 @@ int usb_stor_CBI_transport(Scsi_Cmnd *srb, struct us_data *us)
 		US_DEBUGP("CBI data stage result is 0x%x\n", srb->result);
 
 		/* if it was aborted, we need to indicate that */
-		if (srb->result == USB_STOR_TRANSPORT_ABORTED) {
+		if (srb->result == US_BULK_TRANSFER_ABORTED) {
 			return USB_STOR_TRANSPORT_ABORTED;
+		}
+		if (srb->result == US_BULK_TRANSFER_FAILED) {
+			/* if data stage failed, let upper layer to */
+			/* do request sense */
+			return USB_STOR_TRANSPORT_FAILED;
 		}
 	}
 
@@ -904,6 +1218,7 @@ int usb_stor_CBI_transport(Scsi_Cmnd *srb, struct us_data *us)
 	/* if we were woken up by an abort instead of the actual interrupt */
 	if (atomic_read(us->ip_wanted)) {
 		US_DEBUGP("Did not get interrupt on CBI\n");
+		US_DEBUG_PRINTSTALL("Did not get interrupt on CBI\n");
 		atomic_set(us->ip_wanted, 0);
 		return USB_STOR_TRANSPORT_ABORTED;
 	}
@@ -930,13 +1245,14 @@ int usb_stor_CBI_transport(Scsi_Cmnd *srb, struct us_data *us)
 	}
 
 	/* If not UFI, we interpret the data as a result code 
-	 * The first byte should always be a 0x0
+	 * The first byte should always be a 0x0, but some
+	 * out-of-spec devices send back the ASC byte there.
 	 * The second byte & 0x0F should be 0x0 for good, otherwise error 
 	 */
-	if (us->irqdata[0]) {
-		US_DEBUGP("CBI IRQ data showed reserved bType %d\n",
-				us->irqdata[0]);
-		return USB_STOR_TRANSPORT_ERROR;
+	if (us->irqdata[0] ) {
+		US_DEBUGP("CBI IRQ data showed reserved bType 0x%x\n",
+			  us->irqdata[0]);
+		return USB_STOR_TRANSPORT_FAILED;
 	}
 
 	switch (us->irqdata[1] & 0x0F) {
@@ -994,8 +1310,14 @@ int usb_stor_CB_transport(Scsi_Cmnd *srb, struct us_data *us)
 		US_DEBUGP("CB data stage result is 0x%x\n", srb->result);
 
 		/* if it was aborted, we need to indicate that */
-		if (srb->result == USB_STOR_TRANSPORT_ABORTED)
+		if (srb->result == US_BULK_TRANSFER_ABORTED)
 			return USB_STOR_TRANSPORT_ABORTED;
+                else if ( srb->result == US_BULK_TRANSFER_FAILED )
+                {
+			/* if data stage failed, let upper layer to */
+                        /* do request sense */
+			return USB_STOR_TRANSPORT_FAILED;
+                }
 	}
 
 	/* STATUS STAGE */

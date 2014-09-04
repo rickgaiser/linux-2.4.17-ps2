@@ -43,6 +43,7 @@
 #include <linux/notifier.h>
 #include <linux/proc_fs.h>
 #include <linux/version.h>
+#include <linux/cpufreq.h>
 
 #include <pcmcia/version.h>
 #include <pcmcia/cs_types.h>
@@ -199,8 +200,8 @@ static int __init sa1100_pcmcia_driver_init(void){
 #ifdef CONFIG_SA1100_FREEBIRD
     pcmcia_low_level = &freebird_pcmcia_ops;
 #endif
-  } else if (machine_is_h3600()) {
-#ifdef CONFIG_SA1100_H3600
+  } else if (machine_is_h3xxx()) {
+#ifdef CONFIG_SA1100_H3XXX
     pcmcia_low_level = &h3600_pcmcia_ops;
 #endif    
   } else if (machine_is_cerf()) {
@@ -218,6 +219,10 @@ static int __init sa1100_pcmcia_driver_init(void){
   } else if (machine_is_yopy()) {
 #ifdef CONFIG_SA1100_YOPY
     pcmcia_low_level = &yopy_pcmcia_ops;
+#endif
+  } else if (machine_is_shannon()) {
+#ifdef CONFIG_SA1100_SHANNON
+    pcmcia_low_level = &shannon_pcmcia_ops;
 #endif
   } else if (machine_is_pangolin()) {
 #ifdef CONFIG_SA1100_PANGOLIN
@@ -278,7 +283,7 @@ static int __init sa1100_pcmcia_driver_init(void){
    */
   mecr=0;
 
-  clock = get_cclk_frequency() * 100;
+  clock = cpufreq_get(0);
 
   for(i=0; i<sa1100_pcmcia_socket_count; ++i){
     sa1100_pcmcia_socket[i].k_state=state[i];
@@ -834,7 +839,7 @@ static int sa1100_pcmcia_set_io_map(unsigned int sock,
 
     speed=(map->speed>0)?map->speed:SA1100_PCMCIA_IO_ACCESS;
 
-    clock = get_cclk_frequency() * 100;
+    clock = cpufreq_get(0);
 
     mecr=MECR;
 
@@ -943,7 +948,7 @@ static int sa1100_pcmcia_set_mem_map(unsigned int sock,
 	speed = SA1100_PCMCIA_5V_MEM_ACCESS;
       }
 
-    clock = get_cclk_frequency() * 100;
+    clock = cpufreq_get(0);
     
     mecr=MECR;
     
@@ -1021,7 +1026,7 @@ static int sa1100_pcmcia_proc_status(char *buf, char **start, off_t pos,
 				     int count, int *eof, void *data){
   char *p=buf;
   unsigned int sock=(unsigned int)data;
-  unsigned int clock = get_cclk_frequency() * 100;
+  unsigned int clock = cpufreq_get(0);
   unsigned long mecr = MECR;
 
   p+=sprintf(p, "k_flags  : %s%s%s%s%s%s%s\n", 

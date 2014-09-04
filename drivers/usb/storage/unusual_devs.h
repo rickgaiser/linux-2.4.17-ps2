@@ -81,10 +81,20 @@ UNUSUAL_DEV(  0x04a4, 0x0004, 0x0001, 0x0001,
 		"DVD-CAM DZ-MV100A Camcorder",
 		US_SC_SCSI, US_PR_CB, NULL, US_FL_SINGLE_LUN),
 
+UNUSUAL_DEV(  0x04b0, 0x0105, 0x0100, 0x0100,
+		"Nikon",
+		"COOLPIX 885",
+		US_SC_SCSI, US_PR_BULK, NULL, US_FL_INQUIRY_LENGTH),
+
 UNUSUAL_DEV(  0x04cb, 0x0100, 0x0000, 0x2210,
 		"Fujifilm",
 		"FinePix 1400Zoom",
 		US_SC_8070, US_PR_CBI, NULL, US_FL_FIX_INQUIRY),
+
+UNUSUAL_DEV(  0x04da, 0x2372, 0x0100, 0x0100,
+		"Panasonic",
+		"LUMIX F7 (DMC-F7)",
+		US_SC_SCSI, US_PR_BULK, NULL, US_FL_START_STOP),
 
 /* Most of the following entries were developed with the help of
  * Shuttle/SCM directly.
@@ -162,14 +172,15 @@ UNUSUAL_DEV(  0x050d, 0x0115, 0x0133, 0x0133,
 		US_FL_SCM_MULT_TARG ),
 
 /* This entry is needed because the device reports Sub=ff */
-UNUSUAL_DEV(  0x054c, 0x0010, 0x0106, 0x0322, 
+UNUSUAL_DEV(  0x054c, 0x0010, 0x0000, 0xffff,
 		"Sony",
-		"DSC-S30/S70/S75/505V/F505", 
+		"Cyber-shot",
 		US_SC_SCSI, US_PR_CB, NULL,
-		US_FL_SINGLE_LUN | US_FL_START_STOP | US_FL_MODE_XLATE ),
+		US_FL_SINGLE_LUN | US_FL_START_STOP | US_FL_MODE_XLATE |
+		US_FL_FIXWRITEPROTECT ),
 
 /* Reported by win@geeks.nl */
-UNUSUAL_DEV(  0x054c, 0x0025, 0x0100, 0x0100, 
+UNUSUAL_DEV(  0x054c, 0x0025, 0x0000, 0x9999, 
 		"Sony",
 		"Memorystick NW-MS7",
 		US_SC_UFI, US_PR_CB, NULL,
@@ -181,19 +192,84 @@ UNUSUAL_DEV(  0x054c, 0x002d, 0x0100, 0x0100,
 		US_SC_UFI, US_PR_CB, NULL,
 		US_FL_SINGLE_LUN | US_FL_START_STOP ),
 
+UNUSUAL_DEV(  0x054c, 0x002d, 0x0201, 0x0201, 
+		"Sony",
+		"Memorystick MSAC-US2/7",
+		US_SC_UFI, US_PR_CB, NULL,
+		US_FL_SINGLE_LUN | US_FL_START_STOP ),
+
 /* Submitted by Klaus Mueller <k.mueller@intershop.de> */
-UNUSUAL_DEV(  0x054c, 0x002e, 0x0106, 0x0310, 
+UNUSUAL_DEV(  0x054c, 0x002e, 0x0000, 0xffff,
 		"Sony",
 		"Handycam",
 		US_SC_SCSI, US_PR_CB, NULL,
-		US_FL_SINGLE_LUN | US_FL_START_STOP | US_FL_MODE_XLATE),
+		US_FL_SINGLE_LUN | US_FL_START_STOP | US_FL_MODE_XLATE |
+		US_FL_FIXWRITEPROTECT | US_FL_CB_WINLIKE ),
 
 UNUSUAL_DEV(  0x054c, 0x0032, 0x0000, 0x9999,
                 "Sony",
 		"Memorystick MSC-U01N",
 		US_SC_UFI, US_PR_CB, NULL,
 		US_FL_SINGLE_LUN | US_FL_START_STOP ),
-		
+
+UNUSUAL_DEV(  0x054c, 0x0037, 0x0105, 0x0105,
+		"Sony",
+		"MemoryStick MSGC-US10",
+		US_SC_8070, US_PR_CBI, NULL,
+		US_FL_INQUIRY_LENGTH | US_FL_STARTUPDELAY ),
+
+UNUSUAL_DEV(  0x054c, 0x0039, 0x0000, 0x9999, 
+		"Sony",
+		"Memorystick NW-MS7A",
+		US_SC_UFI, US_PR_CBI, NULL,
+		US_FL_SINGLE_LUN | US_FL_START_STOP | US_FL_SECTORLIMIT ),
+
+UNUSUAL_DEV(  0x054c, 0x0046, 0x0202, 0x0202,
+		"Sony",
+		"MemoryStick Walkman NW-MS9/11",
+		US_SC_8070, US_PR_CBI, NULL,
+	        US_FL_SECTORLIMIT ),
+
+UNUSUAL_DEV(  0x054c, 0x0058, 0x0000, 0xffff,
+		"Sony",
+		"Clie PEG-N700C/N750C",
+		US_SC_8070, US_PR_CBI, NULL,
+	        US_FL_SECTORLIMIT ),
+
+UNUSUAL_DEV(  0x054c, 0x006d, 0x0000, 0xffff,
+		"Sony",
+		"Clie PEG-S300/S500/N600C/T400/T600C/SJ30",
+		US_SC_8070, US_PR_CBI, NULL,
+	        US_FL_SECTORLIMIT ),
+
+UNUSUAL_DEV(  0x054c, 0x0099, 0x0000, 0x0ffff,
+		"Sony",
+		"Clie PEG-NR70/NR70V/T650C",
+		US_SC_8070, US_PR_CBI, NULL,
+	        US_FL_SECTORLIMIT ),
+
+UNUSUAL_DEV(  0x054c, 0x00a0, 0x0000, 0x9999,
+		"Sony",
+		"NSC IOC-16",
+		US_SC_8070, US_PR_CBI, NULL,
+	        US_FL_STARTUPDELAY ),
+
+UNUSUAL_DEV(  0x054c, 0x00cb, 0x0100, 0x0100,
+ 		"Sony",
+ 		"MemoryStick MSAC-US20",
+ 		US_SC_8070, US_PR_CB, NULL, 0 ),
+
+UNUSUAL_DEV(  0x054c, 0x00d5, 0x0100, 0x0100,
+ 		"Sony",
+ 		"MemoryStick MSAC-US70",
+ 		US_SC_8070, US_PR_CB, NULL, 0 ),
+
+UNUSUAL_DEV(  0x054c, 0x00d9, 0x0000, 0xffff,
+		"Sony",
+		"Clie PEG-NX70V",
+		US_SC_8070, US_PR_CBI, NULL,
+		US_FL_START_STOP ),
+
 UNUSUAL_DEV(  0x057b, 0x0000, 0x0000, 0x0299, 
 		"Y-E Data",
 		"Flashbuster-U",
@@ -263,6 +339,11 @@ UNUSUAL_DEV(  0x066b, 0x0105, 0x0100, 0x0100,
 		US_SC_SCSI, US_PR_EUSB_SDDR09, NULL,
 		US_FL_SINGLE_LUN | US_FL_START_STOP ),
 #endif
+
+UNUSUAL_DEV(  0x0686, 0x4007, 0x0001, 0x0001,
+		"MINOLTA",
+		"DiMAGE S304",
+		US_SC_SCSI, US_PR_BULK, NULL, US_FL_START_STOP ),
 
 UNUSUAL_DEV(  0x0693, 0x0002, 0x0100, 0x0100, 
 		"Hagiwara",
@@ -383,7 +464,8 @@ UNUSUAL_DEV( 0x07c4, 0xa006, 0x0000, 0xffff,
  * - They don't like the INQUIRY command. So we must handle this command
  *   of the SCSI layer ourselves.
  */
-UNUSUAL_DEV( 0x07cf, 0x1001, 0x9009, 0x9009,
+/* added QV-4000 (Rev=0x1000) */
+UNUSUAL_DEV( 0x07cf, 0x1001, 0x1000, 0x9009,
                 "Casio",
                 "QV DigitalCamera",
                 US_SC_8070, US_PR_CB, NULL,
@@ -394,6 +476,11 @@ UNUSUAL_DEV(  0x097a, 0x0001, 0x0000, 0x0001,
 		"Digital Wallet",
  		US_SC_SCSI, US_PR_CB, NULL,
 		US_FL_MODE_XLATE ),
+
+UNUSUAL_DEV(  0x0a17, 0x0004, 0x1000, 0x1000,
+		"PENTAX",
+		"Optio 330",
+		US_SC_UFI, US_PR_CB, NULL, 0 ),
 
 #ifdef CONFIG_USB_STORAGE_ISD200
 UNUSUAL_DEV(  0x0bf6, 0xa001, 0x0100, 0x0110,

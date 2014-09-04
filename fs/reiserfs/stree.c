@@ -126,19 +126,19 @@ inline int  comp_keys (const struct key * le_key, const struct cpu_key * cpu_key
   retval = comp_short_keys (le_key, cpu_key);
   if (retval)
       return retval;
-  if (le_key_k_offset (cpu_key->version, le_key) < cpu_key_k_offset (cpu_key))
+  if (le_key_k_offset (le_key_version(le_key), le_key) < cpu_key_k_offset (cpu_key))
       return -1;
-  if (le_key_k_offset (cpu_key->version, le_key) > cpu_key_k_offset (cpu_key))
+  if (le_key_k_offset (le_key_version(le_key), le_key) > cpu_key_k_offset (cpu_key))
       return 1;
 
   if (cpu_key->key_length == 3)
       return 0;
 
   /* this part is needed only when tail conversion is in progress */
-  if (le_key_k_type (cpu_key->version, le_key) < cpu_key_k_type (cpu_key))
+  if (le_key_k_type (le_key_version(le_key), le_key) < cpu_key_k_type (cpu_key))
     return -1;
 
-  if (le_key_k_type (cpu_key->version, le_key) > cpu_key_k_type (cpu_key))
+  if (le_key_k_type (le_key_version(le_key), le_key) > cpu_key_k_type (cpu_key))
     return 1;
 
   return 0;
@@ -648,9 +648,8 @@ int search_by_key (struct super_block * p_s_sb,
                                        stop at leaf level - set to
                                        DISK_LEAF_NODE_LEVEL */
     ) {
-    int  n_block_number = SB_ROOT_BLOCK (p_s_sb),
-      expected_level = SB_TREE_HEIGHT (p_s_sb),
-      n_block_size    = p_s_sb->s_blocksize;
+    int n_block_number, expected_level;
+    int n_block_size    = p_s_sb->s_blocksize;
     struct buffer_head  *       p_s_bh;
     struct path_element *       p_s_last_element;
     int				n_node_level, n_retval;
@@ -662,7 +661,10 @@ int search_by_key (struct super_block * p_s_sb,
 #endif
     
     PROC_INFO_INC( p_s_sb, search_by_key );
-    
+
+    debug_lock_break(1);
+    conditional_schedule();
+
     /* As we add each node to a path we increase its count.  This means that
        we must be careful to release all nodes in a path before we either
        discard the path struct or re-use the path struct, as we do here. */
@@ -674,6 +676,8 @@ int search_by_key (struct super_block * p_s_sb,
     /* With each iteration of this loop we search through the items in the
        current node, and calculate the next current node(next path element)
        for the next iteration of this loop.. */
+    n_block_number = SB_ROOT_BLOCK (p_s_sb);
+    expected_level = SB_TREE_HEIGHT (p_s_sb);
     while ( 1 ) {
 
 #ifdef CONFIG_REISERFS_CHECK
@@ -1100,6 +1104,9 @@ static char  prepare_for_delete_or_cut(
 	    for (n_counter = *p_n_removed;
 		 n_counter < n_unfm_number; n_counter++, p_n_unfm_pointer-- ) {
 
+		debug_lock_break(1);
+		conditional_schedule();
+
 		if (item_moved (&s_ih, p_s_path)) {
 		    need_research = 1 ;
 		    break;
@@ -1242,6 +1249,8 @@ int reiserfs_delete_item (struct reiserfs_transaction_handle *th,
 	if ( n_ret_value != REPEAT_SEARCH )
 	    break;
 
+	PROC_INFO_INC( p_s_sb, delete_item_restarted );
+
 	// file system changed, repeat search
 	n_ret_value = search_for_position_by_key(p_s_sb, p_s_item_key, p_s_path);
 	if (n_ret_value == IO_ERROR)
@@ -1350,8 +1359,10 @@ void reiserfs_delete_solid_item (struct reiserfs_transaction_handle *th,
 	}
 
 	retval = fix_nodes (M_DELETE, &tb, NULL, 0);
-	if (retval == REPEAT_SEARCH)
+	if (retval == REPEAT_SEARCH) {
+	    PROC_INFO_INC( th -> t_super, delete_solid_item_restarted );
 	    continue;
+	}
 
 	if (retval == CARRY_ON) {
 	    do_balance (&tb, 0, 0, M_DELETE);
@@ -1538,6 +1549,8 @@ int reiserfs_cut_from_item (struct reiserfs_transaction_handle *th,
       	if ( n_ret_value != REPEAT_SEARCH )
 	    break;
 	
+	PROC_INFO_INC( p_s_sb, cut_from_item_restarted );
+
 	n_ret_value = search_for_position_by_key(p_s_sb, p_s_item_key, p_s_path);
 	if (n_ret_value == POSITION_FOUND)
 	    continue;
@@ -1700,6 +1713,10 @@ void reiserfs_do_truncate (struct reiserfs_transaction_handle *th,
     }
 
     if ( n_file_size == 0 || n_file_size < n_new_file_size ) {
+	if (update_timestamps) {
+	    p_s_inode->i_mtime = p_s_inode->i_ctime = CURRENT_TIME;
+	    reiserfs_update_sd(th, p_s_inode) ;
+	}
 	pathrelse(&s_search_path);
 	return;
     }
@@ -1805,6 +1822,7 @@ int reiserfs_paste_into_item (struct reiserfs_transaction_handle *th,
     
     while ( (retval = fix_nodes(M_PASTE, &s_paste_balance, NULL, p_c_body)) == REPEAT_SEARCH ) {
 	/* file system changed while we were in the fix_nodes */
+	PROC_INFO_INC( th -> t_super, paste_into_item_restarted );
 	retval = search_for_position_by_key (th->t_super, p_s_key, p_s_search_path);
 	if (retval == IO_ERROR) {
 	    retval = -EIO ;
@@ -1855,6 +1873,7 @@ int reiserfs_insert_item(struct reiserfs_transaction_handle *th,
 
     while ( (retval = fix_nodes(M_INSERT, &s_ins_balance, p_s_ih, p_c_body)) == REPEAT_SEARCH) {
 	/* file system changed while we were in the fix_nodes */
+	PROC_INFO_INC( th -> t_super, insert_item_restarted );
 	retval = search_item (th->t_super, key, p_s_path);
 	if (retval == IO_ERROR) {
 	    retval = -EIO;

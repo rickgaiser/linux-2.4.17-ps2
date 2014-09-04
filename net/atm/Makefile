@@ -16,6 +16,11 @@ mpoa-objs	:= mpc.o mpoa_caches.o mpoa_proc.o
 
 obj-$(CONFIG_ATM) := addr.o pvc.o signaling.o svc.o common.o atm_misc.o raw.o resources.o
 
+ifeq ($(CONFIG_ATM_IPV6),y)
+obj-y += ipv6atm.o
+NEED_IPCOM = ipcommon.o
+endif
+
 ifeq ($(CONFIG_ATM_CLIP),y)
 obj-y += clip.o
 NEED_IPCOM = ipcommon.o

@@ -37,6 +37,7 @@
 #include <linux/udp.h>
 #include <linux/inet.h>
 #include <linux/netfilter_ipv4.h>
+#include <linux/security.h>
 
 /* NOTE. Logic of IP defragmentation is parallel to corresponding IPv6
  * code now. If you change something here, _PLEASE_ update ipv6/reassembly.c
@@ -372,7 +373,10 @@ static void ip_frag_queue(struct ipq *qp, struct sk_buff *skb)
 {
 	struct sk_buff *prev, *next;
 	int flags, offset;
-	int ihl, end;
+	int ihl, end, ret;
+
+	if ((ret = security_ip_defragment(skb)))
+		goto err;
 
 	if (qp->last_in & COMPLETE)
 		goto err;

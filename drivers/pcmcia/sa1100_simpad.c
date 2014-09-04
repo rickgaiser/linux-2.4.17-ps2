@@ -19,9 +19,6 @@ extern void clear_cs3_bit(int value);
 static int simpad_pcmcia_init(struct pcmcia_init *init){
   int irq, res;
 
-  /* set GPIO_CF_CD & GPIO_CF_IRQ as inputs */
-  GPDR &= ~(GPIO_CF_CD|GPIO_CF_IRQ);
-  
   set_cs3_bit(PCMCIA_RESET);
   clear_cs3_bit(PCMCIA_BUFF_DIS);
   clear_cs3_bit(PCMCIA_RESET);

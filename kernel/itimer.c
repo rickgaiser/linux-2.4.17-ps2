@@ -10,6 +10,8 @@
 #include <linux/smp_lock.h>
 #include <linux/interrupt.h>
 
+#include <linux/trace.h>
+
 #include <asm/uaccess.h>
 
 /*
@@ -95,6 +97,8 @@ void it_real_fn(unsigned long __data)
 	struct task_struct * p = (struct task_struct *) __data;
 	unsigned long interval;
 
+	TRACE_TIMER(TRACE_EV_TIMER_EXPIRED, 0, 0, 0);
+
 	send_sig(SIGALRM, p, 1);
 	interval = p->it_real_incr;
 	if (interval) {
@@ -114,6 +118,7 @@ int do_setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
 	j = tvtojiffies(&value->it_value);
 	if (ovalue && (k = do_getitimer(which, ovalue)) < 0)
 		return k;
+	TRACE_TIMER(TRACE_EV_TIMER_SETITIMER, which, i, j);
 	switch (which) {
 		case ITIMER_REAL:
 			del_timer_sync(&current->real_timer);

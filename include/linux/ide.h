@@ -15,6 +15,9 @@
 #include <linux/proc_fs.h>
 #include <linux/devfs_fs_kernel.h>
 #include <asm/hdreg.h>
+#ifdef CONFIG_TOSHIBA_JMR3927
+#include <asm/jmr3927/jmr3927.h>
+#endif
 
 /*
  * This is the multiple IDE interface driver, as evolved from hd.c.
@@ -216,7 +219,9 @@ typedef unsigned char	byte;	/* used everywhere */
  * Check for an interrupt and acknowledge the interrupt status
  */
 struct hwif_s;
+struct ide_drive_s;
 typedef int (ide_ack_intr_t)(struct hwif_s *);
+typedef void (ide_xfer_data_t)(struct ide_drive_s *, void *, unsigned int);
 
 #ifndef NO_DMA
 #define NO_DMA  255
@@ -228,8 +233,12 @@ typedef int (ide_ack_intr_t)(struct hwif_s *);
 typedef struct hw_regs_s {
 	ide_ioreg_t	io_ports[IDE_NR_PORTS];	/* task file registers */
 	int		irq;			/* our irq number */
-	int		dma;			/* our dma entry */
+	int		dma;			/* our dma number */
 	ide_ack_intr_t	*ack_intr;		/* acknowledge interrupt */
+	ide_xfer_data_t	*ide_output_data;	/* write data to i/face */
+	ide_xfer_data_t	*ide_input_data;	/* read data from i/face */
+	ide_xfer_data_t	*atapi_output_bytes;	/* write bytes to i/face */
+	ide_xfer_data_t	*atapi_input_bytes;	/* read bytes from i/face */
 	void		*priv;			/* interface specific data */
 } hw_regs_t;
 
@@ -256,6 +265,8 @@ void ide_setup_ports(	hw_regs_t *hw,
  * or IN_BYTE functions, we make some defaults here.
  */
 
+#ifndef JMR3927_INIT_INDIRECT_PCI
+
 #ifndef HAVE_ARCH_OUT_BYTE
 #ifdef REALLY_FAST_IO
 #define OUT_BYTE(b,p)          outb((b),(p))
@@ -271,6 +282,13 @@ void ide_setup_ports(	hw_regs_t *hw,
 #define IN_BYTE(p)             (byte)inb(p)
 #endif
 #endif
+
+#else /* JMR3927_INIT_INDIRECT_PCI */
+
+#define OUT_BYTE(b,p)		tx_iooutb((b),(unsigned char *)(p))
+#define IN_BYTE(p)		(unsigned char)tx_ioinb((unsigned char *)(p))
+
+#endif /* JMR3927_INIT_INDIRECT_PCI */
 
 /*
  * Now for the data we need to maintain per-drive:  ide_drive_t
@@ -371,6 +389,7 @@ typedef struct ide_drive_s {
 	byte		dn;		/* now wide spread use */
 	unsigned int	failures;	/* current failure count */
 	unsigned int	max_failures;	/* maximum allowed failure count */
+	byte		part_usage[1<<PARTN_BITS];	/* open count for each partition */
 } ide_drive_t;
 
 /*
@@ -449,7 +468,7 @@ typedef enum {	ide_unknown,	ide_generic,	ide_pci,
 		ide_qd65xx,	ide_umc8672,	ide_ht6560b,
 		ide_pdc4030,	ide_rz1000,	ide_trm290,
 		ide_cmd646,	ide_cy82c693,	ide_4drives,
-		ide_pmac,       ide_etrax100
+		ide_pmac,       ide_etrax100,	ide_acorn
 } hwif_chipset_t;
 
 #define IDE_CHIPSET_PCI_MASK	\

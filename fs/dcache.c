@@ -320,10 +320,23 @@ static inline void prune_one_dentry(struct dentry * dentry)
  
 void prune_dcache(int count)
 {
+	DEFINE_LOCK_COUNT();
+
 	spin_lock(&dcache_lock);
+
+redo:
 	for (;;) {
 		struct dentry *dentry;
 		struct list_head *tmp;
+
+		if (TEST_LOCK_COUNT(100)) {
+			RESET_LOCK_COUNT();
+			debug_lock_break(1);
+			if (conditional_schedule_needed()) {
+				break_spin_lock(&dcache_lock);
+				goto redo;
+			}
+		}
 
 		tmp = dentry_unused.prev;
 
@@ -480,6 +493,8 @@ static int select_parent(struct dentry * parent)
 	struct list_head *next;
 	int found = 0;
 
+	DEFINE_LOCK_COUNT();
+
 	spin_lock(&dcache_lock);
 repeat:
 	next = this_parent->d_subdirs.next;
@@ -492,6 +507,12 @@ resume:
 			list_del(&dentry->d_lru);
 			list_add(&dentry->d_lru, dentry_unused.prev);
 			found++;
+		}
+		if (TEST_LOCK_COUNT(500) && found > 10) {
+			debug_lock_break(1);
+			if (conditional_schedule_needed())
+				goto out;
+			RESET_LOCK_COUNT();
 		}
 		/*
 		 * Descend a level if the d_subdirs list is non-empty.
@@ -517,6 +538,7 @@ this_parent->d_parent->d_name.name, this_parent->d_name.name, found);
 #endif
 		goto resume;
 	}
+out:
 	spin_unlock(&dcache_lock);
 	return found;
 }

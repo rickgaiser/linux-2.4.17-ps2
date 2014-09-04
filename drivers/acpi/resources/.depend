@@ -1,0 +1,40 @@
+rsaddr.o: rsaddr.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acresrc.h
+rscalc.o: rscalc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acresrc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h
+rscreate.o: rscreate.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acresrc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/amlcode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h
+rsdump.o: rsdump.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acresrc.h
+rsio.o: rsio.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acresrc.h
+rsirq.o: rsirq.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acresrc.h
+rslist.o: rslist.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acresrc.h
+rsmemory.o: rsmemory.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acresrc.h
+rsmisc.o: rsmisc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acresrc.h
+rsutils.o: rsutils.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acresrc.h
+rsxface.o: rsxface.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acpi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acinterp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acnamesp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/acpi/include/acresrc.h

@@ -48,6 +48,7 @@ obj-$(CONFIG_VIDEO_ZORAN) += zr36067.o i2c-old.o
 obj-$(CONFIG_VIDEO_ZORAN_BUZ) += saa7111.o saa7185.o
 obj-$(CONFIG_VIDEO_ZORAN_DC10) += saa7110.o adv7175.o
 obj-$(CONFIG_VIDEO_ZORAN_LML33) += bt819.o bt856.o
+obj-$(CONFIG_VIDEO_CYBERPRO) += cyberpro.o i2c-old.o saa7111.o
 obj-$(CONFIG_VIDEO_LML33) += bt856.o bt819.o
 obj-$(CONFIG_VIDEO_PMS) += pms.o
 obj-$(CONFIG_VIDEO_PLANB) += planb.o

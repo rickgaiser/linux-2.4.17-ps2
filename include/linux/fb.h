@@ -32,6 +32,10 @@
 #define FBIOPUT_MODEINFO        0x4617
 #define FBIOGET_DISPINFO        0x4618
 
+#ifdef CONFIG_SNSC
+#define FBIOGET_DISPTYPE        _IOR('F', 0xBB, u_int8_t)
+#define FBIOPUT_DISPTYPE        _IOW('F', 0xBC, u_int8_t)
+#endif
 
 #define FB_TYPE_PACKED_PIXELS		0	/* Packed Pixels	*/
 #define FB_TYPE_PLANES			1	/* Non interleaved planes */
@@ -93,6 +97,9 @@
 #define FB_ACCEL_IGS_CYBER2010	34	/* CyberPro 2010		*/
 #define FB_ACCEL_IGS_CYBER5000	35	/* CyberPro 5000		*/
 #define FB_ACCEL_SIS_GLAMOUR    36	/* SiS 300/630/540              */
+#define FB_ACCEL_EPSON_SED1356  37      /* Epson SED1356                */
+#define FB_ACCEL_3DLABS_PERMEDIA3 38	/* 3Dlabs Permedia 3		*/
+#define FB_ACCEL_I810           50      /* Intel 810                    */
 
 struct fb_fix_screeninfo {
 	char id[16];			/* identification string eg "TT Builtin" */

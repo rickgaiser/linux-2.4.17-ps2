@@ -657,6 +657,7 @@ static int shmem_mmap(struct file * file, struct vm_area_struct * vma)
 		return -EACCES;
 	UPDATE_ATIME(inode);
 	vma->vm_ops = ops;
+	vma->vm_flags &= ~VM_IO;
 	return 0;
 }
 
@@ -752,6 +753,11 @@ shmem_file_write(struct file *file,const char *buf,size_t count,loff_t *ppos)
 	long		status;
 	int		err;
 
+	if ((ssize_t) count < 0)
+		return -EINVAL;
+
+	if (!access_ok(VERIFY_READ, buf, count))
+		return -EFAULT;
 
 	down(&inode->i_sem);
 

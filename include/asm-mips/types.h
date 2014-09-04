@@ -9,6 +9,7 @@
  */
 #ifndef _ASM_TYPES_H
 #define _ASM_TYPES_H
+#include <linux/config.h>
 
 typedef unsigned short umode_t;
 
@@ -40,6 +41,11 @@ typedef unsigned long long __u64;
  
 #endif
 
+#ifdef CONFIG_CPU_R5900
+typedef __signed__ int __s128 __attribute__((mode(TI)));
+typedef unsigned int __u128 __attribute__((mode(TI)));
+#endif
+
 /*
  * These aren't exported outside the kernel to avoid name space clashes
  */
@@ -69,6 +75,11 @@ typedef unsigned long long u64;
 #endif
 
 #define BITS_PER_LONG _MIPS_SZLONG
+
+#ifdef CONFIG_CPU_R5900
+typedef __signed__ int s128 __attribute__((mode(TI)));
+typedef unsigned int u128 __attribute__((mode(TI)));
+#endif
 
 typedef unsigned long dma_addr_t;
 

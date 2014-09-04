@@ -85,7 +85,7 @@ static devfs_handle_t devfs_handle;      /*  For the directory */
  * Transfer functions
  */
 static int transfer_none(struct loop_device *lo, int cmd, char *raw_buf,
-			 char *loop_buf, int size, int real_block)
+			 char *loop_buf, int size, loop_iv_t IV)
 {
 	if (raw_buf != loop_buf) {
 		if (cmd == READ)
@@ -98,7 +98,7 @@ static int transfer_none(struct loop_device *lo, int cmd, char *raw_buf,
 }
 
 static int transfer_xor(struct loop_device *lo, int cmd, char *raw_buf,
-			char *loop_buf, int size, int real_block)
+			char *loop_buf, int size, loop_iv_t IV)
 {
 	char	*in, *out, *key;
 	int	i, keysize;
@@ -186,7 +186,7 @@ static int lo_send(struct loop_device *lo, struct buffer_head *bh, int bsize,
 	len = bh->b_size;
 	data = bh->b_data;
 	while (len > 0) {
-		int IV = index * (PAGE_CACHE_SIZE/bsize) + offset/bsize;
+		const loop_iv_t IV = (index << (PAGE_CACHE_SHIFT - LOOP_IV_SECTOR_BITS)) + (offset >> LOOP_IV_SECTOR_BITS);
 		int transfer_result;
 
 		size = PAGE_CACHE_SIZE - offset;
@@ -244,7 +244,7 @@ static int lo_read_actor(read_descriptor_t * desc, struct page *page, unsigned l
 	unsigned long count = desc->count;
 	struct lo_read_data *p = (struct lo_read_data*)desc->buf;
 	struct loop_device *lo = p->lo;
-	int IV = page->index * (PAGE_CACHE_SIZE/p->bsize) + offset/p->bsize;
+	const loop_iv_t IV = (page->index << (PAGE_CACHE_SHIFT - LOOP_IV_SECTOR_BITS)) + (offset >> LOOP_IV_SECTOR_BITS);
 
 	if (size > count)
 		size = count;
@@ -294,20 +294,6 @@ static inline int loop_get_bs(struct loop_device *lo)
 		bs = BLOCK_SIZE;	
 
 	return bs;
-}
-
-static inline unsigned long loop_get_iv(struct loop_device *lo,
-					unsigned long sector)
-{
-	int bs = loop_get_bs(lo);
-	unsigned long offset, IV;
-
-	IV = sector / (bs >> 9) + lo->lo_offset / bs;
-	offset = ((sector % (bs >> 9)) << 9) + lo->lo_offset % bs;
-	if (offset >= bs)
-		IV++;
-
-	return IV;
 }
 
 static int do_bh_filebacked(struct loop_device *lo, struct buffer_head *bh, int rw)
@@ -455,7 +441,7 @@ static int loop_make_request(request_queue_t *q, int rw, struct buffer_head *rbh
 {
 	struct buffer_head *bh = NULL;
 	struct loop_device *lo;
-	unsigned long IV;
+	loop_iv_t IV;
 
 	if (!buffer_locked(rbh))
 		BUG();
@@ -502,7 +488,7 @@ static int loop_make_request(request_queue_t *q, int rw, struct buffer_head *rbh
 	 * piggy old buffer on original, and submit for I/O
 	 */
 	bh = loop_get_buffer(lo, rbh);
-	IV = loop_get_iv(lo, rbh->b_rsector);
+	IV = rbh->b_rsector + (lo->lo_offset >> LOOP_IV_SECTOR_BITS);
 	if (rw == WRITE) {
 		set_bit(BH_Dirty, &bh->b_state);
 		if (lo_do_transfer(lo, WRITE, bh->b_data, rbh->b_data,
@@ -539,7 +525,7 @@ static inline void loop_handle_bh(struct loop_device *lo,struct buffer_head *bh)
 		bh->b_end_io(bh, !ret);
 	} else {
 		struct buffer_head *rbh = bh->b_private;
-		unsigned long IV = loop_get_iv(lo, rbh->b_rsector);
+		const loop_iv_t IV = rbh->b_rsector + (lo->lo_offset >> LOOP_IV_SECTOR_BITS);
 
 		ret = lo_do_transfer(lo, READ, bh->b_data, rbh->b_data,
 				     bh->b_size, IV);

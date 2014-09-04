@@ -1,0 +1,65 @@
+adler32.o: adler32.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/zlib_fs.h
+infblock.o: infblock.c \
+   zutil.h \
+   infblock.h \
+   inftrees.h \
+   infcodes.h \
+   infutil.h
+infcodes.o: infcodes.c \
+   zutil.h \
+   inftrees.h \
+   infblock.h \
+   infcodes.h \
+   infutil.h \
+   inffast.h
+infcodes.h: \
+   infblock.h
+	@touch infcodes.h
+inffast.o: inffast.c \
+   zutil.h \
+   inftrees.h \
+   infblock.h \
+   infcodes.h \
+   infutil.h \
+   inffast.h
+inflate.o: inflate.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   zutil.h \
+   infblock.h \
+   infutil.h
+inflate_syms.o: inflate_syms.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/zlib_fs.h
+inftrees.o: inftrees.c \
+   zutil.h \
+   inftrees.h \
+   infutil.h \
+   inffixed.h
+infutil.o: infutil.c \
+   zutil.h \
+   infblock.h \
+   inftrees.h \
+   infcodes.h \
+   infutil.h
+infutil.h: \
+   zconf.h \
+   inftrees.h \
+   infcodes.h
+	@touch infutil.h
+zconf.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/unistd.h
+	@touch zconf.h
+zutil.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/zlib_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h
+	@touch zutil.h
+.PRECIOUS:	infcodes.h \
+	infutil.h \
+	zconf.h \
+	zutil.h \
+

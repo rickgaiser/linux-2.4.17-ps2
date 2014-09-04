@@ -569,6 +569,12 @@ static int scan_scsis_single(unsigned int channel, unsigned int dev,
 		    SRpnt->sr_sense_buffer[12] == 0x28 &&
 		    SRpnt->sr_sense_buffer[13] == 0) {
 			/* not-ready to ready transition - good */
+		} else
+		if ((driver_byte(SRpnt->sr_result) & DRIVER_SENSE) != 0 &&
+		    (SRpnt->sr_sense_buffer[2] & 0xf) == UNIT_ATTENTION &&
+		    SRpnt->sr_sense_buffer[12] == 0x29 &&
+		    SRpnt->sr_sense_buffer[13] == 0) {
+			/* power on reset - good */
 		} else {
 			/* assume no peripheral if any other sort of error */
 			scsi_release_request(SRpnt);
@@ -626,6 +632,7 @@ static int scan_scsis_single(unsigned int channel, unsigned int dev,
 	SDpnt->access_count = 0;
 	SDpnt->busy = 0;
 	SDpnt->has_cmdblocks = 0;
+	SDpnt->device_attach_finished = 0;
 	/*
 	 * Currently, all sequential devices are assumed to be tapes, all random
 	 * devices disk, with the appropriate read only flags set for ROM / WORM

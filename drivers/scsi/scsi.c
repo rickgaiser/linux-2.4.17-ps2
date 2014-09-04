@@ -1998,6 +1998,13 @@ static int scsi_register_host(Scsi_Host_Template * tpnt)
 				(*sdtpnt->finish) ();
 			}
 		}
+                /* ok, mark the devices so that we can open(2) */
+		for(shpnt = scsi_hostlist; shpnt; shpnt = shpnt->next)
+		{
+			for(SDpnt = shpnt->host_queue; SDpnt; SDpnt = SDpnt->next)
+				SDpnt->device_attach_finished = 1;
+		}
+
 	}
 #if defined(USE_STATIC_SCSI_MEMORY)
 	printk("SCSI memory: total %ldKb, used %ldKb, free %ldKb.\n",

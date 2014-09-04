@@ -1,0 +1,200 @@
+debuglog.o: debuglog.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/debuglog.h
+dma.o: dma.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/completion.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/pgtable.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/dma.h
+gs.o: gs.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ps2/dev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ps2/gs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/dma.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/gsfunc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/eedev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sysconf.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sbcall.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/sbios/ver/check.h)
+int-handler.o: int-handler.S \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/asm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/mipsregs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/addrspace.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/regdef.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/stackframe.h
+iopheap.o: iopheap.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/semaphore.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sifdefs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sbcall.h \
+   ps2.h
+irq.o: irq.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bootinfo.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/mipsregs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/speed.h \
+   ps2.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/remote/debug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/t10000.h)
+pci.o: pci.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sifdefs.h
+powerbutton.o: powerbutton.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sifdefs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sbcall.h \
+   ps2.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/sbios/ver/check.h)
+prom.o: prom.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/addrspace.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bootinfo.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sbcall.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/bootinfo.h \
+   ps2.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/akmem.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/akmemio.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/akmem.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/t10000/maxmem.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/compat/oldbootinfo.h)
+reset.o: reset.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sbcall.h \
+   ps2.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/akmem.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/akmemio.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/akmem.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/mcfs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/pad.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/cdvd.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/sd.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/mc.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/rm.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/sysconf.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/ether/smap.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ps2/ps2dev.h)
+romcons.o: romcons.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tqueue.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty_flip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/major.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/console.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sbcall.h
+rtc.o: rtc.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/rtc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/atomic.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/time.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sifdefs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/siflock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sbcall.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/bootinfo.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/cdvdcall.h \
+   ps2.h
+sbcall.o: sbcall.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sifdefs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sbcall.h \
+   ps2.h
+setup.o: setup.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ide.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/console.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/addrspace.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/reboot.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/time.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/bootinfo.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/sifdefs.h \
+   ps2.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/blk/dev/ide.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/dummy/console.h)
+siflock.o: siflock.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/siflock.h \
+   ps2.h
+time.o: time.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel_stat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/param.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bootinfo.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/time.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/mipsregs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ps2/irq.h \
+   ps2.h

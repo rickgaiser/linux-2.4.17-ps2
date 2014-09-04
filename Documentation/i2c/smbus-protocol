@@ -1,3 +1,10 @@
+SMBus Protocol Summary
+======================
+The following is a summary of the SMBus protocol. It applies to
+all revisions of the protocol (1.0, 1.1, and 2.0).
+Certain protocol features which are not supported by
+this package are briefly described at the end of this document.
+
 Some adapters understand only the SMBus (System Management Bus) protocol,
 which is a subset from the I2C protocol. Fortunately, many devices use
 only the same subset, which makes it possible to put them on an SMBus.
@@ -125,3 +132,23 @@ a device, to a designated register that is specified through the
 Comm byte. The amount of data is specified in the Count byte.
 
 S Addr Wr [A] Comm [A] Count [A] Data [A] Data [A] ... [A] Data [A] P
+
+
+Packet Error Checking (PEC)
+===========================
+Packet Error Checking was introduced in Revision 1.1 of the specification.
+It is optional, and is not supported by the Linux kernel (this package)
+at the present time.
+
+PEC adds a CRC-8 error-checking byte to all transfers.
+
+
+Address Resolution Protocol (ARP)
+=================================
+The Address Resolution Protocol was introduced in Revision 2.0 of
+the specification. It is optional, and is not supported by the
+Linux kernel (this package) at the present time.
+
+ARP adds device enumeration and dynamic address assignment to
+the protocol. All ARP communications use slave address 0x61 and
+require PEC checksums.

@@ -51,5 +51,8 @@ dep_tristate '  Zoran ZR36120/36125 Video For Linux' CONFIG_VIDEO_ZR36120 $CONFI
 if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
   dep_tristate '  Sony Vaio Picturebook Motion Eye Video For Linux' CONFIG_VIDEO_MEYE $CONFIG_VIDEO_DEV $CONFIG_PCI $CONFIG_SONYPI
 fi
+# unfortunately, this depends on having CONFIG_FB_CYBER2000
+# set as well - we hook off of the VGA driver
+dep_tristate '  NetWinder Video for Linux (EXPERIMENTAL)' CONFIG_VIDEO_CYBERPRO $CONFIG_VIDEO_DEV $CONFIG_EXPERIMENTAL $CONFIG_ARCH_NETWINDER
 
 endmenu

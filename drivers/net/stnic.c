@@ -24,6 +24,8 @@
 #include <asm/machvec.h>
 #ifdef CONFIG_SH_STANDARD_BIOS 
 #include <asm/sh_bios.h>
+#elif CONFIG_SH_SOLUTION_ENGINE
+#include <asm/processor.h>
 #endif
 
 #include "8390.h"
@@ -123,7 +125,36 @@ int __init stnic_probe(void)
 
 #ifdef CONFIG_SH_STANDARD_BIOS 
   sh_bios_get_node_addr (stnic_eadr);
-#endif
+#elif defined(CONFIG_SH_SOLUTION_ENGINE)
+  {
+    /* Try to generate an address using SolutionEngine DIP switch, */
+    /* similar to how the BIOS would do it were it there. The DIP */
+    /* addresses and CPU config groupings don't exactly match, so */
+    /* this is ugly, but I think it handles 7709/7709A/7729/7750. */
+
+#if defined(CONFIG_CPU_SUBTYPE_SH7709) || defined(CONFIG_CPU_SUBTYPE_SH7750)
+    unsigned short *dipsw = (unsigned short*)0xb0800002;
+
+    /* The basic 7709 uses a different address, but has the same */
+    /* config group as the 7709A and 7729; use the CPU type from */
+    /* the boot info to distinguish. This depends on cache_init  */
+    /* labeling this a 7708 due to its smaller cache size...     */
+    if (boot_cpu_data.type == CPU_SH7708)
+      dipsw = (unsigned short*)0xb1000002;
+
+    /* Now force the address (02:00:00:00:00:<SW-lo>) */
+    stnic_eadr[0] = 0x02;	/* Set local address bit */
+    stnic_eadr[1] = stnic_eadr[2] = 0;
+    stnic_eadr[3] = stnic_eadr[4] = 0;
+    stnic_eadr[5] = *dipsw;
+
+    printk(KERN_INFO "NS ST-NIC: Use address %02x:%02x:%02x:%02x:%02x:%02x\n",
+	   stnic_eadr[0], stnic_eadr[1], stnic_eadr[2], stnic_eadr[3],
+	   stnic_eadr[4], stnic_eadr[5]);
+  }
+#endif /* SH7709 or SH7750 */
+#endif /* SOLUTION_ENGINE && !SH_BIOS */
+
   for (i = 0; i < ETHER_ADDR_LEN; i++)
     dev->dev_addr[i] = stnic_eadr[i];
 

@@ -1,3 +1,6 @@
+#ifndef _USB_OHCI_H
+#define _USB_OHCI_H
+
 /*
  * URB OHCI HCD (Host Controller Driver) for USB.
  * 
@@ -403,6 +406,7 @@ typedef struct ohci {
 
 	/* PCI device handle, settings, ... */
 	struct pci_dev	*ohci_dev;
+	const char	*slot_name;
 	u8		pci_latency;
 	struct pci_pool	*td_cache;
 	struct pci_pool	*dev_cache;
@@ -448,7 +452,7 @@ static int rh_init_int_timer(urb_t * urb);
 #endif
  
 #ifndef CONFIG_PCI
-#	error "usb-ohci currently requires PCI-based controllers"
+//#	error "usb-ohci currently requires PCI-based controllers"
 	/* to support non-PCI OHCIs, you need custom bus/mem/... glue */
 #endif
 
@@ -641,3 +645,4 @@ dev_free (struct ohci *hc, struct ohci_device *dev)
 	pci_pool_free (hc->dev_cache, dev, dev->dma);
 }
 
+#endif

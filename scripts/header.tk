@@ -211,6 +211,10 @@ proc read_config { filename } {
 			set cmd "global $var; set $var $value"
 			eval $cmd
 		}
+               	if [regexp {([0-9A-Za-z_]+)=(0[xX][0-9A-Fa-f]+)} $line foo var value] {
+                        set cmd "global $var; set $var $value"
+                        eval $cmd
+                }       
 		if [regexp {([0-9A-Za-z_]+)="([^"]*)"} $line foo var value] {
 			set cmd "global $var; set $var \"$value\""
 			eval $cmd
@@ -611,7 +615,7 @@ proc validate_int {name val default} {
 }
 
 proc validate_hex {name val default} {
-	if {([exec echo $val | tr -d \[:xdigit:\] ] != "")} then {
+	if {([exec echo $val | tr -d \[:xdigit:\] ] == "")} then {
 		global $name; set $name $default
 	}
 }

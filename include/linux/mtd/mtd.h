@@ -1,5 +1,5 @@
 
-/* $Id: mtd.h,v 1.33 2001/06/09 00:08:59 dwmw2 Exp $ */
+/* $Id: mtd.h,v 1.36 2002/09/20 13:04:03 gerg Exp $ */
 
 #ifndef __MTD_MTD_H__
 #define __MTD_MTD_H__
@@ -93,6 +93,8 @@ struct region_info_user {
 #define MEMUNLOCK               _IOW('M', 6, struct erase_info_user)
 #define MEMGETREGIONCOUNT	_IOR('M', 7, int)
 #define MEMGETREGIONINFO	_IOWR('M', 8, struct region_info_user)
+#define	MEMREADDATA             _IOWR('M', 9, struct mtd_oob_buf)
+#define	MEMWRITEDATA            _IOWR('M', 10, struct mtd_oob_buf)
 
 #ifndef __KERNEL__
 
@@ -174,11 +176,23 @@ struct mtd_info {
 	int (*read) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
 	int (*write) (struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen, const u_char *buf);
 
-	int (*read_ecc) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf, u_char *eccbuf);
-	int (*write_ecc) (struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen, const u_char *buf, u_char *eccbuf);
+	int (*read_ecc) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf, u_char *eccbuf, int oobsel);
+	int (*write_ecc) (struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen, const u_char *buf, u_char *eccbuf, int oobsel);
 
 	int (*read_oob) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
 	int (*write_oob) (struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen, const u_char *buf);
+
+	/* 
+	 * Methods to access the protection register area, present in some 
+	 * flash devices. The user data is one time programmable but the
+	 * factory data is read only. 
+	 */
+	int (*read_user_prot_reg) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
+
+	int (*read_fact_prot_reg) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
+
+	/* This function is not yet implemented */
+	int (*write_user_prot_reg) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
 
 	/* iovec-based read/write methods. We need these especially for NAND flash,
 	   with its limited number of write cycles per erase.
@@ -186,7 +200,11 @@ struct mtd_info {
 	   which contains an (ofs, len) tuple.
 	*/
 	int (*readv) (struct mtd_info *mtd, struct iovec *vecs, unsigned long count, loff_t from, size_t *retlen);
+	int (*readv_ecc) (struct mtd_info *mtd, struct iovec *vecs, unsigned long count, loff_t from, 
+		size_t *retlen, u_char *eccbuf, int oobsel);
 	int (*writev) (struct mtd_info *mtd, const struct iovec *vecs, unsigned long count, loff_t to, size_t *retlen);
+	int (*writev_ecc) (struct mtd_info *mtd, const struct iovec *vecs, unsigned long count, loff_t to, 
+		size_t *retlen, u_char *eccbuf, int oobsel);
 
 	/* Sync */
 	void (*sync) (struct mtd_info *mtd);

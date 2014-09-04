@@ -1,0 +1,54 @@
+# 
+#	Config.in for LIDS
+#
+
+if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+if [ "$CONFIG_SYSCTL" = "y" ]; then
+  mainmenu_option next_comment
+  comment 'Linux Intrusion Detection System'
+  #bool  'Linux Intrusion Detection System support  (EXPERIMENTAL)' CONFIG_LIDS
+  tristate 'Linux Intrusion Detection System support  (EXPERIMENTAL)' CONFIG_LIDS
+  if [ "$CONFIG_LIDS" != "n" ]; then
+
+     comment 'LIDS features'
+     int '  Maximum protected objects to manage' CONFIG_LIDS_MAX_INODE 256
+     int '  Maximum ACL subjects to manage' CONFIG_LIDS_MAX_SACL 256
+     int '  Maximum ACL objects to manage' CONFIG_LIDS_MAX_OACL 256
+     int '  Maximum protected proceeds' CONFIG_LIDS_MAX_PROTECTED_PID 256
+#     bool '  Hang up console when raising a security alert' CONFIG_LIDS_HANGUP
+     bool '  Security alert when execing unprotected programs before sealing LIDS' CONFIG_LIDS_SA_EXEC_UP
+     if [ "$CONFIG_LIDS_SA_EXEC_UP" = "y" ]; then
+         bool '    Do not execute unprotected programs before sealing LIDS' CONFIG_LIDS_NO_EXEC_UP
+     fi
+     bool '  Attempt not to flood logs' CONFIG_LIDS_NO_FLOOD_LOG
+     if [ "$CONFIG_LIDS_NO_FLOOD_LOG" = "y" ]; then
+        int '    Authorised time between two identic logs (seconds)' CONFIG_LIDS_TIMEOUT_AFTER_FLOOD 60
+     fi
+     
+    if [ "$CONFIG_PROC_FS" = "y" ]; then
+     bool '  Allow switching LIDS protections' CONFIG_LIDS_ALLOW_SWITCH
+     if [ "$CONFIG_LIDS_ALLOW_SWITCH" = "y" ]; then
+	bool '    Restrict mode switching to specified terminals' CONFIG_LIDS_RESTRICT_MODE_SWITCH
+	if [ "$CONFIG_LIDS_RESTRICT_MODE_SWITCH" = "y" ]; then
+	   bool '      Allow mode switching from a Linux Console' CONFIG_LIDS_MODE_SWITCH_CONSOLE
+	   bool '      Allow mode switching from a serial Console' CONFIG_LIDS_MODE_SWITCH_SERIAL
+	   bool '      Allow mode switching from a PTY' CONFIG_LIDS_MODE_SWITCH_PTY
+	fi
+        int '    Number of attempts to submit password' CONFIG_LIDS_MAX_TRY 3
+        int '    Time to wait after a fail (seconds)' CONFIG_LIDS_TTW_FAIL 3
+        bool '    Allow any program to switch LIDS protections' CONFIG_LIDS_ALLOW_ANY_PROG_SWITCH
+        bool '    Allow reloading config. file' CONFIG_LIDS_RELOAD_CONF
+     fi
+     fi
+
+     bool '  Send security alerts through network' CONFIG_LIDS_SA_THROUGH_NET
+     if [ "$CONFIG_LIDS_SA_THROUGH_NET" = "y" ]; then
+        int '     Number of connection tries before giving up' CONFIG_LIDS_NET_MAX_TRIES 3
+        int '    Sleep time after a failed connection' CONFIG_LIDS_NET_TIMEOUT 30
+        int '    Message queue size' CONFIG_LIDS_MSGQUEUE_SIZE 16
+     fi
+  bool '   LIDS Debug ' CONFIG_LIDS_DEBUG
+  fi
+  endmenu
+fi
+fi

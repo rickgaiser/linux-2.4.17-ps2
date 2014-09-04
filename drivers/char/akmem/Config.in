@@ -1,0 +1,13 @@
+#
+# another kernel memory device support
+#
+
+mainmenu_option next_comment
+comment 'AKMem(Another Kernel Memory)'
+
+bool 'Another kernel memory(Akmem) device support' CONFIG_AKMEM
+if [ "$CONFIG_AKMEM" != "n" ]; then
+   bool 'Akmem support (In case the device own major) [default => N]' CONFIG_AKMEM_OWNMAJOR $CONFIG_AKMEM
+fi
+
+endmenu

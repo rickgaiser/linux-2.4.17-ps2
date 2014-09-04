@@ -129,33 +129,33 @@ static int ip6_masked_addrcmp(struct in6_addr addr1, struct in6_addr mask,
 /* takes in current header and pointer to the header */
 /* if another header exists, sets hdrptr to the next header
    and returns the new header value, else returns 0 */
-static u_int8_t ip6_nexthdr(u_int8_t currenthdr, u_int8_t *hdrptr)
+static u_int8_t ip6_nexthdr(u_int8_t currenthdr, u_int8_t **hdrptr)
 {
-	int i;
 	u_int8_t hdrlen, nexthdr = 0;
+
 	switch(currenthdr){
 		case IPPROTO_AH:
 		/* whoever decided to do the length of AUTH for ipv6
 		in 32bit units unlike other headers should be beaten...
 		repeatedly...with a large stick...no, an even LARGER
 		stick...no, you're still not thinking big enough */
-			nexthdr = *hdrptr;
-			hdrlen = hdrptr[i] * 4 + 8;
-			hdrptr = hdrptr + hdrlen;
+			nexthdr = **hdrptr;
+			hdrlen = *hdrptr[1] * 4 + 8;
+			*hdrptr = *hdrptr + hdrlen;
 			break;
 		/*stupid rfc2402 */
 		case IPPROTO_DSTOPTS:
 		case IPPROTO_ROUTING:
 		case IPPROTO_HOPOPTS:
-			nexthdr = *hdrptr;
-			hdrlen = hdrptr[1] * 8 + 8;
-			hdrptr = hdrptr + hdrlen;
+			nexthdr = **hdrptr;
+			hdrlen = *hdrptr[1] * 8 + 8;
+			*hdrptr = *hdrptr + hdrlen;
 			break;
 		case IPPROTO_FRAGMENT:
-			nexthdr = *hdrptr;
-			hdrptr = hdrptr + 8;
+			nexthdr = **hdrptr;
+			*hdrptr = *hdrptr + 8;
 			break;
-	}	
+	}       
 	return nexthdr;
 
 }
@@ -228,7 +228,7 @@ ip6_packet_match(const struct ipv6hdr *ipv6,
 					return 0;
 				return 1;
 			}
-			currenthdr = ip6_nexthdr(currenthdr, hdrptr);
+			currenthdr = ip6_nexthdr(currenthdr, &hdrptr);
 		} while(currenthdr);
 		if (!(ip6info->invflags & IP6T_INV_PROTO))
 			return 0;

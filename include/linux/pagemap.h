@@ -85,6 +85,8 @@ extern void FASTCALL(unlock_page(struct page *page));
 	__find_lock_page(mapping, index, page_hash(mapping, index))
 extern struct page *find_trylock_page(struct address_space *, unsigned long);
 
+extern int add_to_page_cache_unique(struct page * page, struct address_space *mapping, unsigned long index, struct page **hash);
+
 extern void add_to_page_cache(struct page * page, struct address_space *mapping, unsigned long index);
 extern void add_to_page_cache_locked(struct page * page, struct address_space *mapping, unsigned long index);
 extern int add_to_page_cache_unique(struct page * page, struct address_space *mapping, unsigned long index, struct page **hash);

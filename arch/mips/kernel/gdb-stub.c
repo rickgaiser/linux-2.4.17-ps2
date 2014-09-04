@@ -11,8 +11,6 @@
  *  Send complaints, suggestions etc. to <andy@waldorf-gmbh.de>
  *
  *  Copyright (C) 1995 Andreas Busse
- *
- * $Id: gdb-stub.c,v 1.6 1999/05/01 22:40:35 ralf Exp $
  */
 
 /*
@@ -128,6 +126,7 @@
 #include <linux/mm.h>
 #include <linux/console.h>
 #include <linux/init.h>
+#include <linux/slab.h>
 
 #include <asm/asm.h>
 #include <asm/mipsregs.h>
@@ -353,7 +352,9 @@ static struct hard_trap_info {
 	{ 6, SIGBUS },			/* instruction bus error */
 	{ 7, SIGBUS },			/* data bus error */
 	{ 9, SIGTRAP },			/* break */
+#ifndef CONFIG_CPU_LX45XXX
 	{ 10, SIGILL },			/* reserved instruction */
+#endif
 /*	{ 11, SIGILL },		*/	/* CPU unusable */
 	{ 12, SIGFPE },			/* overflow */
 	{ 13, SIGTRAP },		/* trap */
@@ -578,7 +579,7 @@ void set_async_breakpoint(unsigned int epc)
 	async_bp.addr = epc;
 	async_bp.val  = *(unsigned *)epc;
 	*(unsigned *)epc = BP;
-	flush_cache_all();
+	__flush_cache_all();
 }
 
 
@@ -593,10 +594,11 @@ void handle_exception (struct gdb_regs *regs)
 	int sigval;
 	int addr;
 	int length;
+	int done = 0;
 	char *ptr;
 	unsigned long *stack;
 
-#if 0	
+#if 0
 	printk("in handle_exception()\n");
 	show_gdbregs(regs);
 #endif
@@ -609,7 +611,7 @@ void handle_exception (struct gdb_regs *regs)
 	 * traps for now.
 	 */
 	trap = (regs->cp0_cause & 0x7c) >> 2;
-/*	printk("trap=%d\n",trap); */
+	/* printk("trap=%d\n",trap); */
 	if (trap == 11) {
 		if (((regs->cp0_cause >> CAUSEB_CE) & 3) == 1) {
 			regs->cp0_status |= ST0_CU1;
@@ -695,7 +697,7 @@ void handle_exception (struct gdb_regs *regs)
 	/*
 	 * Wait for input from remote GDB
 	 */
-	while (1) {
+	while (!done) {
 		output_buffer[0] = 0;
 		getpacket(input_buffer);
 
@@ -713,6 +715,15 @@ void handle_exception (struct gdb_regs *regs)
 			break;
 
 		/*
+		 * kill the program; same treatment as detach
+		 */
+		case 'k':
+		case 'D':
+			done = 1;
+			__flush_cache_all();
+			break;
+
+		/*
 		 * Return the value of the CPU registers
 		 */
 		case 'g':
@@ -727,26 +738,21 @@ void handle_exception (struct gdb_regs *regs)
 	  
 		/*
 		 * set the value of the CPU registers - return OK
-		 * FIXME: Needs to be written
 		 */
 		case 'G':
 		{
-#if 0
-			unsigned long *newsp, psr;
-
 			ptr = &input_buffer[1];
-			hex2mem(ptr, (char *)registers, 16 * 4, 0); /* G & O regs */
-
-			/*
-			 * See if the stack pointer has moved. If so, then copy the
-			 * saved locals and ins to the new location.
-			 */
-
-			newsp = (unsigned long *)registers[SP];
-			if (sp != newsp)
-				sp = memcpy(newsp, sp, 16 * 4);
-
-#endif
+			hex2mem(ptr, (char *)&regs->reg0, 32*4, 0);
+			ptr += 32*8;
+			hex2mem(ptr, (char *)&regs->cp0_status, 6*4, 0);
+			ptr += 6*8;
+			hex2mem(ptr, (char *)&regs->fpr0, 32*4, 0);
+			ptr += 32*8;
+			hex2mem(ptr, (char *)&regs->cp1_fsr, 2*4, 0);
+			ptr += 2*8;
+			hex2mem(ptr, (char *)&regs->frame_ptr, 2*4, 0);
+			ptr += 2*8;
+			hex2mem(ptr, (char *)&regs->cp0_index, 16*4, 0);
 			strcpy(output_buffer,"OK");
 		 }
 		break;
@@ -805,17 +811,10 @@ void handle_exception (struct gdb_regs *regs)
 			 * NB: We flush both caches, just to be sure...
 			 */
 
-			flush_cache_all();
+			__flush_cache_all();
 			return;
 			/* NOTREACHED */
 			break;
-
-
-		/*
-		 * kill the program
-		 */
-		case 'k' :
-			break;		/* do nothing */
 
 
 		/*
@@ -834,7 +833,7 @@ void handle_exception (struct gdb_regs *regs)
 			 * use breakpoints and continue, instead.
 			 */
 			single_step(regs);
-			flush_cache_all();
+			__flush_cache_all();
 			return;
 			/* NOTREACHED */
 
@@ -923,11 +922,24 @@ void adel(void)
 	");
 }
 
+/*
+ * malloc is needed by gdb client in "call func()", even a private one
+ * will make gdb happy
+ */
+static void *malloc(size_t size)
+{
+	return kmalloc(size, GFP_ATOMIC);
+}
+
+static void free(void *where)
+{
+	kfree(where);
+}
+
 #ifdef CONFIG_GDB_CONSOLE
 
-void gdb_puts(const char *str)
+void gdb_putsn(const char *str, int l)
 {
-	int l = strlen(str);
 	char outbuf[18];
 
 	outbuf[0]='O';
@@ -949,7 +961,7 @@ static kdev_t gdb_console_dev(struct console *con)
 
 static void gdb_console_write(struct console *con, const char *s, unsigned n)
 {
-	gdb_puts(s);
+	gdb_putsn(s, n);
 }
 
 static struct console gdb_console = {

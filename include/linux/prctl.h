@@ -20,4 +20,11 @@
 #define PR_GET_KEEPCAPS   7
 #define PR_SET_KEEPCAPS   8
 
+/* Get/set floating-point exception mode (if meaningful) */
+#define PR_GET_FP_EXC	  9
+#define PR_SET_FP_EXC	 10
+# define PR_FP_EXC_DISABLED	0	/* FP exceptions disabled */
+# define PR_FP_EXC_NONRECOV	1	/* async non-recoverable exc. mode */
+# define PR_FP_EXC_ASYNC	2	/* async recoverable exception mode */
+# define PR_FP_EXC_PRECISE	3	/* precise exception mode */
 #endif /* _LINUX_PRCTL_H */

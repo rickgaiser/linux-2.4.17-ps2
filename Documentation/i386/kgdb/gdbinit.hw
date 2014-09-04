@@ -1,0 +1,107 @@
+
+#Using ia-32 hardware breakpoints.
+#
+#4 hardware breakpoints are available in ia-32 processors. These breakpoints
+#do not need code modification. They are set using debug registers.
+#
+#Each hardware breakpoint can be of one of the
+#three types: execution, write, access.
+#1. An Execution breakpoint is triggered when code at the breakpoint address is
+#executed.
+#2. A write breakpoint ( aka watchpoints ) is triggered when memory location
+#at the breakpoint address is written.
+#3. An access breakpoint is triggered when memory location at the breakpoint
+#address is either read or written.
+#
+#As hardware breakpoints are available in limited number, use software
+#breakpoints ( br command in gdb ) instead of execution hardware breakpoints.
+#
+#Length of an access or a write breakpoint defines length of the datatype to
+#be watched. Length is 1 for char, 2 short , 3 int.
+#
+#For placing execution, write and access breakpoints, use commands
+#hwebrk, hwwbrk, hwabrk
+#To remove a breakpoint use hwrmbrk command.
+#
+#These commands take following types of arguments. For arguments associated
+#with each command, use help command.
+#1. breakpointno: 0 to 3
+#2. length: 1 to 3
+#3. address: Memory location in hex ( without 0x ) e.g c015e9bc
+#
+#Use the command exinfo to find which hardware breakpoint occured.
+
+#hwebrk breakpointno address
+define hwebrk
+	maintenance packet Y$arg0,0,0,$arg1
+end
+document hwebrk
+	hwebrk <breakpointno> <address>
+	Places a hardware execution breakpoint
+	<breakpointno> = 0 - 3
+	<address> = Hex digits without leading "0x".
+end
+
+#hwwbrk breakpointno length address
+define hwwbrk
+	maintenance packet Y$arg0,1,$arg1,$arg2
+end
+document hwwbrk
+	hwwbrk <breakpointno> <length> <address>
+	Places a hardware write breakpoint
+	<breakpointno> = 0 - 3
+	<length> = 1 (1 byte), 2 (2 byte), 3 (4 byte)
+	<address> = Hex digits without leading "0x".
+end
+
+#hwabrk breakpointno length address
+define hwabrk
+	maintenance packet Y$arg0,1,$arg1,$arg2
+end
+document hwabrk
+	hwabrk <breakpointno> <length> <address>
+	Places a hardware access breakpoint
+	<breakpointno> = 0 - 3
+	<length> = 1 (1 byte), 2 (2 byte), 3 (4 byte)
+	<address> = Hex digits without leading "0x".
+end
+
+#hwrmbrk breakpointno
+define hwrmbrk
+	maintenance packet y$arg0
+end
+document hwrmbrk
+	hwrmbrk <breakpointno>
+	<breakpointno> = 0 - 3
+	Removes a hardware breakpoint
+end
+
+#exinfo 
+define exinfo
+	maintenance packet qE
+end
+document exinfo
+	exinfo 
+	Gives information about a breakpoint.
+end
+define get_cu
+	p $cu=(struct task_struct *)((int)$esp & ~8191)
+end
+document get_cu
+	get_cu
+	Gets and print the "current" value.  Defines $cu to be it.
+end
+define int_off
+	set var $flags=$eflags
+	set $eflags=$eflags&~0x200
+	end
+define int_on
+	set var $eflags|=$flags&0x200
+	end
+document int_off
+	saves the current interrupt state and clears the processor interrupt 
+	flag.  Use int_on to restore the saved flag.
+end
+document int_on
+	Restores the interrupt flag saved by int_off.
+end

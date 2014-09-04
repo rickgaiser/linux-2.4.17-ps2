@@ -45,6 +45,8 @@
 #include <linux/errno.h>
 #include <linux/sched.h>
 
+#include <asm/io.h>
+
 #include <linux/i2c.h>
 #include <linux/i2c-algo-ite.h>
 #include "i2c-ite.h"
@@ -56,7 +58,7 @@
 /* ----- global defines ----------------------------------------------- */
 #define DEB(x) if (i2c_debug>=1) x
 #define DEB2(x) if (i2c_debug>=2) x
-#define DEB3(x) if (i2c_debug>=3) x /* print several statistical values*/
+#define DEB3(x) if (i2c_debug>=3) {x;} else /* print several statistical values*/
 #define DEBPROTO(x) if (i2c_debug>=9) x;
  	/* debug the protocol by showing transferred bits */
 #define DEF_TIMEOUT 16
@@ -106,6 +108,7 @@ static void iic_stop(struct i2c_algo_iic_data *adap)
 static void iic_reset(struct i2c_algo_iic_data *adap)
 {
 	iic_outw(adap, PM_IBSR, iic_inw(adap, PM_IBSR) | 0x80);
+	iic_init(adap);
 }
 
 
@@ -198,12 +201,20 @@ static int iic_init (struct i2c_algo_iic_data *adap)
 	iic_outw(adap,ITE_I2CSSAR, 0);
 
 	/* Set clock counter register */
-	iic_outw(adap,ITE_I2CCKCNT, get_clock(adap));
+	iic_outw(adap,ITE_I2CCKCNT, (i = get_clock(adap)));
 
 	/* Set START/reSTART/STOP time registers */
-	iic_outw(adap,ITE_I2CSHDR, 0x0a);
-	iic_outw(adap,ITE_I2CRSUR, 0x0a);
-	iic_outw(adap,ITE_I2CPSUR, 0x0a);
+	if (((i >> 8) + (i & 0xff)) < 160) {
+		/* FAST mode (== 400kHz) */
+		iic_outw(adap,ITE_I2CSHDR, 0x0a);
+		iic_outw(adap,ITE_I2CRSUR, 0x0a);
+		iic_outw(adap,ITE_I2CPSUR, 0x0a);
+	} else {
+		/* STANDARD mode (== 100kHz) */
+		iic_outw(adap,ITE_I2CSHDR, 0x47);
+		iic_outw(adap,ITE_I2CRSUR, 0x50);
+		iic_outw(adap,ITE_I2CPSUR, 0x47);
+	}
 
 	/* Enable interrupts on completing the current transaction */
 	iic_outw(adap,ITE_I2CHCR, ITE_I2CHCR_IE | ITE_I2CHCR_HCE);
@@ -340,9 +351,10 @@ static int iic_sendbytes(struct i2c_adapter *i2c_adap,const char *buf,
 		char byte[2];
 		unsigned short word;
 	} tmp;
-   
+
 	iic_outw(adap, ITE_I2CSSAR, (unsigned short)buf[wrcount++]);
 	count--;
+
 	if (count == 0)
 		return -EIO;
 
@@ -354,8 +366,8 @@ static int iic_sendbytes(struct i2c_adapter *i2c_adap,const char *buf,
 
 			iic_outw(adap, ITE_I2CFBCR, 32);
 			for(j=0; j<32/2; j++) {
-				tmp.byte[1] = buf[wrcount++];
 				tmp.byte[0] = buf[wrcount++];
+				tmp.byte[1] = buf[wrcount++];
 				iic_outw(adap, ITE_I2CFDR, tmp.word); 
 			}
 
@@ -381,9 +393,9 @@ static int iic_sendbytes(struct i2c_adapter *i2c_adap,const char *buf,
 	}
 	if(remainder) {
 		iic_outw(adap, ITE_I2CFBCR, remainder);
-		for(i=0; i<remainder/2; i++) {
-			tmp.byte[1] = buf[wrcount++];
+		for(i=0; i<(remainder+1)/2; i++) {
 			tmp.byte[0] = buf[wrcount++];
+			tmp.byte[1] = (wrcount < remainder) ? buf[wrcount++] : 0;
 			iic_outw(adap, ITE_I2CFDR, tmp.word);
 		}
 
@@ -423,7 +435,7 @@ static int iic_readbytes(struct i2c_adapter *i2c_adap, char *buf, int count,
 		char byte[2];
 		unsigned short word;
 	} tmp;
-		
+	iic_outw(adap, ITE_I2CFCR, 1);
 	loops = count / 32;				/* 32-byte FIFO */
 	remainder = count % 32;
 
@@ -458,8 +470,8 @@ static int iic_readbytes(struct i2c_adapter *i2c_adap, char *buf, int count,
 
 			for(j=0; j<32/2; j++) {
 				tmp.word = iic_inw(adap, ITE_I2CFDR);
-				buf[rdcount++] = tmp.byte[1];
 				buf[rdcount++] = tmp.byte[0];
+				buf[rdcount++] = tmp.byte[1];
 			}
 
 			/* status FIFO underrun */
@@ -499,8 +511,8 @@ static int iic_readbytes(struct i2c_adapter *i2c_adap, char *buf, int count,
 
 		for(i=0; i<(remainder+1)/2; i++) {
 			tmp.word = iic_inw(adap, ITE_I2CFDR);
-			buf[rdcount++] = tmp.byte[1];
 			buf[rdcount++] = tmp.byte[0];
+			buf[rdcount++] = tmp.byte[1];
 		}
 
 		/* status FIFO underrun */
@@ -509,6 +521,7 @@ static int iic_readbytes(struct i2c_adapter *i2c_adap, char *buf, int count,
 	}
 
 	iic_stop(adap);
+
 	return rdcount;
 }
 
@@ -608,9 +621,11 @@ static inline int iic_doAddress(struct i2c_algo_iic_data *adap,
 
 		if (iic_inw(adap, ITE_I2CSAR) != addr) {
 			iic_outw(adap, ITE_I2CSAR, addr);
-			ret = try_address(adap, addr, retries);
-			if (ret!=1) {
+			ret = iic_itegpio_write_quick(msg->addr, 0);
+			if (ret < 0) {
+#ifdef DEBUG
 				printk("iic_doAddress: died at address code.\n");
+#endif /* DEBUG */
 				return -EREMOTEIO;
 			}
 		}
@@ -618,6 +633,263 @@ static inline int iic_doAddress(struct i2c_algo_iic_data *adap,
   }
 
 	return 0;
+}
+
+/*
+ *   IT8172G I2C-GPIO pin assignment
+ *        I2CSCL(I2CCLK):  GPIO18 (GPIO port C bit 2)
+ *        I2CSDA(I2CDATA): GPIO19 (GPIO port C bit 3)
+ */
+
+#define ite_gpio_base 0x14013800
+
+#define	ITE_GPADR	(*(volatile __u8 *)(0x14013800 + KSEG1))
+#define	ITE_GPBDR	(*(volatile __u8 *)(0x14013808 + KSEG1))
+#define	ITE_GPCDR	(*(volatile __u8 *)(0x14013810 + KSEG1))
+#define	ITE_GPACR	(*(volatile __u16 *)(0x14013802 + KSEG1))
+#define	ITE_GPBCR	(*(volatile __u16 *)(0x1401380a + KSEG1))
+#define	ITE_GPCCR	(*(volatile __u16 *)(0x14013812 + KSEG1))
+#define ITE_GPAICR	(*(volatile __u16 *)(0x14013804 + KSEG1))
+#define	ITE_GPBICR	(*(volatile __u16 *)(0x1401380c + KSEG1))
+#define	ITE_GPCICR	(*(volatile __u16 *)(0x14013814 + KSEG1))
+#define	ITE_GPAISR	(*(volatile __u8 *)(0x14013806 + KSEG1))
+#define	ITE_GPBISR	(*(volatile __u8 *)(0x1401380e + KSEG1))
+#define	ITE_GPCISR	(*(volatile __u8 *)(0x14013816 + KSEG1))
+#define	ITE_GCR		(*(volatile __u8 *)(0x14013818 + KSEG1))
+
+#define ITE_GPCCR_I2CSCL_MSK     0x0030
+#define ITE_GPCCR_I2CSDA_MSK     0x00c0
+#define ITE_GPCCR_I2CSCL_IN      0x0020
+#define ITE_GPCCR_I2CSDA_IN      0x0080
+#define ITE_GPCCR_I2CSCL_OUT     0x0010
+#define ITE_GPCCR_I2CSDA_OUT     0x0040
+
+#define ITE_GPCCR_I2CSCL_HI      ITE_GPCCR_I2CSCL_IN
+#define ITE_GPCCR_I2CSDA_HI      ITE_GPCCR_I2CSDA_IN
+#define ITE_GPCCR_I2CSCL_LO      ITE_GPCCR_I2CSCL_OUT
+#define ITE_GPCCR_I2CSDA_LO      ITE_GPCCR_I2CSDA_OUT
+
+#define ITE_GPCDR_I2CSCL_MSK     0x04
+#define ITE_GPCDR_I2CSDA_MSK     0x08
+
+void iic_itegpio_enter_gpio();
+void iic_itegpio_exit_gpio();
+
+inline void iic_itegpio_enter_gpio() {
+        ITE_GPCDR = ITE_GPCDR & 
+	        ~(ITE_GPCDR_I2CSCL_MSK | ITE_GPCDR_I2CSDA_MSK);  /* clear */
+	ITE_GPCCR = (ITE_GPCCR &
+	        ~(ITE_GPCCR_I2CSCL_MSK | ITE_GPCCR_I2CSDA_MSK)) |
+                ITE_GPCCR_I2CSCL_HI | ITE_GPCCR_I2CSDA_HI;
+}
+
+inline void iic_itegpio_exit_gpio() {
+        ITE_GPCCR = ITE_GPCCR &
+	        ~(ITE_GPCCR_I2CSCL_MSK | ITE_GPCCR_I2CSDA_MSK);
+}
+
+inline void iic_itegpio_set_scl(int scl) {
+        ITE_GPCCR = (ITE_GPCCR & ~ITE_GPCCR_I2CSCL_MSK) | 
+	        (scl ? ITE_GPCCR_I2CSCL_HI : ITE_GPCCR_I2CSCL_LO);
+}
+
+inline void iic_itegpio_set_sda(int sda) {
+        ITE_GPCCR = (ITE_GPCCR & ~ITE_GPCCR_I2CSDA_MSK) | 
+	        (sda ? ITE_GPCCR_I2CSDA_HI : ITE_GPCCR_I2CSDA_LO);
+}
+
+inline unsigned int iic_itegpio_get_scl() {
+        return ((ITE_GPCDR & ITE_GPCDR_I2CSCL_MSK) >> 2);
+}
+
+inline unsigned int iic_itegpio_get_sda() {
+        return ((ITE_GPCDR & ITE_GPCDR_I2CSDA_MSK) >> 3);
+}
+
+inline unsigned int iic_itegpio_get_i2c() {
+        return ((ITE_GPCDR & (ITE_GPCDR_I2CSCL_MSK | ITE_GPCDR_I2CSDA_MSK)) >> 2);
+}
+
+/*
+ * I2C Timing Parameters
+ */
+
+#define  IIC_ITEGPIO_TSCL_HI  ((inw(ITE_I2CCKCNT) & ITE_I2CCKCNT_HPCC_MASK) / 16)
+#define  IIC_ITEGPIO_TSCL_LO  (((inw(ITE_I2CCKCNT) & ITE_I2CCKCNT_LPCC_MASK) >> 8) / 16)
+/*
+  #define  IIC_ITEGPIO_TSCL_HI  ((inw(ITE_I2CCKCNT) & ITE_I2CCKCNT_HPCC_MASK) / 16)
+  #define  IIC_ITEGPIO_TSCL_LO  (((inw(ITE_I2CCKCNT) & ITE_I2CCKCNT_LPCC_MASK) >> 8) / 16)
+*/
+#define  IIC_ITEGPIO_TIMEOUT  10
+
+static int iic_itegpio_start_condition() {
+        int i;
+
+    /**** Waiting for bus free ****/	
+	for (i = 0; i < IIC_ITEGPIO_TIMEOUT; i++) {
+	        if (iic_itegpio_get_i2c() == 0x03) {
+	                break;
+		}
+		udelay(1);
+	}
+	if (i >= IIC_ITEGPIO_TIMEOUT) {
+#ifdef DEBUG
+	        printk("iic_itegpio_write_quick: i2c bus free timeout\n");
+#endif /* DEBUG */
+		return(-1);
+	}
+
+    /**** Start Condition ****/	
+	iic_itegpio_set_sda(0);
+	udelay(1);
+	iic_itegpio_set_scl(0);
+	udelay(2);
+	iic_itegpio_set_sda(1);
+	if (iic_itegpio_get_sda() != 0x1) {
+#ifdef DEBUG
+	        printk("iic_itegpio_write_quick: i2c bus failed arbitration\n");
+#endif /* DEBUG */
+	        return(-1);
+	}
+	return(0);
+}
+
+static int iic_itegpio_sendbyte(unsigned int senddata) {
+        int i, n;
+
+    /**** Send Address Data Bits ****/	
+	for (n = 0; n < 8; n++) {
+	        iic_itegpio_set_sda((senddata & 0x80) ? 0x1 : 0x0);
+	        udelay(IIC_ITEGPIO_TSCL_LO);
+	        iic_itegpio_set_scl(1);
+		for (i = 0; i < IIC_ITEGPIO_TIMEOUT; i++) {
+		        if (iic_itegpio_get_scl() == 0x1) {
+		                break;
+			}
+			udelay(1);
+		}
+		if (i >= IIC_ITEGPIO_TIMEOUT) {
+#ifdef DEBUG
+		        printk("iic_itegpio_write_quick: i2c scl low timeout\n");
+#endif /* DEBUG */
+		        return(-1);
+		}
+		
+	        udelay(IIC_ITEGPIO_TSCL_HI);
+	        iic_itegpio_set_scl(0);
+		senddata = senddata << 1;
+	}
+
+    /**** Waiting for Acknowledge ****/	
+	iic_itegpio_set_sda(1);
+	udelay(IIC_ITEGPIO_TSCL_LO);
+	for (i = 0; i < IIC_ITEGPIO_TIMEOUT; i++) {
+	        if (iic_itegpio_get_sda() == 0x0) {
+	                break;
+		}
+		udelay(1);
+	}
+	if (i >= IIC_ITEGPIO_TIMEOUT) {
+#ifdef DEBUG
+	        printk("iic_itegpio_write_quick: Ack LO timeout\n");
+#endif /* DEBUG */
+		return(-1);
+	}
+	iic_itegpio_set_scl(1);
+	udelay(IIC_ITEGPIO_TSCL_HI);
+	iic_itegpio_set_sda(0);
+	iic_itegpio_set_scl(0);
+
+	return(0);
+}
+
+static int iic_itegpio_stop_condition() {
+    /**** Stop Condition ****/	
+	udelay(IIC_ITEGPIO_TSCL_LO);
+	iic_itegpio_set_scl(1);
+	udelay(1);
+	iic_itegpio_set_sda(1);
+	return (0);
+}
+
+static int iic_itegpio_error_condition() {
+    /**** Error Condition ****/	
+	iic_itegpio_set_scl(1);
+	udelay(1);
+	iic_itegpio_set_sda(1);
+	udelay(IIC_ITEGPIO_TSCL_HI);
+	return (0);
+}
+
+/*
+ * This routine suports only 1 master on the i2c bus.
+ */
+
+static int iic_itegpio_write_quick(__u16 addr, unsigned char data) {
+        unsigned int senddata;
+	int ret = 0;
+
+        iic_itegpio_enter_gpio();
+
+	if (iic_itegpio_start_condition() < 0) { 
+	  /* failed start condition */
+	        ret = -1;
+		goto error_rtn;
+	}
+
+	senddata = (addr << 1) | (data & 0x01);
+	if (iic_itegpio_sendbyte(senddata) < 0) { 
+	  /* couldn't succeed sending bits */
+	        ret = -1;
+		goto error_rtn;
+	}
+	iic_itegpio_stop_condition();
+	iic_itegpio_exit_gpio();
+
+	return(ret);
+
+ error_rtn:
+	iic_itegpio_error_condition();
+	iic_itegpio_exit_gpio();
+
+	return(ret);
+}
+
+static int iic_itegpio_write_1byte(__u16 addr, char *data) {
+        unsigned int senddata;
+	int ret = 0;
+
+        iic_itegpio_enter_gpio();
+
+	if (iic_itegpio_start_condition() < 0) { 
+	  /* failed start condition */
+	        ret = -1;
+		goto error_rtn;
+	}
+
+	senddata = (addr << 1); /* write */
+	if (iic_itegpio_sendbyte(senddata) < 0) { 
+	  /* couldn't succeed sending bits */
+	        ret = -1;
+		goto error_rtn;
+	}
+
+	senddata = data;
+	if (iic_itegpio_sendbyte(senddata) < 0) { 
+	  /* couldn't succeed sending bits */
+	        ret = -1;
+		goto error_rtn;
+	}
+	iic_itegpio_stop_condition();
+	iic_itegpio_exit_gpio();
+
+	return(ret);
+
+error_rtn:
+	iic_itegpio_error_condition();
+	iic_itegpio_exit_gpio();
+
+	return(ret);
 }
 
 
@@ -636,16 +908,23 @@ static int iic_xfer(struct i2c_adapter *i2c_adap,
 	struct i2c_msg *pmsg;
 	int i = 0;
 	int ret, timeout;
-    
-	pmsg = &msgs[i];
+
+	pmsg = &msgs[num-1];
 
 	if(!pmsg->len) {
-		DEB2(printk("iic_xfer: read/write length is 0\n");)
-		return -EIO;
+	        iic_itegpio_write_quick(pmsg->addr, 
+			(pmsg->flags & I2C_M_RD) ? 1 : 0);
+		return pmsg->len;
 	}
-	if(!(pmsg->flags & I2C_M_RD) && (!(pmsg->len)%2) ) {
-		DEB2(printk("iic_xfer: write buffer length is not odd\n");)
-		return -EIO; 
+
+	if(!(pmsg->flags & I2C_M_RD) && (pmsg->len == 1) ) {
+	  iic_itegpio_write_1byte(pmsg->addr, pmsg->buf);
+	  return pmsg->len;
+	}
+
+	if (msgs[0].len == 2 && msgs[0].len == 3) { /* I2C_SMBUS_PROC_CALL */
+		DEB2(printk("iic_xfer: I2C_SMBUS_PROC_CALL is not supported\n");)
+		return -EIO;
 	}
 
 	/* Wait for any pending transfers to complete */
@@ -674,18 +953,22 @@ static int iic_xfer(struct i2c_adapter *i2c_adap,
 	DEB3(printk("iic_xfer: Msg %d, addr=0x%x, flags=0x%x, len=%d\n",
 		i, msgs[i].addr, msgs[i].flags, msgs[i].len);)
 
-	if(pmsg->flags & I2C_M_RD) 		/* Read */
-		ret = iic_readbytes(i2c_adap, pmsg->buf, pmsg->len, 0);
-	else {													/* Write */ 
+	if(pmsg->flags & I2C_M_RD) {		/* Read */
+	        if (msgs[1].len) {   /* ! I2C_SMBUS_BYTE_READ --> SREAD */
+		        ret = iic_readbytes(i2c_adap, pmsg->buf, pmsg->len, 1);
+		} else {            /* I2C_SMBUS_BYTE_READ --> READ */
+		        ret = iic_readbytes(i2c_adap, pmsg->buf, pmsg->len, 0);
+		}
+	} else {													/* Write */ 
 		udelay(1000);
 		ret = iic_sendbytes(i2c_adap, pmsg->buf, pmsg->len);
 	}
 
-	if (ret != pmsg->len)
+	if (ret != pmsg->len) {
 		DEB3(printk("iic_xfer: error or fail on read/write %d bytes.\n",ret)); 
-	else
+	} else {
 		DEB3(printk("iic_xfer: read/write %d bytes.\n",ret));
-
+	} 
 	return ret;
 }
 
@@ -735,8 +1018,10 @@ static int algo_control(struct i2c_adapter *adapter,
 
 static u32 iic_func(struct i2c_adapter *adap)
 {
-	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR | 
-	       I2C_FUNC_PROTOCOL_MANGLING; 
+        return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE | 
+	       I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA | 
+	       I2C_FUNC_SMBUS_BLOCK_DATA | I2C_FUNC_SMBUS_I2C_BLOCK | 
+	       I2C_FUNC_10BIT_ADDR | I2C_FUNC_PROTOCOL_MANGLING; 
 }
 
 /* -----exported algorithm data: -------------------------------------	*/
@@ -783,7 +1068,6 @@ int i2c_iic_add_bus(struct i2c_adapter *adap)
 #ifdef MODULE
 	MOD_INC_USE_COUNT;
 #endif
-
 	i2c_add_adapter(adap);
 	iic_init(iic_adap);
 
@@ -821,7 +1105,6 @@ int i2c_iic_del_bus(struct i2c_adapter *adap)
 #endif
 	return 0;
 }
-
 
 int __init i2c_algo_iic_init (void)
 {

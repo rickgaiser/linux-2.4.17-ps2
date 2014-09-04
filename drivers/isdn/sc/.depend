@@ -1,0 +1,78 @@
+card.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdnif.h \
+   message.h
+	@touch card.h
+command.o: command.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   includes.h \
+   hardware.h \
+   message.h \
+   card.h \
+   scioc.h
+debug.o: debug.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h
+event.o: event.c \
+   includes.h \
+   hardware.h \
+   message.h \
+   card.h
+hardware.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/param.h
+	@touch hardware.h
+includes.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdnif.h \
+   debug.h
+	@touch includes.h
+init.o: init.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   includes.h \
+   hardware.h \
+   card.h
+interrupt.o: interrupt.c \
+   includes.h \
+   hardware.h \
+   message.h \
+   card.h
+ioctl.o: ioctl.c \
+   includes.h \
+   hardware.h \
+   message.h \
+   card.h \
+   scioc.h
+message.o: message.c \
+   includes.h \
+   hardware.h \
+   message.h \
+   card.h
+packet.o: packet.c \
+   includes.h \
+   hardware.h \
+   message.h \
+   card.h
+shmem.o: shmem.c \
+   includes.h \
+   hardware.h \
+   card.h
+timer.o: timer.c \
+   includes.h \
+   hardware.h \
+   message.h \
+   card.h
+.PRECIOUS:	card.h \
+	hardware.h \
+	includes.h \
+

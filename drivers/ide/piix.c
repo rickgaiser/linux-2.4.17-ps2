@@ -3,6 +3,9 @@
  *
  *  Copyright (C) 1998-1999 Andrzej Krzysztofowicz, Author and Maintainer
  *  Copyright (C) 1998-2000 Andre Hedrick <andre@linux-ide.org>
+ *
+ *  2002/04/24 Modified for MPU-300 by Sony Corporation.
+ *
  *  May be copied or modified under the terms of the GNU General Public License
  *
  *  PIO mode setting function for Intel chipsets.  
@@ -516,6 +519,15 @@ void __init ide_init_piix (ide_hwif_t *hwif)
 		return;
 	}
 
+#ifdef CONFIG_SNSC_MPU300
+        /* IDE 0 is NAND Flash, so no autotune */
+        if (hwif->channel == 0) {
+                hwif->drives[0].autotune = 2;
+                hwif->drives[1].autotune = 2;
+                hwif->autodma = 0;
+                return;
+        }
+#endif /* CONFIG_SNSC_MPU300 */
 	hwif->tuneproc = &piix_tune_drive;
 	hwif->drives[0].autotune = 1;
 	hwif->drives[1].autotune = 1;
@@ -532,5 +544,22 @@ void __init ide_init_piix (ide_hwif_t *hwif)
 	hwif->dmaproc = &piix_dmaproc;
 	hwif->speedproc = &piix_tune_chipset;
 #endif /* CONFIG_PIIX_TUNING */
+#ifdef CONFIG_SNSC_MPU300
+        /* Ide controllers except for ICH2 primary I/F must be passed 
+           hardware reset protocol because no check is done in boot ROM */
+        if (hwif->channel == 1) {
+                unsigned long timeout;
+                ide_drive_t *drive = &hwif->drives[0];
+
+                timeout = jiffies + WAIT_WORSTCASE;
+                while (IN_BYTE(IDE_ALTSTATUS_REG) & BUSY_STAT) {
+                        if (time_after(jiffies, timeout)) {
+                                printk("%s: hardware reset timeout\n", hwif->name);
+                                break;
+                        }
+                        ide_delay_50ms();
+                }
+        }
+#endif /* CONFIG_SNSC_MPU300 */
 #endif /* !CONFIG_BLK_DEV_IDEDMA */
 }

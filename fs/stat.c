@@ -10,6 +10,7 @@
 #include <linux/file.h>
 #include <linux/smp_lock.h>
 #include <linux/highuid.h>
+#include <linux/security.h>
 
 #include <asm/uaccess.h>
 
@@ -19,14 +20,20 @@
 static __inline__ int
 do_revalidate(struct dentry *dentry)
 {
+	int error;
 	struct inode * inode = dentry->d_inode;
-	if (inode->i_op && inode->i_op->revalidate)
+	if (inode->i_op && inode->i_op->revalidate) {
+		if ((error = security_inode_revalidate(dentry)))
+			return error;
 		return inode->i_op->revalidate(dentry);
+	}
 	return 0;
 }
 
 
-#if !defined(__alpha__) && !defined(__sparc__) && !defined(__ia64__) && !defined(CONFIG_ARCH_S390) && !defined(__hppa__) && !defined(__x86_64__)
+#if !defined(__alpha__) && !defined(__sparc__) && !defined(__ia64__) && \
+    !defined(CONFIG_ARCH_S390) && !defined(__hppa__) && !defined(__arm__) && \
+    !defined(__x86_64__)
 
 /*
  * For backward compatibility?  Maybe this should be moved
@@ -36,6 +43,10 @@ static int cp_old_stat(struct inode * inode, struct __old_kernel_stat * statbuf)
 {
 	static int warncount = 5;
 	struct __old_kernel_stat tmp;
+	int retval;
+
+	if ((retval = security_inode_stat(inode)))
+		return retval;
 
 	if (warncount > 0) {
 		warncount--;
@@ -70,6 +81,10 @@ static int cp_new_stat(struct inode * inode, struct stat * statbuf)
 {
 	struct stat tmp;
 	unsigned int blocks, indirect;
+	int retval;
+
+	if ((retval = security_inode_stat(inode)))
+		return retval;
 
 	memset(&tmp, 0, sizeof(tmp));
 	tmp.st_dev = kdev_t_to_nr(inode->i_dev);
@@ -127,7 +142,9 @@ static int cp_new_stat(struct inode * inode, struct stat * statbuf)
 }
 
 
-#if !defined(__alpha__) && !defined(__sparc__) && !defined(__ia64__) && !defined(CONFIG_ARCH_S390) && !defined(__hppa__) && !defined(__x86_64__)
+#if !defined(__alpha__) && !defined(__sparc__) && !defined(__ia64__) && \
+    !defined(CONFIG_ARCH_S390) && !defined(__hppa__) && !defined(__arm__) && \
+    !defined(__x86_64__)
 /*
  * For backward compatibility?  Maybe this should be moved
  * into arch/i386 instead?
@@ -163,7 +180,9 @@ asmlinkage long sys_newstat(char * filename, struct stat * statbuf)
 	return error;
 }
 
-#if !defined(__alpha__) && !defined(__sparc__) && !defined(__ia64__) && !defined(CONFIG_ARCH_S390) && !defined(__hppa__) && !defined(__x86_64__)
+#if !defined(__alpha__) && !defined(__sparc__) && !defined(__ia64__) && \
+    !defined(CONFIG_ARCH_S390) && !defined(__hppa__) && !defined(__arm__) && \
+    !defined(__x86_64__)
 
 /*
  * For backward compatibility?  Maybe this should be moved
@@ -201,7 +220,9 @@ asmlinkage long sys_newlstat(char * filename, struct stat * statbuf)
 	return error;
 }
 
-#if !defined(__alpha__) && !defined(__sparc__) && !defined(__ia64__) && !defined(CONFIG_ARCH_S390) && !defined(__hppa__) && !defined(__x86_64__)
+#if !defined(__alpha__) && !defined(__sparc__) && !defined(__ia64__) && \
+    !defined(CONFIG_ARCH_S390) && !defined(__hppa__) && !defined(__arm__) && \
+    !defined(__x86_64__)
 
 /*
  * For backward compatibility?  Maybe this should be moved
@@ -258,8 +279,10 @@ asmlinkage long sys_readlink(const char * path, char * buf, int bufsiz)
 		error = -EINVAL;
 		if (inode->i_op && inode->i_op->readlink &&
 		    !(error = do_revalidate(nd.dentry))) {
-			UPDATE_ATIME(inode);
-			error = inode->i_op->readlink(nd.dentry, buf, bufsiz);
+			if (!(error = security_inode_readlink(nd.dentry))) {
+				UPDATE_ATIME(inode);
+				error = inode->i_op->readlink(nd.dentry, buf, bufsiz);
+			}
 		}
 		path_release(&nd);
 	}
@@ -274,6 +297,10 @@ static long cp_new_stat64(struct inode * inode, struct stat64 * statbuf)
 {
 	struct stat64 tmp;
 	unsigned int blocks, indirect;
+	int retval;
+
+	if ((retval = security_inode_stat(inode)))
+		return retval;
 
 	memset(&tmp, 0, sizeof(tmp));
 	tmp.st_dev = kdev_t_to_nr(inode->i_dev);

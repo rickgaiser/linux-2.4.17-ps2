@@ -481,6 +481,7 @@ static int sound_mmap(struct file *file, struct vm_area_struct *vma)
 		return -EAGAIN;
 	}
 
+	vma->vm_flags &= ~VM_IO;
 	dmap->mapping_flags |= DMA_MAP_MAPPED;
 
 	if( audio_devs[dev]->d->mmap)

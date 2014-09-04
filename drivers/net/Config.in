@@ -1,3 +1,4 @@
+# $USAGI: Config.in,v 1.16 2002/02/27 12:12:51 yoshfuji Exp $
 #
 # Network device configuration
 #
@@ -30,15 +31,34 @@ if [ "$CONFIG_NET_ETHERNET" = "y" ]; then
       if [ "$CONFIG_ARCH_ACORN" = "y" ]; then
          source drivers/acorn/net/Config.in
       fi
+      if [ "$CONFIG_SA1100_CERF" = "y" ]; then
+         tristate '  CerfBoard onboard CS8900A support' CONFIG_CERF_CS8900A
+      fi
+   fi
+   if [ "$CONFIG_ARCH_CAMELOT" = "y" ]; then
+	tristate ' Altera Ether00 support' CONFIG_ETHER00
    fi
    if [ "$CONFIG_PPC" = "y" ]; then
       dep_tristate '  MACE (Power Mac ethernet) support' CONFIG_MACE $CONFIG_ALL_PPC
       if [ "$CONFIG_MACE" != "n" ]; then
-        bool '    Use AAUI port instead of TP by default' CONFIG_MACE_AAUI_PORT
+	 bool '    Use AAUI port instead of TP by default' CONFIG_MACE_AAUI_PORT
       fi
       dep_tristate '  BMAC (G3 ethernet) support' CONFIG_BMAC $CONFIG_ALL_PPC
       dep_tristate '  GMAC (G4/iBook ethernet) support' CONFIG_GMAC $CONFIG_ALL_PPC
-      tristate '  National DP83902AV (Oak ethernet) support' CONFIG_OAKNET
+      if [ "$CONFIG_4xx" = "y" ]; then
+         if [ "$CONFIG_STB03xxx" = "y" -o "$CONFIG_403GCX" = "y" ]; then
+	    tristate '  National DP83902AV (Oak ethernet) support' CONFIG_OAKNET
+	 fi
+	 if [ "$CONFIG_405GP" = "y" -o "$CONFIG_NP405" = "y" ]; then
+            bool '  PowerPC 405 on-chip ethernet' CONFIG_PPC405_ENET
+	 fi
+	 if [ "$CONFIG_PPC405_ENET" = "y" ]; then
+	    bool '    Verbose error messages' CONFIG_PPC405_ENET_ERROR_MSG
+	    int '    Number of receive buffers' CONFIG_PPC405_ENET_RX_BUFF 64
+	    int '    Number of transmit buffers' CONFIG_PPC405_ENET_TX_BUFF 8
+	    int '    Frame gap' CONFIG_PPC405_ENET_GAP 8
+         fi
+      fi
    fi
    if [ "$CONFIG_ZORRO" = "y" ]; then
       tristate '  Ariadne support' CONFIG_ARIADNE
@@ -58,8 +78,14 @@ if [ "$CONFIG_NET_ETHERNET" = "y" ]; then
    if [ "$CONFIG_MIPS_AU1000" = "y" ]; then
       bool '  MIPS AU1000 Ethernet support' CONFIG_MIPS_AU1000_ENET
    fi
+   if [ "$CONFIG_SIBYTE_SB1250" = "y" ]; then
+      tristate '  SB1250 Ethernet support' CONFIG_NET_SB1250_MAC
+   fi
    if [ "$CONFIG_SGI_IP27" = "y" ]; then
       bool '  SGI IOC3 Ethernet' CONFIG_SGI_IOC3_ETH
+   fi
+   if [ "$CONFIG_SGI_IP32" = "y" ]; then
+      tristate '  SGI O2 MACE Fast Ethernet support' CONFIG_SGI_O2MACE_ETH
    fi
    if [ "$CONFIG_IA64_SGI_SN1" = "y" ]; then
       bool '  SGI IOC3 Ethernet' CONFIG_SGI_IOC3_ETH
@@ -100,7 +126,8 @@ if [ "$CONFIG_NET_ETHERNET" = "y" ]; then
       dep_tristate '    SMC Ultra MCA support' CONFIG_ULTRAMCA $CONFIG_MCA
       dep_tristate '    SMC Ultra support' CONFIG_ULTRA $CONFIG_ISA
       dep_tristate '    SMC Ultra32 EISA support' CONFIG_ULTRA32 $CONFIG_EISA
-      dep_tristate '    SMC 9194 support' CONFIG_SMC9194 $CONFIG_ISA
+      tristate '    SMC 9194 support' CONFIG_SMC9194
+      tristate '    SMC 91111 single-chip ethernet support' CONFIG_SMC91111
    fi
    bool '  Racal-Interlan (Micom) NI cards' CONFIG_NET_VENDOR_RACAL
    if [ "$CONFIG_NET_VENDOR_RACAL" = "y" ]; then
@@ -137,6 +164,7 @@ if [ "$CONFIG_NET_ETHERNET" = "y" ]; then
       if [ "$CONFIG_OBSOLETE" = "y" ]; then
          tristate '    SK_G16 support' CONFIG_SK_G16
       fi
+      tristate '    CS89x0 support' CONFIG_CS89x0
    fi
    if [ "$CONFIG_MCA" = "y" ]; then
       tristate '  SKnet MCA support' CONFIG_SKMC
@@ -150,6 +178,7 @@ if [ "$CONFIG_NET_ETHERNET" = "y" ]; then
    fi
    if [ "$CONFIG_NET_PCI" = "y" ]; then
       dep_tristate '    AMD PCnet32 PCI support' CONFIG_PCNET32 $CONFIG_PCI
+      dep_mbool    '        Use VMware support with AMD PCnet32(EXPERIMENTAL)' CONFIG_PCNET32_VMWARE $CONFIG_PCNET32 $CONFIG_EXPERIMENTAL
       dep_tristate '    Adaptec Starfire support (EXPERIMENTAL)' CONFIG_ADAPTEC_STARFIRE $CONFIG_PCI $CONFIG_EXPERIMENTAL
       if [ "$CONFIG_ISA" = "y" -o "$CONFIG_EISA" = "y" ]; then
 	 dep_tristate '    Ansel Communications EISA 3200 support (EXPERIMENTAL)' CONFIG_AC3200 $CONFIG_EXPERIMENTAL
@@ -162,12 +191,18 @@ if [ "$CONFIG_NET_ETHERNET" = "y" ]; then
          dep_bool '      New bus configuration (EXPERIMENTAL)' CONFIG_TULIP_MWI $CONFIG_EXPERIMENTAL
          bool '      Use PCI shared mem for NIC registers' CONFIG_TULIP_MMIO
       fi
+      dep_tristate '    TOSHIBA TC35815 Ethernet support' CONFIG_TC35815 $CONFIG_PCI
       if [ "$CONFIG_PCI" = "y" -o "$CONFIG_EISA" = "y" ]; then
          tristate '    Generic DECchip & DIGITAL EtherWORKS PCI/EISA' CONFIG_DE4X5
          tristate '    Digi Intl. RightSwitch SE-X support' CONFIG_DGRS
       fi
       dep_tristate '    Davicom DM910x/DM980x support' CONFIG_DM9102 $CONFIG_PCI
       dep_tristate '    EtherExpressPro/100 support' CONFIG_EEPRO100 $CONFIG_PCI
+      dep_tristate '    EtherExpressPro/100 Intel Driver support' CONFIG_INTEL_E100 $CONFIG_PCI
+      if [ "$CONFIG_INTEL_E100" = "y" -o "$CONFIG_INTEL_E100" = "m" ]; then
+	 bool      '        EtherExpressPro/100 Intel Driver PROC interface' CONFIG_INTEL_E100_PROC
+	 bool      '        EtherExpressPro/100 Intel Driver Diagnostics' CONFIG_INTEL_E100_IDIAG
+      fi
       dep_tristate '    Mylex EISA LNE390A/B support (EXPERIMENTAL)' CONFIG_LNE390 $CONFIG_EISA $CONFIG_EXPERIMENTAL
       dep_tristate '    Myson MTD-8xx PCI Ethernet support' CONFIG_FEALNX $CONFIG_PCI
       dep_tristate '    National Semiconductor DP8381x series PCI Ethernet support' CONFIG_NATSEMI $CONFIG_PCI
@@ -179,6 +214,9 @@ if [ "$CONFIG_NET_ETHERNET" = "y" ]; then
       dep_mbool '      Use PIO instead of MMIO' CONFIG_8139TOO_PIO $CONFIG_8139TOO
       dep_mbool '      Support for automatic channel equalization (EXPERIMENTAL)' CONFIG_8139TOO_TUNE_TWISTER $CONFIG_8139TOO $CONFIG_EXPERIMENTAL
       dep_mbool '      Support for older RTL-8129/8130 boards' CONFIG_8139TOO_8129 $CONFIG_8139TOO
+      if [ "$CONFIG_SH_DREAMCAST" = "y" ]; then
+	 dep_mbool '      Support for Dreamcast Broad Band Adaptor' CONFIG_8139TOO_DREAMCAST $CONFIG_8139TOO
+      fi
       dep_tristate '    SiS 900/7016 PCI Fast Ethernet Adapter support' CONFIG_SIS900 $CONFIG_PCI
       dep_tristate '    SMC EtherPower II' CONFIG_EPIC100 $CONFIG_PCI
       dep_tristate '    Sundance Alta support' CONFIG_SUNDANCE $CONFIG_PCI
@@ -211,6 +249,24 @@ if [ "$CONFIG_NET_ETHERNET" = "y" ]; then
    fi 
    if [ "$CONFIG_BAGET_MIPS" = "y" ]; then
       tristate '  Baget AMD LANCE support' CONFIG_BAGETLANCE
+   fi
+   if [ "$CONFIG_NEC_OSPREY" = "y" ]; then
+      bool '  Memory-mapped onboard NE2000-compatible ethernet' CONFIG_NE2000
+   fi
+   if [ "$CONFIG_NEC_KORVA" = "y" ]; then
+      bool '  NEC Memory-mapped onboard (Candy) Ethernet' CONFIG_NEC_CANDY
+   fi
+
+   dep_tristate 'MontaVista(tm) Net CompactPCI Backplane Networking' CONFIG_HHNET $CONFIG_PCI
+   if [ "$CONFIG_HHNET" = "y" ]; then
+     if [ "$CONFIG_MENF1" = "y" -o "$CONFIG_PCORE" = "y" ]; then
+        bool '   MontaVista(tm) Net DMA Support' CONFIG_HHNET_DMA
+     fi 
+   fi
+   if [ "$CONFIG_HHNET" = "m" ]; then
+     if [ "$CONFIG_MENF1" = "y" -o "$CONFIG_PCORE" = "y" ]; then
+        tristate '   MontaVista(tm) Net DMA Support' CONFIG_HHNET_DMA
+     fi 
    fi
 fi
 

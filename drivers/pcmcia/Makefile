@@ -10,7 +10,7 @@
 
 O_TARGET := pcmcia.o
 
-export-objs := ds.o cs.o yenta.o pci_socket.o
+export-objs := ds.o cs.o yenta.o pci_socket.o sa1100_h3600.o h3600_backpaq.o
 
 list-multi := pcmcia_core.o yenta_socket.o
 
@@ -58,18 +58,29 @@ else
      endif
   endif
 endif
+obj-$(CONFIG_PCMCIA_M8XX)			+= m8xx_pcmcia.o
+obj-$(CONFIG_PCMCIA_AU1000)			+= au1000_ss.o
+obj-$(CONFIG_PCMCIA_AU1500)			+= au1500_ss.o
+au1000_ss-objs-y				:= au1000_generic.o
+au1000_ss-objs-$(CONFIG_MIPS_PB1000)		+= au1000_pb1000.o
+au1000_ss-objs-$(CONFIG_MIPS_PB1500)		+= au1000_pb1500.o
+au1000_ss-objs-$(CONFIG_SNSC_MPU200)		+= au1000_snsc_mpu200.o
 
+obj-$(CONFIG_PCMCIA_CLPS6700)	+= clps6700.o
 obj-$(CONFIG_PCMCIA_SA1100)	+= sa1100_cs.o
+obj-$(CONFIG_MERCURY_BACKPAQ)   += h3600_backpaq.o
+obj-$(CONFIG_H3600_SLEEVE)      += h3600_generic_sleeve.o
 
 sa1100_cs-objs-y				:= sa1100_generic.o
 sa1100_cs-objs-$(CONFIG_SA1100_ASSABET)		+= sa1100_assabet.o
 sa1100_cs-objs-$(CONFIG_ASSABET_NEPONSET)	+= sa1100_neponset.o
-sa1100_cs-objs-$(CONFIG_SA1100_H3600)		+= sa1100_h3600.o
+sa1100_cs-objs-$(CONFIG_SA1100_H3XXX)		+= sa1100_h3600.o
 sa1100_cs-objs-$(CONFIG_SA1100_CERF)		+= sa1100_cerf.o
 sa1100_cs-objs-$(CONFIG_SA1100_GRAPHICSCLIENT)	+= sa1100_graphicsclient.o
 sa1100_cs-objs-$(CONFIG_SA1100_XP860)		+= sa1100_xp860.o
 sa1100_cs-objs-$(CONFIG_SA1100_PANGOLIN)	+= sa1100_pangolin.o
 sa1100_cs-objs-$(CONFIG_SA1100_YOPY)		+= sa1100_yopy.o
+sa1100_cs-objs-$(CONFIG_SA1100_SHANNON)		+= sa1100_shannon.o
 sa1100_cs-objs-$(CONFIG_SA1100_FREEBIRD)	+= sa1100_freebird.o
 sa1100_cs-objs-$(CONFIG_SA1100_PFS168)		+= sa1100_pfs168.o
 sa1100_cs-objs-$(CONFIG_SA1100_JORNADA720)	+= sa1100_jornada720.o
@@ -79,6 +90,9 @@ sa1100_cs-objs-$(CONFIG_SA1100_GRAPHICSMASTER)	+= sa1100_graphicsmaster.o
 sa1100_cs-objs-$(CONFIG_SA1100_ADSBITSY)	+= sa1100_adsbitsy.o
 sa1100_cs-objs-$(CONFIG_SA1100_STORK)		+= sa1100_stork.o
 
+subdir-$(CONFIG_PCMCIA_PXA) += pxa
+obj-$(CONFIG_PCMCIA_PXA)	+= pxa/pxa_cs.o
+
 include $(TOPDIR)/Rules.make
 
 pcmcia_core.o:  $(pcmcia_core-objs)
@@ -86,6 +100,12 @@ pcmcia_core.o:  $(pcmcia_core-objs)
 
 sa1100_cs.o: $(sa1100_cs-objs-y)
 	$(LD) -r -o $@ $(sa1100_cs-objs-y)
+
+au1000_ss.o: $(au1000_ss-objs-y)
+	$(LD) -r -o $@ $(au1000_ss-objs-y)
+
+au1500_ss.o: $(au1000_ss-objs-y)
+	$(LD) -r -o $@ $(au1000_ss-objs-y)
 
 yenta_socket.o: $(yenta_socket-objs)
 	$(LD) $(LD_RFLAG) -r -o $@ $(yenta_socket-objs)

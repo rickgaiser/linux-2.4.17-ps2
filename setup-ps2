@@ -1,0 +1,6 @@
+#!/bin/sh
+echo setup for PlayStation 2 \(R5900\) for cross target
+cp -p arch/mips/configs/defconfig-ps2 .config
+cp -p .hhl_cross_compile-mips-r5900 .hhl_cross_compile
+cp -p .hhl_target_cpu-mips-r5900 .hhl_target_cpu
+echo do make oldconfig

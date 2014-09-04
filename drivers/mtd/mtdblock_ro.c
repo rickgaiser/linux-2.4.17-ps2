@@ -1,5 +1,5 @@
 /*
- * $Id: mtdblock_ro.c,v 1.9 2001/10/02 15:05:11 dwmw2 Exp $
+ * $Id: mtdblock_ro.c,v 1.13 2002/03/11 16:03:29 sioux Exp $
  *
  * Read-only version of the mtdblock device, without the 
  * read/erase/modify/writeback stuff
@@ -37,9 +37,18 @@ static int debug = MTDBLOCK_DEBUG;
 MODULE_PARM(debug, "i");
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,4,14)
+#define BLK_INC_USE_COUNT MOD_INC_USE_COUNT
+#define BLK_DEC_USE_COUNT MOD_DEC_USE_COUNT
+#else
+#define BLK_INC_USE_COUNT do {} while(0)
+#define BLK_DEC_USE_COUNT do {} while(0)
+#endif
+
+/* this lock is used just in kernels >= 2.5.x */
+static spinlock_t mtdblock_ro_lock;
 
 static int mtd_sizes[MAX_MTD_DEVICES];
-
 
 static int mtdblock_open(struct inode *inode, struct file *file)
 {
@@ -52,7 +61,7 @@ static int mtdblock_open(struct inode *inode, struct file *file)
 	if (inode == 0)
 		return -EINVAL;
 	
-	dev = MINOR(inode->i_rdev);
+	dev = minor(inode->i_rdev);
 	
 	mtd = get_mtd_device(NULL, dev);
 	if (!mtd)
@@ -61,6 +70,8 @@ static int mtdblock_open(struct inode *inode, struct file *file)
 		put_mtd_device(mtd);
 		return -EINVAL;
 	}
+
+	BLK_INC_USE_COUNT;
 
 	mtd_sizes[dev] = mtd->size>>9;
 
@@ -79,13 +90,12 @@ static release_t mtdblock_release(struct inode *inode, struct file *file)
 	if (inode == NULL)
 		release_return(-ENODEV);
    
-	invalidate_device(inode->i_rdev, 1);
-
-	dev = MINOR(inode->i_rdev);
+	dev = minor(inode->i_rdev);
 	mtd = __get_mtd_device(NULL, dev);
 
 	if (!mtd) {
 		printk(KERN_WARNING "MTD device is absent on mtd_release!\n");
+		BLK_DEC_USE_COUNT;
 		release_return(-ENODEV);
 	}
 	
@@ -96,6 +106,7 @@ static release_t mtdblock_release(struct inode *inode, struct file *file)
 
 	DEBUG(1, "ok\n");
 
+	BLK_DEC_USE_COUNT;
 	release_return(0);
 }  
 
@@ -113,7 +124,7 @@ static void mtdblock_request(RQFUNC_ARG)
       INIT_REQUEST;
       current_request = CURRENT;
    
-      if (MINOR(current_request->rq_dev) >= MAX_MTD_DEVICES)
+      if (minor(current_request->rq_dev) >= MAX_MTD_DEVICES)
       {
 	 printk("mtd: Unsupported device!\n");
 	 end_request(0);
@@ -122,9 +133,10 @@ static void mtdblock_request(RQFUNC_ARG)
       
       // Grab our MTD structure
 
-      mtd = __get_mtd_device(NULL, MINOR(current_request->rq_dev));
+      mtd = __get_mtd_device(NULL,minor(current_request->rq_dev));
       if (!mtd) {
-	      printk("MTD device %d doesn't appear to exist any more\n", CURRENT_DEV);
+	      printk("MTD device %d doesn't appear to exist any more\n", 
+		      kdev_t_to_nr(CURRENT_DEV));
 	      end_request(0);
       }
 
@@ -132,7 +144,8 @@ static void mtdblock_request(RQFUNC_ARG)
 	  (current_request->sector + current_request->nr_sectors) << 9 > mtd->size)
       {
 	 printk("mtd: Attempt to read past end of device!\n");
-	 printk("size: %x, sector: %lx, nr_sectors %lx\n", mtd->size, current_request->sector, current_request->nr_sectors);
+	 printk("size: %x, sector: %lx, nr_sectors %lx\n", mtd->size, 
+		 current_request->sector, current_request->nr_sectors);
 	 end_request(0);
 	 continue;
       }
@@ -143,11 +156,11 @@ static void mtdblock_request(RQFUNC_ARG)
       /* Now drop the lock that the ll_rw_blk functions grabbed for us
          and process the request. This is necessary due to the extreme time
          we spend processing it. */
-      spin_unlock_irq(&io_request_lock);
+      spin_unlock_irq(QUEUE_LOCK(QUEUE));
 #endif
 
       // Handle the request
-      switch (current_request->cmd)
+      switch (rq_data_dir(current_request))
       {
          size_t retlen;
 
@@ -190,7 +203,7 @@ static void mtdblock_request(RQFUNC_ARG)
 
       // Grab the lock and re-thread the item onto the linked list
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,0)
-	spin_lock_irq(&io_request_lock);
+      spin_lock_irq(QUEUE_LOCK(QUEUE));
 #endif
 	end_request(res);
    }
@@ -203,16 +216,19 @@ static int mtdblock_ioctl(struct inode * inode, struct file * file,
 {
 	struct mtd_info *mtd;
 
-	mtd = __get_mtd_device(NULL, MINOR(inode->i_rdev));
+	mtd = __get_mtd_device(NULL, minor(inode->i_rdev));
 
 	if (!mtd) return -EINVAL;
 
 	switch (cmd) {
 	case BLKGETSIZE:   /* Return device size */
 		return put_user((mtd->size >> 9), (unsigned long *) arg);
+
+#ifdef BLKGETSIZE64
 	case BLKGETSIZE64:
 		return put_user((u64)mtd->size, (u64 *)arg);
-		
+#endif
+
 	case BLKFLSBUF:
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,0)
 		if(!capable(CAP_SYS_ADMIN))  return -EACCES;
@@ -240,7 +256,9 @@ static struct file_operations mtd_fops =
 #else
 static struct block_device_operations mtd_fops = 
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,4,14)
 	owner: THIS_MODULE,
+#endif
 	open: mtdblock_open,
 	release: mtdblock_release,
 	ioctl: mtdblock_ioctl
@@ -251,6 +269,9 @@ int __init init_mtdblock(void)
 {
 	int i;
 
+	/* this lock is used just in kernels >= 2.5.x */
+	spin_lock_init(&mtdblock_ro_lock);
+	
 	if (register_blkdev(MAJOR_NR,DEVICE_NAME,&mtd_fops)) {
 		printk(KERN_NOTICE "Can't allocate major number %d for Memory Technology Devices.\n",
 		       MTD_BLOCK_MAJOR);
@@ -266,7 +287,7 @@ int __init init_mtdblock(void)
 	blksize_size[MAJOR_NR] = NULL;
 	blk_size[MAJOR_NR] = mtd_sizes;
 	
-	blk_init_queue(BLK_DEFAULT_QUEUE(MAJOR_NR), &mtdblock_request);
+	BLK_INIT_QUEUE(BLK_DEFAULT_QUEUE(MAJOR_NR), &mtdblock_request, &mtdblock_ro_lock);
 	return 0;
 }
 
@@ -284,3 +305,4 @@ module_exit(cleanup_mtdblock);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Erwin Authried <eauth@softsys.co.at> et al.");
 MODULE_DESCRIPTION("Simple read-only block device emulation access to MTD devices");
+

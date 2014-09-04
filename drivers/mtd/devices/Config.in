@@ -1,6 +1,6 @@
 # drivers/mtd/maps/Config.in
 
-# $Id: Config.in,v 1.5 2001/09/23 15:33:10 dwmw2 Exp $
+# $Id: Config.in,v 1.7 2002/09/13 16:06:40 dwmw2 Exp $
 
 mainmenu_option next_comment
 
@@ -9,6 +9,9 @@ dep_tristate '  Ramix PMC551 PCI Mezzanine RAM card support' CONFIG_MTD_PMC551 $
 if [ "$CONFIG_MTD_PMC551" = "y" -o  "$CONFIG_MTD_PMC551" = "m" ]; then
    bool '    PMC551 256M DRAM Bugfix' CONFIG_MTD_PMC551_BUGFIX
    bool '    PMC551 Debugging' CONFIG_MTD_PMC551_DEBUG
+fi
+if [ "$CONFIG_DECSTATION" = "y" ]; then
+  dep_tristate '  DEC MS02-NV NVRAM module support' CONFIG_MTD_MS02NV $CONFIG_MTD
 fi
 dep_tristate '  Uncached system RAM' CONFIG_MTD_SLRAM $CONFIG_MTD
 if [ "$CONFIG_SA1100_LART" = "y" ]; then

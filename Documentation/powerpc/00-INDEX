@@ -7,11 +7,16 @@ please mail me.
 	- this file
 ppc_htab.txt
 	- info about the Linux/PPC /proc/ppc_htab entry
+host_bridge.txt
+	- info on common support of some common embedded host bridges
 smp.txt
 	- use and state info about Linux/PPC on MP machines
 SBC8260_memory_mapping.txt
 	- EST SBC8260 board info
 sound.txt
 	- info on sound support under Linux/PPC
+todc.txt
+	- documentation for common support of mk48txx and mc146818 family of 
+	realtime clocks
 zImage_layout.txt
 	- info on the kernel images for Linux/PPC

@@ -83,7 +83,11 @@
  * Deskstations or Acer PICA but not the much more versatile DMA logic used
  * for the local devices on Acer PICA or Magnums.
  */
+#if defined(CONFIG_PCI) || defined(CONFIG_ISA)
 #define MAX_DMA_ADDRESS		(PAGE_OFFSET + 0x01000000)
+#else
+#define MAX_DMA_ADDRESS		(~0UL)
+#endif
 
 /* 8237 DMA controllers */
 #define IO_DMA1_BASE	0x00	/* 8 bit slave DMA, channels 0..3 */
@@ -141,6 +145,8 @@
 #define DMA_MODE_READ	0x44	/* I/O to memory, no autoinit, increment, single mode */
 #define DMA_MODE_WRITE	0x48	/* memory to I/O, no autoinit, increment, single mode */
 #define DMA_MODE_CASCADE 0xC0   /* pass thru DREQ->HRQ, DACK<-HLDA only */
+
+#define DMA_AUTOINIT	0x10
 
 
 extern spinlock_t  dma_spin_lock;

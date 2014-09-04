@@ -225,6 +225,9 @@ int atyfb_init(void);
 #ifndef MODULE
 int atyfb_setup(char*);
 #endif
+#ifdef CONFIG_FB_XPERT98
+extern int atyfb_xl_init(struct fb_info_aty *info);
+#endif
 
 static int currcon = 0;
 
@@ -252,6 +255,7 @@ static char noaccel __initdata = 0;
 static u32 default_vram __initdata = 0;
 static int default_pll __initdata = 0;
 static int default_mclk __initdata = 0;
+static int default_xclk __initdata = 0;
 
 #ifndef MODULE
 static char *mode_option __initdata = NULL;
@@ -297,7 +301,8 @@ static char m64n_gtc_ba1[] __initdata = "3D RAGE PRO (BGA, AGP, 1x only)";
 static char m64n_gtc_bp[] __initdata = "3D RAGE PRO (BGA, PCI)";
 static char m64n_gtc_pp[] __initdata = "3D RAGE PRO (PQFP, PCI)";
 static char m64n_gtc_ppl[] __initdata = "3D RAGE PRO (PQFP, PCI, limited 3D)";
-static char m64n_xl[] __initdata = "3D RAGE (XL)";
+static char m64n_xl_33[] __initdata = "3D RAGE (XL PCI-33MHz)";
+static char m64n_xl_66[] __initdata = "3D RAGE (XL PCI-66MHz)";
 static char m64n_ltp_a[] __initdata = "3D RAGE LT PRO (AGP)";
 static char m64n_ltp_p[] __initdata = "3D RAGE LT PRO (PCI)";
 static char m64n_mob_p[] __initdata = "3D RAGE Mobility (PCI)";
@@ -308,59 +313,64 @@ static const struct {
     u16 pci_id, chip_type;
     u8 rev_mask, rev_val;
     const char *name;
-    int pll, mclk;
+    int pll, mclk, xclk;
     u32 features;
 } aty_chips[] __initdata = {
 #ifdef CONFIG_FB_ATY_GX
     /* Mach64 GX */
-    { 0x4758, 0x00d7, 0x00, 0x00, m64n_gx,      135,  50, M64F_GX },
-    { 0x4358, 0x0057, 0x00, 0x00, m64n_cx,      135,  50, M64F_GX },
+    { 0x4758, 0x00d7, 0x00, 0x00, m64n_gx,      135,  50, 50, M64F_GX },
+    { 0x4358, 0x0057, 0x00, 0x00, m64n_cx,      135,  50, 50, M64F_GX },
 #endif /* CONFIG_FB_ATY_GX */
 
 #ifdef CONFIG_FB_ATY_CT
     /* Mach64 CT */
-    { 0x4354, 0x4354, 0x00, 0x00, m64n_ct,      135,  60, M64F_CT | M64F_INTEGRATED | M64F_CT_BUS | M64F_MAGIC_FIFO },
-    { 0x4554, 0x4554, 0x00, 0x00, m64n_et,      135,  60, M64F_CT | M64F_INTEGRATED | M64F_CT_BUS | M64F_MAGIC_FIFO },
+    { 0x4354, 0x4354, 0x00, 0x00, m64n_ct,      135,  60, 60, M64F_CT | M64F_INTEGRATED | M64F_CT_BUS | M64F_MAGIC_FIFO },
+    { 0x4554, 0x4554, 0x00, 0x00, m64n_et,      135,  60, 60, M64F_CT | M64F_INTEGRATED | M64F_CT_BUS | M64F_MAGIC_FIFO },
 
     /* Mach64 VT */
-    { 0x5654, 0x5654, 0xc7, 0x00, m64n_vta3,    170,  67, M64F_VT | M64F_INTEGRATED | M64F_VT_BUS | M64F_MAGIC_FIFO | M64F_FIFO_24 },
-    { 0x5654, 0x5654, 0xc7, 0x40, m64n_vta4,    200,  67, M64F_VT | M64F_INTEGRATED | M64F_VT_BUS | M64F_MAGIC_FIFO | M64F_FIFO_24 | M64F_MAGIC_POSTDIV },
-    { 0x5654, 0x5654, 0x00, 0x00, m64n_vtb,     200,  67, M64F_VT | M64F_INTEGRATED | M64F_VT_BUS | M64F_GTB_DSP | M64F_FIFO_24 },
-    { 0x5655, 0x5655, 0x00, 0x00, m64n_vtb,     200,  67, M64F_VT | M64F_INTEGRATED | M64F_VT_BUS | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL },
-    { 0x5656, 0x5656, 0x00, 0x00, m64n_vt4,     230,  83, M64F_VT | M64F_INTEGRATED | M64F_GTB_DSP },
+    { 0x5654, 0x5654, 0xc7, 0x00, m64n_vta3,    170,  67, 67, M64F_VT | M64F_INTEGRATED | M64F_VT_BUS | M64F_MAGIC_FIFO | M64F_FIFO_24 },
+    { 0x5654, 0x5654, 0xc7, 0x40, m64n_vta4,    200,  67, 67, M64F_VT | M64F_INTEGRATED | M64F_VT_BUS | M64F_MAGIC_FIFO | M64F_FIFO_24 | M64F_MAGIC_POSTDIV },
+    { 0x5654, 0x5654, 0x00, 0x00, m64n_vtb,     200,  67, 67, M64F_VT | M64F_INTEGRATED | M64F_VT_BUS | M64F_GTB_DSP | M64F_FIFO_24 },
+    { 0x5655, 0x5655, 0x00, 0x00, m64n_vtb,     200,  67, 67, M64F_VT | M64F_INTEGRATED | M64F_VT_BUS | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL },
+    { 0x5656, 0x5656, 0x00, 0x00, m64n_vt4,     230,  83, 83, M64F_VT | M64F_INTEGRATED | M64F_GTB_DSP },
 
     /* Mach64 GT (3D RAGE) */
-    { 0x4754, 0x4754, 0x07, 0x00, m64n_gt,      135,  63, M64F_GT | M64F_INTEGRATED | M64F_MAGIC_FIFO | M64F_FIFO_24 | M64F_EXTRA_BRIGHT },
-    { 0x4754, 0x4754, 0x07, 0x01, m64n_gt,      170,  67, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
-    { 0x4754, 0x4754, 0x07, 0x02, m64n_gt,      200,  67, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
-    { 0x4755, 0x4755, 0x00, 0x00, m64n_gtb,     200,  67, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
-    { 0x4756, 0x4756, 0x00, 0x00, m64n_iic_p,   230,  83, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
-    { 0x4757, 0x4757, 0x00, 0x00, m64n_iic_a,   230,  83, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
-    { 0x475a, 0x475a, 0x00, 0x00, m64n_iic_a,   230,  83, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
+    { 0x4754, 0x4754, 0x07, 0x00, m64n_gt,      135,  63, 63, M64F_GT | M64F_INTEGRATED | M64F_MAGIC_FIFO | M64F_FIFO_24 | M64F_EXTRA_BRIGHT },
+    { 0x4754, 0x4754, 0x07, 0x01, m64n_gt,      170,  67, 67, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
+    { 0x4754, 0x4754, 0x07, 0x02, m64n_gt,      200,  67, 67, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
+    { 0x4755, 0x4755, 0x00, 0x00, m64n_gtb,     200,  67, 67, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
+    { 0x4756, 0x4756, 0x00, 0x00, m64n_iic_p,   230,  83, 83, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
+    { 0x4757, 0x4757, 0x00, 0x00, m64n_iic_a,   230,  83, 83, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
+    { 0x475a, 0x475a, 0x00, 0x00, m64n_iic_a,   230,  83, 83, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_FIFO_24 | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
 
     /* Mach64 LT */
-    { 0x4c54, 0x4c54, 0x00, 0x00, m64n_lt,      135,  63, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP },
-    { 0x4c47, 0x4c47, 0x00, 0x00, m64n_ltg,     230,  63, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT | M64F_LT_SLEEP | M64F_G3_PB_1024x768 },
+    { 0x4c54, 0x4c54, 0x00, 0x00, m64n_lt,      135,  63, 63, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP },
+    { 0x4c47, 0x4c47, 0x00, 0x00, m64n_ltg,     230,  63, 63, M64F_GT | M64F_INTEGRATED | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT | M64F_LT_SLEEP | M64F_G3_PB_1024x768 },
 
     /* Mach64 GTC (3D RAGE PRO) */
-    { 0x4742, 0x4742, 0x00, 0x00, m64n_gtc_ba,  230, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
-    { 0x4744, 0x4744, 0x00, 0x00, m64n_gtc_ba1, 230, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
-    { 0x4749, 0x4749, 0x00, 0x00, m64n_gtc_bp,  230, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT | M64F_MAGIC_VRAM_SIZE },
-    { 0x4750, 0x4750, 0x00, 0x00, m64n_gtc_pp,  230, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
-    { 0x4751, 0x4751, 0x00, 0x00, m64n_gtc_ppl, 230, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
-
-    /* 3D RAGE XL */
-    { 0x4752, 0x4752, 0x00, 0x00, m64n_xl, 230, 120, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT | M64F_XL_DLL },
-
+    { 0x4742, 0x4742, 0x00, 0x00, m64n_gtc_ba,  230, 100, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
+    { 0x4744, 0x4744, 0x00, 0x00, m64n_gtc_ba1, 230, 100, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
+    { 0x4749, 0x4749, 0x00, 0x00, m64n_gtc_bp,  230, 100, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT | M64F_MAGIC_VRAM_SIZE },
+    { 0x4750, 0x4750, 0x00, 0x00, m64n_gtc_pp,  230, 100, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
+    { 0x4751, 0x4751, 0x00, 0x00, m64n_gtc_ppl, 230, 100, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT },
+#ifdef CONFIG_FB_XPERT98
+    /* 3D RAGE XL PCI-66/BGA */
+    { 0x474f, 0x474f, 0x00, 0x00, m64n_xl_66, 230, 83, 63, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT | M64F_XL_DLL | M64F_MFB_TIMES_4 },
+    /* 3D RAGE XL PCI-33/BGA */
+    { 0x4752, 0x4752, 0x00, 0x00, m64n_xl_33, 230, 83, 63, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT | M64F_XL_DLL | M64F_MFB_TIMES_4 },
+#else
+    /* 3D RAGE XL PCI-33/BGA */
+    { 0x4752, 0x4752, 0x00, 0x00, m64n_xl_33, 230, 120, 120, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_SDRAM_MAGIC_PLL | M64F_EXTRA_BRIGHT | M64F_XL_DLL },
+#endif
     /* Mach64 LT PRO */
-    { 0x4c42, 0x4c42, 0x00, 0x00, m64n_ltp_a,   230, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP },
-    { 0x4c44, 0x4c44, 0x00, 0x00, m64n_ltp_p,   230, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP },
-    { 0x4c49, 0x4c49, 0x00, 0x00, m64n_ltp_p,   230, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_EXTRA_BRIGHT | M64F_G3_PB_1_1 | M64F_G3_PB_1024x768 },
-    { 0x4c50, 0x4c50, 0x00, 0x00, m64n_ltp_p,   230, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP },
+    { 0x4c42, 0x4c42, 0x00, 0x00, m64n_ltp_a,   230, 100, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP },
+    { 0x4c44, 0x4c44, 0x00, 0x00, m64n_ltp_p,   230, 100, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP },
+    { 0x4c49, 0x4c49, 0x00, 0x00, m64n_ltp_p,   230, 100, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_EXTRA_BRIGHT | M64F_G3_PB_1_1 | M64F_G3_PB_1024x768 },
+    { 0x4c50, 0x4c50, 0x00, 0x00, m64n_ltp_p,   230, 100, 100, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP },
 
     /* 3D RAGE Mobility */
-    { 0x4c4d, 0x4c4d, 0x00, 0x00, m64n_mob_p,   230,  50, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_MOBIL_BUS },
-    { 0x4c4e, 0x4c4e, 0x00, 0x00, m64n_mob_a,   230,  50, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_MOBIL_BUS },
+    { 0x4c4d, 0x4c4d, 0x00, 0x00, m64n_mob_p,   230,  50, 50, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_MOBIL_BUS },
+    { 0x4c4e, 0x4c4e, 0x00, 0x00, m64n_mob_a,   230,  50, 50, M64F_GT | M64F_INTEGRATED | M64F_RESET_3D | M64F_GTB_DSP | M64F_MOBIL_BUS },
 #endif /* CONFIG_FB_ATY_CT */
 };
 
@@ -1249,7 +1259,10 @@ struct atyclk {
     u32 ref_clk_per;
     u8 pll_ref_div;
     u8 mclk_fb_div;
+    u8 sclk_fb_div;
     u8 mclk_post_div;		/* 1,2,3,4,8 */
+    u8 mclk_fb_mult;            /* 2 or 4 */
+    u8 xclk_post_div;		/* 1,2,3,4,8 */
     u8 vclk_fb_div;
     u8 vclk_post_div;		/* 1,2,3,4,6,8,12 */
     u32 dsp_xclks_per_row;	/* 0-16383 */
@@ -1302,14 +1315,17 @@ static int atyfb_ioctl(struct inode *inode, struct file *file, u_int cmd,
 	    clk.ref_clk_per = info->ref_clk_per;
 	    clk.pll_ref_div = pll->ct.pll_ref_div;
 	    clk.mclk_fb_div = pll->ct.mclk_fb_div;
+	    clk.sclk_fb_div = pll->ct.sclk_fb_div;
 	    clk.mclk_post_div = pll->ct.mclk_post_div_real;
+	    clk.mclk_fb_mult = pll->ct.mclk_fb_mult;
+	    clk.xclk_post_div = pll->ct.xclk_post_div_real;
 	    clk.vclk_fb_div = pll->ct.vclk_fb_div;
 	    clk.vclk_post_div = pll->ct.vclk_post_div_real;
 	    clk.dsp_xclks_per_row = dsp_config & 0x3fff;
 	    clk.dsp_loop_latency = (dsp_config>>16) & 0xf;
 	    clk.dsp_precision = (dsp_config>>20) & 7;
-	    clk.dsp_on = dsp_on_off & 0x7ff;
-	    clk.dsp_off = (dsp_on_off>>16) & 0x7ff;
+	    clk.dsp_off = dsp_on_off & 0x7ff;
+	    clk.dsp_on = (dsp_on_off>>16) & 0x7ff;
 	    if (copy_to_user((struct atyclk *)arg, &clk, sizeof(clk)))
 		    return -EFAULT;
 	} else
@@ -1324,14 +1340,17 @@ static int atyfb_ioctl(struct inode *inode, struct file *file, u_int cmd,
 	    info->ref_clk_per = clk.ref_clk_per;
 	    pll->ct.pll_ref_div = clk.pll_ref_div;
 	    pll->ct.mclk_fb_div = clk.mclk_fb_div;
+	    pll->ct.sclk_fb_div = clk.sclk_fb_div;
 	    pll->ct.mclk_post_div_real = clk.mclk_post_div;
+	    pll->ct.mclk_fb_mult = clk.mclk_fb_mult;
+	    pll->ct.xclk_post_div_real = clk.xclk_post_div;
 	    pll->ct.vclk_fb_div = clk.vclk_fb_div;
 	    pll->ct.vclk_post_div_real = clk.vclk_post_div;
 	    pll->ct.dsp_config = (clk.dsp_xclks_per_row & 0x3fff) |
 				 ((clk.dsp_loop_latency & 0xf)<<16) |
 				 ((clk.dsp_precision & 7)<<20);
-	    pll->ct.dsp_on_off = (clk.dsp_on & 0x7ff) |
-				 ((clk.dsp_off & 0x7ff)<<16);
+	    pll->ct.dsp_on_off = (clk.dsp_off & 0x7ff) |
+				 ((clk.dsp_on & 0x7ff)<<16);
 	    aty_calc_pll_ct(info, &pll->ct);
 	    aty_set_pll_ct(info, pll);
 	} else
@@ -1751,6 +1770,36 @@ static struct backlight_controller aty_backlight_controller = {
 #endif /* CONFIG_PMAC_BACKLIGHT */
 
 
+static void __init aty_calc_mem_refresh(struct fb_info_aty *info,
+					u16 id,
+					int xclk)
+{
+	int i, size;
+	const int ragepro_tbl[] = {
+		44, 50, 55, 66, 75, 80, 100
+	};
+	const int ragexl_tbl[] = {
+		50, 66, 75, 83, 90, 95, 100, 105,
+		110, 115, 120, 125, 133, 143, 166
+	};
+	const int *refresh_tbl;
+
+	if (IS_XL(id)) {
+		refresh_tbl = ragexl_tbl;
+		size = sizeof(ragexl_tbl)/sizeof(int);
+	} else {
+		refresh_tbl = ragepro_tbl;
+		size = sizeof(ragepro_tbl)/sizeof(int);
+	}
+	
+	for (i=0; i < size; i++) {
+		if (xclk < refresh_tbl[i])
+			break;
+	}
+	
+	info->mem_refresh_rate = i;
+}
+
 
     /*
      *  Initialisation
@@ -1768,12 +1817,12 @@ static int __init aty_init(struct fb_info_aty *info, const char *name)
     u16 type;
     u8 rev;
     const char *chipname = NULL, *ramname = NULL, *xtal;
-    int pll, mclk, gtb_memsize;
+    int pll, mclk, xclk, gtb_memsize;
 #if defined(CONFIG_PPC)
     int sense;
 #endif
     u8 pll_ref_div;
-
+    
     info->aty_cmap_regs = (struct aty_cmap_regs *)(info->ati_regbase+0xc0);
     chip_id = aty_ld_le32(CONFIG_CHIP_ID, info);
     type = chip_id & CFG_CHIP_TYPE;
@@ -1784,6 +1833,7 @@ static int __init aty_init(struct fb_info_aty *info, const char *name)
 	    chipname = aty_chips[j].name;
 	    pll = aty_chips[j].pll;
 	    mclk = aty_chips[j].mclk;
+	    xclk = aty_chips[j].xclk;
 	    info->features = aty_chips[j].features;
 	    goto found;
 	}
@@ -1854,16 +1904,38 @@ found:
 	}
     }
 #endif /* CONFIG_FB_ATY_GX */
+
 #ifdef CONFIG_FB_ATY_CT
     if (M64_HAS(INTEGRATED)) {
-	info->bus_type = PCI;
-	info->ram_type = (aty_ld_le32(CONFIG_STAT0, info) & 0x07);
-	ramname = aty_ct_ram[info->ram_type];
-	info->dac_ops = &aty_dac_ct;
-	info->pll_ops = &aty_pll_ct;
 	/* for many chips, the mclk is 67 MHz for SDRAM, 63 MHz otherwise */
 	if (mclk == 67 && info->ram_type < SDRAM)
 	    mclk = 63;
+    }
+#endif
+    
+    if (default_pll)
+	pll = default_pll;
+    if (default_mclk)
+	mclk = default_mclk;
+    if (default_xclk)
+	xclk = default_xclk;
+
+    aty_calc_mem_refresh(info, type, xclk);
+    info->pll_per = 1000000/pll;
+    info->mclk_per = 1000000/mclk;
+    info->xclk_per = 1000000/xclk;
+
+#ifdef CONFIG_FB_ATY_CT
+    if (M64_HAS(INTEGRATED)) {
+	info->dac_ops = &aty_dac_ct;
+	info->pll_ops = &aty_pll_ct;
+	info->bus_type = PCI;
+#ifdef CONFIG_FB_XPERT98
+	if (IS_XL(type))
+		atyfb_xl_init(info);
+#endif
+	info->ram_type = (aty_ld_le32(CONFIG_STAT0, info) & 0x07);
+	ramname = aty_ct_ram[info->ram_type];
     }
 #endif /* CONFIG_FB_ATY_CT */
 
@@ -1954,33 +2026,11 @@ found:
 	    i |= gtb_memsize ? MEM_SIZE_8M_GTB : MEM_SIZE_8M;
 	aty_st_le32(MEM_CNTL, i, info);
     }
-    if (default_pll)
-	pll = default_pll;
-    if (default_mclk)
-	mclk = default_mclk;
 
-    printk("%d%c %s, %s MHz XTAL, %d MHz PLL, %d Mhz MCLK\n",
+    printk("%d%c %s, %s MHz XTAL, %d MHz PLL, %d Mhz MCLK, %d Mhz XCLK\n",
     	   info->total_vram == 0x80000 ? 512 : (info->total_vram >> 20),
-    	   info->total_vram == 0x80000 ? 'K' : 'M', ramname, xtal, pll, mclk);
-
-    if (mclk < 44)
-	info->mem_refresh_rate = 0;	/* 000 = 10 Mhz - 43 Mhz */
-    else if (mclk < 50)
-	info->mem_refresh_rate = 1;	/* 001 = 44 Mhz - 49 Mhz */
-    else if (mclk < 55)
-	info->mem_refresh_rate = 2;	/* 010 = 50 Mhz - 54 Mhz */
-    else if (mclk < 66)
-	info->mem_refresh_rate = 3;	/* 011 = 55 Mhz - 65 Mhz */
-    else if (mclk < 75)
-	info->mem_refresh_rate = 4;	/* 100 = 66 Mhz - 74 Mhz */
-    else if (mclk < 80)
-	info->mem_refresh_rate = 5;	/* 101 = 75 Mhz - 79 Mhz */
-    else if (mclk < 100)
-	info->mem_refresh_rate = 6;	/* 110 = 80 Mhz - 100 Mhz */
-    else
-	info->mem_refresh_rate = 7;	/* 111 = 100 Mhz and above */
-    info->pll_per = 1000000/pll;
-    info->mclk_per = 1000000/mclk;
+    	   info->total_vram == 0x80000 ? 'K' : 'M', ramname, xtal, pll,
+	   mclk, xclk);
 
 #ifdef DEBUG
     if (M64_HAS(INTEGRATED)) {
@@ -2196,6 +2246,8 @@ int __init atyfb_init(void)
 	    if (!request_mem_region(res_start, res_size, "atyfb"))
 		continue;
 
+	    info->pdev = pdev;
+
 #ifdef __sparc__
 	    /*
 	     * Map memory-mapped registers.
@@ -2280,7 +2332,7 @@ int __init atyfb_init(void)
 		j++;
 	    }
 
-	    if (pdev->device != XL_CHIP_ID) {
+	    if (!IS_XL(pdev->device)) {
 		    /*
 		     * Fix PROMs idea of MEM_CNTL settings...
 		     */
@@ -2390,7 +2442,7 @@ int __init atyfb_init(void)
 		 *
 		 * where R is XTALIN (= 14318 or 29498 kHz).
 		 */
-		if (pdev->device == XL_CHIP_ID)
+		if (IS_XL(pdev->device))
 			R = 29498;
 		else
 			R = 14318;
@@ -2578,6 +2630,8 @@ int __init atyfb_setup(char *options)
 		default_pll = simple_strtoul(this_opt+4, NULL, 0);
 	else if (!strncmp(this_opt, "mclk:", 5))
 		default_mclk = simple_strtoul(this_opt+5, NULL, 0);
+	else if (!strncmp(this_opt, "xclk:", 5))
+		default_xclk = simple_strtoul(this_opt+5, NULL, 0);
 #ifdef CONFIG_PPC
 	else if (!strncmp(this_opt, "vmode:", 6)) {
 	    unsigned int vmode = simple_strtoul(this_opt+6, NULL, 0);

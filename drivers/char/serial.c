@@ -57,6 +57,11 @@
  * 10/00: add in optional software flow control for serial console.
  *	  Kanoj Sarcar <kanoj@sgi.com>  (Modified by Theodore Ts'o)
  *
+ * 10/00: Added suport for MIPS Atlas board.
+ * 11/00: Hooks for serial kernel debug port support added.
+ *        Kevin D. Kissell, kevink@mips.com and Carsten Langgaard,
+ *        carstenl@mips.com
+ *        Copyright (C) 2000 MIPS Technologies, Inc.  All rights reserved.
  */
 
 static char *serial_version = "5.05c";
@@ -126,6 +131,16 @@ static char *serial_revdate = "2001-07-08";
 #ifndef ENABLE_SERIAL_PNP
 #define ENABLE_SERIAL_PNP
 #endif
+#endif
+
+#ifdef CONFIG_ARCH_PXA
+#define pxa_port(x) ((x) == PORT_PXA)
+#define pxa_buggy_port(x) ({ \
+	int cpu_ver; asm("mrc%? p15, 0, %0, c0, c0" : "=r" (cpu_ver)); \
+	((x) == PORT_PXA && (cpu_ver & ~1) == 0x69052100); })
+#else
+#define pxa_port(x) (0)
+#define pxa_buggy_port(x) (0)
 #endif
 
 /* Set of debugging defines */
@@ -231,9 +246,7 @@ static char *serial_revdate = "2001-07-08";
 #include <asm/irq.h>
 #include <asm/bitops.h>
 
-#ifdef CONFIG_MAC_SERIAL
-#define SERIAL_DEV_OFFSET	2
-#else
+#ifndef SERIAL_DEV_OFFSET
 #define SERIAL_DEV_OFFSET	0
 #endif
 
@@ -251,6 +264,12 @@ static struct tty_driver serial_driver, callout_driver;
 static int serial_refcount;
 
 static struct timer_list serial_timer;
+
+#ifdef SERIAL_IRQ0_VALID
+#define IRQ_VALID(irq) ((irq >= 0) && (irq < NR_IRQS))
+#else
+#define IRQ_VALID(irq) ((irq >  0) && (irq < NR_IRQS))
+#endif
 
 /* serial subtype definitions */
 #ifndef SERIAL_TYPE_NORMAL
@@ -306,6 +325,7 @@ static struct serial_uart_config uart_config[] = {
 	{ "XR16850", 128, UART_CLEAR_FIFO | UART_USE_FIFO |
 		  UART_STARTECH },
 	{ "RSA", 2048, UART_CLEAR_FIFO | UART_USE_FIFO }, 
+	{ "PXA UART", 64, UART_CLEAR_FIFO | UART_USE_FIFO },
 	{ 0, 0}
 };
 
@@ -407,6 +427,22 @@ static inline int serial_paranoia_check(struct async_struct *info,
 	return 0;
 }
 
+#ifdef CONFIG_MIPS_ATLAS 
+extern unsigned int atlas_serial_in(struct async_struct *info, int offset);
+extern void atlas_serial_out(struct async_struct *info, int offset, int value);
+
+static _INLINE_ unsigned int serial_in(struct async_struct *info, int offset)
+{
+        return (atlas_serial_in(info, offset) & 0xff);   
+}
+
+static _INLINE_ void serial_out(struct async_struct *info, int offset, int value)
+{
+        atlas_serial_out(info, offset, value);
+}
+
+#else
+
 static _INLINE_ unsigned int serial_in(struct async_struct *info, int offset)
 {
 	switch (info->io_type) {
@@ -416,7 +452,11 @@ static _INLINE_ unsigned int serial_in(struct async_struct *info, int offset)
 		return inb(info->port+1);
 #endif
 	case SERIAL_IO_MEM:
-		return readb((unsigned long) info->iomem_base +
+		if (pxa_port(info->state->type))
+			return readl((unsigned long) info->iomem_base +
+		      		(offset<<info->iomem_reg_shift));
+		else
+			return readb((unsigned long) info->iomem_base +
 			     (offset<<info->iomem_reg_shift));
 #ifdef CONFIG_SERIAL_GSC
 	case SERIAL_IO_GSC:
@@ -438,8 +478,12 @@ static _INLINE_ void serial_out(struct async_struct *info, int offset,
 		break;
 #endif
 	case SERIAL_IO_MEM:
-		writeb(value, (unsigned long) info->iomem_base +
-			      (offset<<info->iomem_reg_shift));
+		if (pxa_port(info->state->type)) 
+			writel(value, (unsigned long) info->iomem_base +
+				       	(offset<<info->iomem_reg_shift));
+		else 
+			writeb(value, (unsigned long) info->iomem_base +
+			 		(offset<<info->iomem_reg_shift));
 		break;
 #ifdef CONFIG_SERIAL_GSC
 	case SERIAL_IO_GSC:
@@ -450,6 +494,8 @@ static _INLINE_ void serial_out(struct async_struct *info, int offset,
 		outb(value, info->port+offset);
 	}
 }
+#endif
+
 
 /*
  * We used to support using pause I/O for certain machines.  We
@@ -701,7 +747,11 @@ static _INLINE_ void transmit_chars(struct async_struct *info, int *intr_done)
 		return;
 	}
 	
-	count = info->xmit_fifo_size;
+	if (pxa_port(info->state->type))	
+		count = info->xmit_fifo_size / 2;
+	else 
+		count = info->xmit_fifo_size;
+	
 	do {
 		serial_out(info, UART_TX, info->xmit.buf[info->xmit.tail]);
 		info->xmit.tail = (info->xmit.tail + 1) & (SERIAL_XMIT_SIZE-1);
@@ -1332,7 +1382,7 @@ static int startup(struct async_struct * info)
 	/*
 	 * Allocate the IRQ if necessary
 	 */
-	if (state->irq && (!IRQ_ports[state->irq] ||
+	if (IRQ_VALID(state->irq) && (!IRQ_ports[state->irq] ||
 			  !IRQ_ports[state->irq]->next_port)) {
 		if (IRQ_ports[state->irq]) {
 #ifdef CONFIG_SERIAL_SHARE_IRQ
@@ -1390,6 +1440,8 @@ static int startup(struct async_struct * info)
 	{
 		if (state->irq != 0)
 			info->MCR |= UART_MCR_OUT2;
+		if (pxa_buggy_port(state->type) && state->irq != 0)
+			info->MCR &= ~UART_MCR_OUT2;
 	}
 	info->MCR |= ALPHA_KLUDGE_MCR; 		/* Don't ask */
 	serial_outp(info, UART_MCR, info->MCR);
@@ -1398,6 +1450,8 @@ static int startup(struct async_struct * info)
 	 * Finally, enable interrupts
 	 */
 	info->IER = UART_IER_MSI | UART_IER_RLSI | UART_IER_RDI;
+	if (pxa_port(state->type))
+		info->IER |= UART_IER_UUE | UART_IER_RTOIE;
 	serial_outp(info, UART_IER, info->IER);	/* enable interrupts */
 	
 #ifdef CONFIG_SERIAL_MANY_PORTS
@@ -1498,7 +1552,7 @@ static void shutdown(struct async_struct * info)
 	/*
 	 * Free the IRQ, if necessary
 	 */
-	if (state->irq && (!IRQ_ports[state->irq] ||
+	if (IRQ_VALID(state->irq) && (!IRQ_ports[state->irq] ||
 			  !IRQ_ports[state->irq]->next_port)) {
 		if (IRQ_ports[state->irq]) {
 			free_irq(state->irq, &IRQ_ports[state->irq]);
@@ -1529,6 +1583,8 @@ static void shutdown(struct async_struct * info)
 	} else
 #endif
 		info->MCR &= ~UART_MCR_OUT2;
+		if (pxa_buggy_port(state->type))
+			info->MCR |= UART_MCR_OUT2;
 	info->MCR |= ALPHA_KLUDGE_MCR; 		/* Don't ask */
 	
 	/* disable break condition */
@@ -1577,6 +1633,15 @@ static void shutdown(struct async_struct * info)
 	info->flags &= ~ASYNC_INITIALIZED;
 	restore_flags(flags);
 }
+#ifdef CONFIG_KGDB
+void shutdown_for_kgdb(struct async_struct * info)
+{
+        int irq = info->state->irq;
+        while(IRQ_ports[irq]){
+                shutdown(IRQ_ports[irq]) ;
+        }
+}
+#endif
 
 #if (LINUX_VERSION_CODE < 131394) /* Linux 2.1.66 */
 static int baud_table[] = {
@@ -1844,6 +1909,8 @@ static void rs_flush_chars(struct tty_struct *tty)
 	save_flags(flags); cli();
 	info->IER |= UART_IER_THRI;
 	serial_out(info, UART_IER, info->IER);
+	if (pxa_port(info->state->type))
+		rs_interrupt_single(info->state->irq, NULL, NULL);
 	restore_flags(flags);
 }
 
@@ -1920,6 +1987,11 @@ static int rs_write(struct tty_struct * tty, int from_user,
 	    && !(info->IER & UART_IER_THRI)) {
 		info->IER |= UART_IER_THRI;
 		serial_out(info, UART_IER, info->IER);
+		if (pxa_port(info->state->type)) {
+			save_flags(flags); cli();
+			rs_interrupt_single(info->state->irq, NULL, NULL);
+			restore_flags(flags);
+		}
 	}
 	return ret;
 }
@@ -1977,6 +2049,8 @@ static void rs_send_xchar(struct tty_struct *tty, char ch)
 		/* Make sure transmit interrupts are on */
 		info->IER |= UART_IER_THRI;
 		serial_out(info, UART_IER, info->IER);
+		if (pxa_port(info->state->type))
+			rs_interrupt_single(info->state->irq, NULL, NULL);
 	}
 }
 
@@ -2365,7 +2439,7 @@ static int do_autoconfig(struct async_struct * info)
 	    (info->state->port != 0  || info->state->iomem_base != 0) &&
 	    (info->state->type != PORT_UNKNOWN)) {
 		irq = detect_uart_irq(info->state);
-		if (irq > 0)
+		if (IRQ_VALID(irq))
 			info->state->irq = irq;
 	}
 
@@ -2466,7 +2540,7 @@ static int set_multiport_struct(struct async_struct * info,
 			   sizeof(struct serial_multiport_struct)))
 		return -EFAULT;
 	
-	if (new_multi.irq != state->irq || state->irq == 0 ||
+	if (new_multi.irq != state->irq || !IRQ_VALID(state->irq) ||
 	    !IRQ_ports[state->irq])
 		return -EINVAL;
 
@@ -5393,6 +5467,7 @@ static int __init rs_init(void)
 #endif
 	serial_driver.major = TTY_MAJOR;
 	serial_driver.minor_start = 64 + SERIAL_DEV_OFFSET;
+	serial_driver.name_base = SERIAL_DEV_OFFSET;
 	serial_driver.num = NR_PORTS;
 	serial_driver.type = TTY_DRIVER_TYPE_SERIAL;
 	serial_driver.subtype = SERIAL_TYPE_NORMAL;
@@ -5454,7 +5529,6 @@ static int __init rs_init(void)
 	for (i = 0, state = rs_table; i < NR_PORTS; i++,state++) {
 		state->magic = SSTATE_MAGIC;
 		state->line = i;
-		state->type = PORT_UNKNOWN;
 		state->custom_divisor = 0;
 		state->close_delay = 5*HZ/10;
 		state->closing_wait = 30*HZ;
@@ -5468,14 +5542,18 @@ static int __init rs_init(void)
 		state->irq = irq_cannonicalize(state->irq);
 		if (state->hub6)
 			state->io_type = SERIAL_IO_HUB6;
-		if (state->port && check_region(state->port,8))
+		if (state->port && check_region(state->port,8)) {
+			state->type = PORT_UNKNOWN;
 			continue;
+		}
 #ifdef CONFIG_MCA			
 		if ((state->flags & ASYNC_BOOT_ONLYMCA) && !MCA_bus)
 			continue;
 #endif			
-		if (state->flags & ASYNC_BOOT_AUTOCONF)
+		if (state->flags & ASYNC_BOOT_AUTOCONF) {
+			state->type = PORT_UNKNOWN;
 			autoconfig(state);
+		}
 	}
 	for (i = 0, state = rs_table; i < NR_PORTS; i++,state++) {
 		if (state->type == PORT_UNKNOWN)
@@ -5485,7 +5563,7 @@ static int __init rs_init(void)
 		    && (state->port != 0 || state->iomem_base != 0))
 			state->irq = detect_uart_irq(state);
 		if (state->io_type == SERIAL_IO_MEM) {
-			printk(KERN_INFO"ttyS%02d%s at 0x%px (irq = %d) is a %s\n",
+			printk(KERN_INFO"ttyS%02d%s at 0x%p (irq = %d) is a %s\n",
 	 		       state->line + SERIAL_DEV_OFFSET,
 			       (state->flags & ASYNC_FOURPORT) ? " FourPort" : "",
 			       state->iomem_base, state->irq,
@@ -5794,7 +5872,10 @@ static void serial_console_write(struct console *co, const char *s,
 	 *	First save the IER then disable the interrupts
 	 */
 	ier = serial_in(info, UART_IER);
-	serial_out(info, UART_IER, 0x00);
+	if (pxa_port(info->state->type))
+		serial_out(info, UART_IER, UART_IER_UUE);
+	else
+		serial_out(info, UART_IER, 0);
 
 	/*
 	 *	Now, do each character
@@ -5837,7 +5918,10 @@ static int serial_console_wait_key(struct console *co)
 	 *	character.
 	 */
 	ier = serial_in(info, UART_IER);
-	serial_out(info, UART_IER, 0x00);
+	if (pxa_port(info->state->type))
+		serial_out(info, UART_IER, UART_IER_UUE);
+	else
+		serial_out(info, UART_IER, 0);
  
 	while ((serial_in(info, UART_LSR) & UART_LSR_DR) == 0);
 	c = serial_in(info, UART_RX);
@@ -5974,7 +6058,10 @@ static int __init serial_console_setup(struct console *co, char *options)
 	serial_out(info, UART_DLL, quot & 0xff);	/* LS of divisor */
 	serial_out(info, UART_DLM, quot >> 8);		/* MS of divisor */
 	serial_out(info, UART_LCR, cval);		/* reset DLAB */
-	serial_out(info, UART_IER, 0);
+	if (pxa_port(info->state->type))
+		serial_out(info, UART_IER, UART_IER_UUE);
+	else
+		serial_out(info, UART_IER, 0);
 	serial_out(info, UART_MCR, UART_MCR_DTR | UART_MCR_RTS);
 
 	/*

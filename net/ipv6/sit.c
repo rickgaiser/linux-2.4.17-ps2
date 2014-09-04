@@ -1,3 +1,5 @@
+/* $USAGI: sit.c,v 1.17 2001/11/07 12:49:57 yoshfuji Exp $ */
+
 /*
  *	IPv6 over IPv4 tunnel device - Simple Internet Transition (SIT)
  *	Linux INET6 implementation
@@ -14,8 +16,9 @@
  *      2 of the License, or (at your option) any later version.
  *
  *	Changes:
- * Roger Venning <r.venning@telstra.com>:	6to4 support
- * Nate Thompson <nate@thebog.net>:		6to4 support
+ *		Roger Venning <r.venning@telstra.com>,
+ *		Nate Thompson <nate@thebog.net>:	6to4 support
+ *		Fred L. Templin <templin@erg.sri.com>	ISATAP support.
  */
 
 #define __NO_VERSION__
@@ -56,6 +59,10 @@
 
    For comments look at net/ipv4/ip_gre.c --ANK
  */
+
+#ifdef CONFIG_NET_IPIP_IPV6
+extern rwlock_t ipip_lock;
+#else
 
 #define HASH_SIZE  16
 #define HASH(addr) ((addr^(addr>>4))&0xF)
@@ -103,10 +110,10 @@ static struct ip_tunnel * ipip6_tunnel_lookup(u32 remote, u32 local)
 	return NULL;
 }
 
-static struct ip_tunnel ** ipip6_bucket(struct ip_tunnel *t)
+static __inline__ struct ip_tunnel ** __ipip6_bucket(struct ip_tunnel_parm *parms)
 {
-	u32 remote = t->parms.iph.daddr;
-	u32 local = t->parms.iph.saddr;
+	u32 remote = parms->iph.daddr;
+	u32 local = parms->iph.saddr;
 	unsigned h = 0;
 	int prio = 0;
 
@@ -119,6 +126,11 @@ static struct ip_tunnel ** ipip6_bucket(struct ip_tunnel *t)
 		h ^= HASH(local);
 	}
 	return &tunnels[prio][h];
+}
+
+static struct ip_tunnel ** ipip6_bucket(struct ip_tunnel *t)
+{
+	return __ipip6_bucket(&t->parms);
 }
 
 static void ipip6_tunnel_unlink(struct ip_tunnel *t)
@@ -151,18 +163,8 @@ struct ip_tunnel * ipip6_tunnel_locate(struct ip_tunnel_parm *parms, int create)
 	u32 local = parms->iph.saddr;
 	struct ip_tunnel *t, **tp, *nt;
 	struct net_device *dev;
-	unsigned h = 0;
-	int prio = 0;
 
-	if (remote) {
-		prio |= 2;
-		h ^= HASH(remote);
-	}
-	if (local) {
-		prio |= 1;
-		h ^= HASH(local);
-	}
-	for (tp = &tunnels[prio][h]; (t = *tp) != NULL; tp = &t->next) {
+	for (tp = __ipip6_bucket(parms); (t = *tp) != NULL; tp = &t->next) {
 		if (local == t->parms.iph.saddr && remote == t->parms.iph.daddr)
 			return t;
 	}
@@ -228,7 +230,7 @@ static void ipip6_tunnel_uninit(struct net_device *dev)
 		dev_put(dev);
 	}
 }
-
+#endif	/* !CONFIG_NET_IPIP_IPV6 */
 
 void ipip6_err(struct sk_buff *skb, u32 info)
 {
@@ -271,8 +273,13 @@ void ipip6_err(struct sk_buff *skb, u32 info)
 		break;
 	}
 
+#ifdef CONFIG_NET_IPIP_IPV6
+	read_lock(&ipip_lock);
+	t = ipip_tunnel_lookup(iph->daddr, iph->saddr);
+#else
 	read_lock(&ipip6_lock);
 	t = ipip6_tunnel_lookup(iph->daddr, iph->saddr);
+#endif
 	if (t == NULL || t->parms.iph.daddr == 0)
 		goto out;
 	if (t->parms.iph.ttl == 0 && type == ICMP_TIME_EXCEEDED)
@@ -284,7 +291,11 @@ void ipip6_err(struct sk_buff *skb, u32 info)
 		t->err_count = 1;
 	t->err_time = jiffies;
 out:
+#ifdef CONFIG_NET_IPIP_IPV6
+	read_unlock(&ipip_lock);
+#else
 	read_unlock(&ipip6_lock);
+#endif
 	return;
 #else
 	struct iphdr *iph = (struct iphdr*)dp;
@@ -390,10 +401,52 @@ int ipip6_rcv(struct sk_buff *skb)
 
 	iph = skb->nh.iph;
 
+#ifdef CONFIG_NET_IPIP_IPV6
+	read_lock(&ipip_lock);
+	tunnel = ipip_tunnel_lookup(iph->saddr, iph->daddr);
+#else
 	read_lock(&ipip6_lock);
-	if ((tunnel = ipip6_tunnel_lookup(iph->saddr, iph->daddr)) != NULL) {
+	tunnel = ipip6_tunnel_lookup(iph->saddr, iph->daddr);
+#endif
+	if (tunnel != NULL) {
 		skb->mac.raw = skb->nh.raw;
 		skb->nh.raw = skb->data;
+#ifdef CONFIG_IPV6_ISATAP
+		/*
+		 * Intra-Site Automatic Tunnel Addressing Protocol (ISATAP)
+		 * (draft-ietf-ngtrans-isatap-01.txt). Connects IPv6 hosts
+		 * and routers within predominantly IPv4-based networks.
+		 *
+ 		 * Fred Templin  <templin@erg.sri.com>
+ 		 * Nathan Lutchansky <lutchann@litech.org>
+		 */
+		if (tunnel->parms.sit_mode == SITMODE_ISATAP) {
+			struct ipv6hdr *iph6 = skb->nh.ipv6h;
+			int v6type = ipv6_addr_type(&iph6->saddr);
+
+			/*
+			 * v6src MUST be link/site-local or global UNICAST. If
+			 * v4any is set (client-side only) and v4src != v4any,
+			 * v6src MUST be on-link with v6dst and v6src MUST
+			 * encapsulate a V4ADDR identical to v4src.
+			 */
+			v6type &= ~(IPV6_ADDR_LINKLOCAL|IPV6_ADDR_SITELOCAL);
+			if (tunnel->parms.sit_v4any &&
+			    iph->saddr != tunnel->parms.sit_v4any &&
+			    (v6type != IPV6_ADDR_UNICAST ||
+			     memcmp(&iph6->saddr, &iph6->daddr, 12) ||
+			     iph6->saddr.s6_addr32[3] != iph->saddr)) {
+				tunnel->stat.rx_dropped++;
+				kfree_skb(skb);
+#ifdef CONFIG_NET_IPIP_IPV6
+				read_unlock(&ipip_lock);
+#else
+				read_unlock(&ipip6_lock);
+#endif
+				return 0;
+			}
+		}
+#endif /* CONFIG_IPV6_ISATAP */
 		memset(&(IPCB(skb)->opt), 0, sizeof(struct ip_options));
 		skb->protocol = __constant_htons(ETH_P_IPV6);
 		skb->pkt_type = PACKET_HOST;
@@ -411,17 +464,26 @@ int ipip6_rcv(struct sk_buff *skb)
 #endif
 		ipip6_ecn_decapsulate(iph, skb);
 		netif_rx(skb);
+#ifdef CONFIG_NET_IPIP_IPV6
+		read_unlock(&ipip_lock);
+#else
 		read_unlock(&ipip6_lock);
+#endif
 		return 0;
 	}
 
 	icmp_send(skb, ICMP_DEST_UNREACH, ICMP_PROT_UNREACH, 0);
 	kfree_skb(skb);
+#ifdef CONFIG_NET_IPIP_IPV6
+	read_unlock(&ipip_lock);
+#else
 	read_unlock(&ipip6_lock);
+#endif
 out:
 	return 0;
 }
 
+#ifndef CONFIG_NET_IPIP_IPV6
 /* Need this wrapper because NF_HOOK takes the function address */
 static inline int do_ip_send(struct sk_buff *skb)
 {
@@ -436,7 +498,7 @@ static inline u32 try_6to4(struct in6_addr *v6dst)
 {
 	u32 dst = 0;
 
-	if (v6dst->s6_addr16[0] == htons(0x2002)) {
+	if (v6dst->s6_addr16[0] == __constant_htons(0x2002)) {
 	        /* 6to4 v6 addr has 16 bits prefix, 32 v4addr, 16 SLA, ... */
 		memcpy(&dst, &v6dst->s6_addr16[1], 4);
 	}
@@ -472,6 +534,53 @@ static int ipip6_tunnel_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (skb->protocol != __constant_htons(ETH_P_IPV6))
 		goto tx_error;
 
+#ifdef CONFIG_IPV6_ISATAP
+	if (tunnel->parms.sit_mode == SITMODE_ISATAP) {
+		int v6type = ipv6_addr_type(&iph6->daddr);
+
+		/*
+		 * Unicast. Assume source address selection already
+		 * performed by ipv6_get_saddr(). If v6dst on-link with
+		 * v6src (matches to /96), tunnel to V4ADDR encapsulated
+		 * in v6dst. Else, check if v6dst on-link with nexthop.
+		 * Else, tx_error. Accepts link/site-local or global
+		 * unicast; excludes all others.
+		 */
+		if (v6type & IPV6_ADDR_UNICAST) {
+
+			/* 
+			 * XXX - we don't check the entire /96 prefix
+			 * here, because we assume that ip6_route_output()
+			 * has done the right thing.
+			 */
+			if (iph6->daddr.s6_addr32[2] == __constant_htonl(0x5efe)) {
+				dst = iph6->daddr.s6_addr32[3];
+			} else {
+				struct in6_addr *nexthop;
+				struct neighbour *neigh;
+
+				if ((v6type == IPV6_ADDR_UNICAST) &&
+		        	    skb->dst && (neigh = skb->dst->neighbour)) {
+					nexthop = (struct in6_addr*)&neigh->primary_key;
+					if (nexthop->s6_addr32[2] == __constant_htonl(0x5efe))
+						dst = nexthop->s6_addr32[3];
+				}
+			}
+		} else {
+			/*
+			 * Multicast. If 'All-Rtrs-Multicast', send to v4any.
+			 * Else, tx_error. (If we are the ISATAP router or an
+			 * ISATAP host with no 'sit_v4any', tx_error.)
+			 */
+			if (v6type & IPV6_ADDR_MULTICAST) {
+				if (ipv6_addr_is_ll_all_routers(&iph6->daddr))
+					dst = tunnel->parms.sit_v4any;
+			}
+		}
+		if (!dst)
+			goto tx_error;
+	}
+#endif	/* CONFIG_IPV6_ISATAP */
 	if (!dst)
 		dst = try_6to4(&iph6->daddr);
 
@@ -495,10 +604,13 @@ static int ipip6_tunnel_xmit(struct sk_buff *skb, struct net_device *dev)
 			addr_type = ipv6_addr_type(addr6);
 		}
 
-		if ((addr_type & IPV6_ADDR_COMPATv4) == 0)
+		if (addr_type & IPV6_ADDR_COMPATv4)
+			dst = addr6->s6_addr32[3];
+		else
+#ifdef CONFIG_IPV6_6TO4_NEXTHOP
+		if (!(dst = try_6to4(addr6)))
+#endif
 			goto tx_error_icmp;
-
-		dst = addr6->s6_addr32[3];
 	}
 
 	if (ip_route_output(&rt, dst, tiph->saddr, RT_TOS(tos), tunnel->parms.link)) {
@@ -676,6 +788,17 @@ ipip6_tunnel_ioctl (struct net_device *dev, struct ifreq *ifr, int cmd)
 				}
 				t = (struct ip_tunnel*)dev->priv;
 				ipip6_tunnel_unlink(t);
+#ifdef	CONFIG_IPV6_ISATAP
+				/* ISATAP tunnel MUST NOT have daddr */
+				if (p.sit_mode == SITMODE_ISATAP) {
+					if (p.iph.daddr) {
+						err = -EINVAL;
+						break;
+					}
+					t->parms.sit_v4any = p.sit_v4any;
+				}
+				t->parms.sit_mode = p.sit_mode;
+#endif /* CONFIG_IPV6_ISATAP */
 				t->parms.iph.saddr = p.iph.saddr;
 				t->parms.iph.daddr = p.iph.daddr;
 				memcpy(dev->dev_addr, &p.iph.saddr, 4);
@@ -857,3 +980,4 @@ int __init sit_init(void)
 	inet_add_protocol(&sit_protocol);
 	return 0;
 }
+#endif	/* !CONFIG_NET_IPIP_IPV6 */

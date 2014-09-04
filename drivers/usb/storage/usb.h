@@ -101,6 +101,12 @@ struct us_unusual_dev {
 #define US_FL_IGNORE_SER      0x00000010 /* Ignore the serial number given  */
 #define US_FL_SCM_MULT_TARG   0x00000020 /* supports multiple targets */
 #define US_FL_FIX_INQUIRY     0x00000040 /* INQUIRY response needs fixing */
+#define US_FL_INQUIRY_LENGTH  0x00000080 /* fix INQUIRY command length */
+#define US_FL_STARTUPDELAY    0x00000100 /* delay at startup */
+#define US_FL_SECTORLIMIT     0x00000200 /* sector alignment, max sector */
+#define US_FL_FIXWRITEPROTECT 0x00000400 /* use WRITE instead of MODE_SENSE */
+#define US_FL_CB_WINLIKE      0x00000800 /* insert TEST_UNIT_READY before
+					    every command, no REQUEST_SENSE */
 
 #define USB_STOR_STRING_LEN 32
 
@@ -176,8 +182,20 @@ struct us_data {
 	struct us_unusual_dev   *unusual_dev;	 /* If unusual device       */
 	void			*extra;		 /* Any extra data          */
 	extra_data_destructor	extra_destructor;/* extra data destructor   */
+
+        /* flag to notify device removal */
+        /* protect them by dev_semaphore */
+	int                     scsi_err_processed;   /* scsi error handler invoked */
+	int                     device_reconnected;   /* to remember device removal */
+
+	/* Read/Write sector alignment, maximum sectors. 0 means no limit */
+	u8  sectoralign;
+	u8  sectormax;
 };
 
+#define SCSI_ERROR_DEVICE_RESET     ( 1 << 0 )
+#define SCSI_ERROR_BUS_RESET        ( 1 << 1 )
+#define SCSI_ERROR_HOST_RESET       ( 1 << 2 )
 /* The list of structures and the protective lock for them */
 extern struct us_data *us_list;
 extern struct semaphore us_list_semaphore;

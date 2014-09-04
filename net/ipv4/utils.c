@@ -1,3 +1,5 @@
+/* $USAGI: utils.c,v 1.7 2001/05/16 08:14:34 yoshfuji Exp $ */
+
 /*
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
@@ -55,6 +57,14 @@ char *in_ntoa(__u32 in)
 	sprintf(buff, "%d.%d.%d.%d",
 		(p[0] & 255), (p[1] & 255), (p[2] & 255), (p[3] & 255));
 	return(buff);
+}
+
+char *in_ntop(struct in_addr *in, char *buff)
+{
+	char *p = (char *)in;
+	sprintf(buff, "%d.%d.%d.%d", 
+		(p[0] & 255), (p[1] & 255), (p[2] & 255), (p[3] & 255));
+	return buff;
 }
 
 /*

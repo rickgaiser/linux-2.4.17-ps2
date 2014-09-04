@@ -51,14 +51,16 @@
 #define DEFAULT_BASE  0x14014030
 #define ITE_IIC_IO_SIZE	0x40
 #define DEFAULT_IRQ   0
+#define DEFAULT_CLOCK 0x544c	/* default 16MHz/(84+76) = 100KHz */
+#if 0
 #define DEFAULT_CLOCK 0x1b0e	/* default 16MHz/(27+14) = 400KHz */
+#endif
 #define DEFAULT_OWN   0x55
 
 static int base  = 0;
 static int irq   = 0;
 static int clock = 0;
 static int own   = 0;
-
 static int i2c_debug=0;
 static struct iic_ite gpi;
 #if (LINUX_VERSION_CODE < 0x020301)
@@ -74,9 +76,7 @@ static int iic_pending;
 #define DEB3(x) if (i2c_debug>=3) x
 #define DEBE(x)	x	/* error messages 				*/
 
-
 /* ----- local functions ----------------------------------------------	*/
-
 static void iic_ite_setiic(void *data, int ctl, short val)
 {
         unsigned long j = jiffies + 10;
@@ -250,6 +250,7 @@ static int __init iic_ite_init(void)
 	struct iic_ite *piic = &gpi;
 
 	printk(KERN_INFO "Initialize ITE IIC adapter module\n");
+
 	if (base == 0)
 		piic->iic_base = DEFAULT_BASE;
 	else
@@ -271,6 +272,7 @@ static int __init iic_ite_init(void)
 		piic->iic_own = own;
 
 	iic_ite_data.data = (void *)piic;
+
 #if (LINUX_VERSION_CODE >= 0x020301)
 	init_waitqueue_head(&iic_wait);
 #endif

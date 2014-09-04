@@ -4,7 +4,7 @@
  * (c) 1999 Machine Vision Holdings, Inc.
  * (c) 1999, 2000 David Woodhouse <dwmw2@infradead.org>
  *
- * $Id: doc2001.c,v 1.35 2001/10/02 15:05:13 dwmw2 Exp $
+ * $Id: doc2001.c,v 1.36 2002/08/29 21:43:26 gleixner Exp $
  */
 
 #include <linux/kernel.h>
@@ -38,9 +38,9 @@ static int doc_read(struct mtd_info *mtd, loff_t from, size_t len,
 static int doc_write(struct mtd_info *mtd, loff_t to, size_t len,
 		     size_t *retlen, const u_char *buf);
 static int doc_read_ecc(struct mtd_info *mtd, loff_t from, size_t len,
-			size_t *retlen, u_char *buf, u_char *eccbuf);
+			size_t *retlen, u_char *buf, u_char *eccbuf, int oobsel);
 static int doc_write_ecc(struct mtd_info *mtd, loff_t to, size_t len,
-			 size_t *retlen, const u_char *buf, u_char *eccbuf);
+			 size_t *retlen, const u_char *buf, u_char *eccbuf, int oobsel);
 static int doc_read_oob(struct mtd_info *mtd, loff_t ofs, size_t len,
 			size_t *retlen, u_char *buf);
 static int doc_write_oob(struct mtd_info *mtd, loff_t ofs, size_t len,
@@ -399,11 +399,11 @@ static int doc_read (struct mtd_info *mtd, loff_t from, size_t len,
 		     size_t *retlen, u_char *buf)
 {
 	/* Just a special case of doc_read_ecc */
-	return doc_read_ecc(mtd, from, len, retlen, buf, NULL);
+	return doc_read_ecc(mtd, from, len, retlen, buf, NULL, 0);
 }
 
 static int doc_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
-			 size_t *retlen, u_char *buf, u_char *eccbuf)
+			 size_t *retlen, u_char *buf, u_char *eccbuf, int oobsel)
 {
 	int i, ret;
 	volatile char dummy;
@@ -525,11 +525,11 @@ static int doc_write (struct mtd_info *mtd, loff_t to, size_t len,
 		      size_t *retlen, const u_char *buf)
 {
 	char eccbuf[6];
-	return doc_write_ecc(mtd, to, len, retlen, buf, eccbuf);
+	return doc_write_ecc(mtd, to, len, retlen, buf, eccbuf, 0);
 }
 
 static int doc_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
-			  size_t *retlen, const u_char *buf, u_char *eccbuf)
+			  size_t *retlen, const u_char *buf, u_char *eccbuf, int oobsel)
 {
 	int i,ret = 0;
 	volatile char dummy;

@@ -1,3 +1,5 @@
+/* $USAGI: pcnet32.c,v 1.16 2002/02/27 12:12:53 yoshfuji Exp $ */
+
 /* pcnet32.c: An AMD PCnet32 ethernet driver for linux. */
 /*
  *	Copyright 1996-1999 Thomas Bogendoerfer
@@ -617,6 +619,15 @@ pcnet32_probe1(unsigned long ioaddr, unsigned char irq_line, int shared, int car
 	ltint = 1;
     }
     
+#if defined(CONFIG_SH_7751_SOLUTION_ENGINE)
+    a->write_bcr(ioaddr, 18, (a->read_bcr(ioaddr, 18) | 0x0060));
+#if 0 /* May want to try these in case of Tx FIFO underrun */
+    a->write_csr(ioaddr, 80, (a->read_csr(ioaddr, 80) & ~0x0C00) | 0x0C00);
+    a->write_bcr(ioaddr, 25, 0x16);
+    a->write_bcr(ioaddr, 26, 0x08);
+#endif
+#endif
+
     dev = init_etherdev(NULL, 0);
     if(dev==NULL)
 	return -ENOMEM;
@@ -645,8 +656,8 @@ pcnet32_probe1(unsigned long ioaddr, unsigned char irq_line, int shared, int car
 	if( memcmp( promaddr, dev->dev_addr, 6) )
 	{
 	    printk(" warning PROM address does not match CSR address\n");
-#if defined(__i386__)
-	    printk(KERN_WARNING "%s: Probably a Compaq, using the PROM address of", dev->name);
+#if defined(__i386__) || defined(__powerpc__)
+	    printk(KERN_WARNING "%s: Using the PROM address of", dev->name);
 	    memcpy(dev->dev_addr, promaddr, 6);
 #endif
 	}	    	    
@@ -655,6 +666,22 @@ pcnet32_probe1(unsigned long ioaddr, unsigned char irq_line, int shared, int car
     if( !is_valid_ether_addr(dev->dev_addr) )
 	for (i = 0; i < 6; i++)
 	    dev->dev_addr[i]=0;
+
+#ifdef CONFIG_SH_7751_SOLUTION_ENGINE
+    /* There is no address in the PROM: generate a MAC address */
+    /* (Also... maybe should check if BIOS is available for it?) */
+    for (i = 0; i < 6; i++) {
+	    if (dev->dev_addr[i] != 0)
+		    break;
+    }
+    if (i >= 6) {
+	    dev->dev_addr[0] = 0x02;
+	    dev->dev_addr[1] = dev->dev_addr[2] = 0;
+	    dev->dev_addr[3] = dev->dev_addr[4] = 0;
+	    dev->dev_addr[5] = *(unsigned short*)0xB9000002;
+    }
+    printk("\nGenerating MAC address of ");
+#endif /* CONFIG_SH_7751_SOLUTION_ENGINE */    
 
     for (i = 0; i < 6; i++)
 	printk(" %2.2x", dev->dev_addr[i] );
@@ -1290,6 +1317,9 @@ pcnet32_rx(struct net_device *dev)
 		lp->stats.rx_errors++;
 	    } else {
 		int rx_in_place = 0;
+#ifdef CONFIG_PCNET32_VMWARE
+		int rx_revbytes = 0;
+#endif
 
 		if (pkt_len > rx_copybreak) {
 		    struct sk_buff *newskb;
@@ -1332,9 +1362,22 @@ pcnet32_rx(struct net_device *dev)
 				     pkt_len,0);
 		}
 		lp->stats.rx_bytes += skb->len;
+#ifdef CONFIG_PCNET32_VMWARE
+		rx_revbytes = skb->len;
+#endif
 		skb->protocol=eth_type_trans(skb,dev);
+#ifdef CONFIG_PCNET32_VMWARE
+		if (skb->protocol == 0) {
+			dev_kfree_skb(skb);
+			lp->stats.rx_bytes -= rx_revbytes;
+		} else {
+			netif_rx(skb);
+			lp->stats.rx_packets++;
+		}
+#else
 		netif_rx(skb);
 		lp->stats.rx_packets++;
+#endif
 	    }
 	}
 	/*

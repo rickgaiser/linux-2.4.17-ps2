@@ -1,0 +1,30 @@
+lzrw3.o: lzrw3.c \
+   ../compressor/lzrw3.h
+lzrw3.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h
+	@touch lzrw3.h
+zftape-compress.o: zftape-compress.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/zftape.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   ../zftape/zftape-init.h \
+   ../zftape/zftape-eof.h \
+   ../zftape/zftape-ctl.h \
+   ../zftape/zftape-write.h \
+   ../zftape/zftape-read.h \
+   ../zftape/zftape-rw.h \
+   ../compressor/zftape-compress.h \
+   ../zftape/zftape-vtbl.h \
+   ../compressor/lzrw3.h
+zftape-compress.h: \
+   ../zftape/zftape-buffers.h \
+   ../zftape/zftape-vtbl.h \
+   ../compressor/lzrw3.h
+	@touch zftape-compress.h
+.PRECIOUS:	lzrw3.h \
+	zftape-compress.h \
+

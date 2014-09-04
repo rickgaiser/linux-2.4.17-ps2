@@ -12,6 +12,9 @@
  *      Additional inspiration from the "tcd8390.c" driver from TiVo, Inc. 
  *      and "enetLib.c" from IBM.
  *
+ *      Modified to work on "Redwood 4" board also by someone at
+ *	Montavista software (brad@heeltoe.com)
+ *
  */
 
 #include <linux/module.h>
@@ -21,11 +24,70 @@
 #include <linux/etherdevice.h>
 #include <linux/init.h>
 
-#include <asm/board.h>
 #include <asm/io.h>
 
 #include "8390.h"
 
+#ifdef CONFIG_REDWOOD_4
+#define OAKNET_CMD		0x00
+#define OAKNET_DATA		0x20    /* NS-defined port window offset. */
+#define OAKNET_BASE		(dev->base_addr)
+#define E8390_BASE		(dev->base_addr)
+
+
+#undef outb_p
+#undef insb
+#undef insw
+
+#define FTR_DELAY_HACK
+#ifdef  FTR_DELAY_HACK
+
+static inline void outb_p(unsigned char value, long address)
+{
+	readb((void *)(address & 0xffffff00) + 0x40);
+	writeb(value, address);
+}
+
+static inline void ei_obp(unsigned char value, long address)
+{
+	readb((void *)(address & 0xffffff00) + 0x40);
+	writeb(value, address);
+}
+
+static inline unsigned char ei_ibp(long address)
+{
+	readb((void *)(address & 0xffffff00) + 0x40);
+	return readb(address);
+}
+
+static inline unsigned char ei_ib(long address)
+{
+	readb((void *)(address & 0xffffff00) + 0x40);
+	return readb(address);
+}
+
+#else
+
+#define outb_p	writeb
+
+#define ei_obp	writeb
+#define ei_ibp	readb
+#define ei_ib	readb
+
+#endif
+
+
+/* don't add _IO_BASE to port */
+
+#define ei_osw	_outsw_ns
+#define ei_isw	_insw_ns
+#define ei_osb	_outsb
+#define ei_isb	_insb 
+
+#define insb	_insb
+#define insw	_insw_ns
+
+#endif
 
 /* Preprocessor Defines */
 
@@ -37,17 +99,23 @@
 #define	FALSE	0
 #endif
 
+#ifdef CONFIG_REDWOOD_4
+#define	OAKNET_START_PG		0x40	/* First page of TX buffer */
+#define	OAKNET_STOP_PG		0x80	/* Last page +1 of RX ring */
+#else
 #define	OAKNET_START_PG		0x20	/* First page of TX buffer */
-#define	OAKNET_STOP_PG		0x40	/* Last pagge +1 of RX ring */
+#define	OAKNET_STOP_PG		0x40	/* Last page +1 of RX ring */
+#endif
+
 
 #define	OAKNET_WAIT		(2 * HZ / 100)	/* 20 ms */
 
 /* Experimenting with some fixes for a broken driver... */
-
+#ifndef CONFIG_REDWOOD_4
 #define	OAKNET_DISINT
 #define	OAKNET_HEADCHECK
 #define	OAKNET_RWFIX
-
+#endif
 
 /* Global Variables */
 
@@ -58,6 +126,8 @@ static struct net_device *oaknet_devs;
 
 /* Function Prototypes */
 
+int		 oaknet_probe(struct net_device *dev);
+static int 	 oaknet_init(struct net_device *dev);
 static int	 oaknet_open(struct net_device *dev);
 static int	 oaknet_close(struct net_device *dev);
 
@@ -71,6 +141,23 @@ static void	 oaknet_block_output(struct net_device *dev, int count,
 
 static void	 oaknet_dma_error(struct net_device *dev, const char *name);
 
+/*
+ * Maintain the initial probe as a sub function just in case it is wished
+ * to have this driver as a module later.
+ */
+int oaknet_probe_done = 0;
+
+int
+oaknet_probe(struct net_device *dev)
+{
+        if (oaknet_probe_done)
+                return -ENODEV;
+
+        oaknet_init(dev);
+
+        oaknet_probe_done = 1;
+        return 0;
+} 
 
 /*
  * int oaknet_init()
@@ -90,32 +177,25 @@ static void	 oaknet_dma_error(struct net_device *dev, const char *name);
  *   0 if OK, otherwise system error number on error.
  *
  */
-static int __init oaknet_init(void)
+static int __init oaknet_init(struct net_device *dev)
 {
 	register int i;
 	int reg0, regd;
 	int ret;
-	struct net_device tmp, *dev = NULL;
-#if 0
 	unsigned long ioaddr = OAKNET_IO_BASE; 
-#else
-	unsigned long ioaddr = ioremap(OAKNET_IO_BASE, OAKNET_IO_SIZE);
-#endif
 	bd_t *bip = (bd_t *)__res;
 
 	if (!ioaddr)
 		return -ENOMEM;
-	/*
-	 * This MUST happen here because of the nic_* macros
-	 * which have an implicit dependency on dev->base_addr.
-	 */
 
-	tmp.base_addr = ioaddr;
-	dev = &tmp;
+	dev->base_addr = ioaddr;
 
-	ret = -EBUSY;
-	if (!request_region(OAKNET_IO_BASE, OAKNET_IO_SIZE, name))
-		goto out_unmap;
+#if !defined(CONFIG_REDWOOD_4)
+	if (!request_region(OAKNET_IO_BASE, OAKNET_IO_SIZE, name)) {
+		dev->base_addr = 0;
+		return -EBUSY;
+	}
+#endif
 
 	/* Quick register check to see if the device is really there. */
 
@@ -130,30 +210,27 @@ static int __init oaknet_init(void)
 	 */
 
 	ei_obp(E8390_NODMA + E8390_PAGE1 + E8390_STOP, ioaddr + E8390_CMD);
+#ifdef  CONFIG_REDWOOD_4
+	regd = ei_ibp(ioaddr + EI_SHIFT(0x0D));
+	ei_obp(0xFF, ioaddr + EI_SHIFT(0x0D));
+#else
 	regd = ei_ibp(ioaddr + 0x0D);
 	ei_obp(0xFF, ioaddr + 0x0D);
+#endif
 	ei_obp(E8390_NODMA + E8390_PAGE0, ioaddr + E8390_CMD);
 	ei_ibp(ioaddr + EN0_COUNTER0);
 
 	/* It's no good. Fix things back up and leave. */
 
-	ret = -ENODEV;
 	if (ei_ibp(ioaddr + EN0_COUNTER0) != 0) {
 		ei_obp(reg0, ioaddr);
 		ei_obp(regd, ioaddr + 0x0D);
-		goto out_region;
+#if !defined(CONFIG_REDWOOD_4)
+		release_region(dev->base_addr, OAKNET_IO_SIZE);
+#endif
+		return (-ENODEV);
 	}
 
-	/*
-	 * We're not using the old-style probing API, so we have to allocate
-	 * our own device structure.
-	 */
-
-	dev = init_etherdev(NULL, 0);
-	ret = -ENOMEM;
-	if (!dev)
-		goto out_region;
-	SET_MODULE_OWNER(dev);
 	oaknet_devs = dev;
 
 	/*
@@ -166,10 +243,12 @@ static int __init oaknet_init(void)
 
 	/* Allocate 8390-specific device-private area and fields. */
 
-	ret = -ENOMEM;
 	if (ethdev_init(dev)) {
 		printk(" unable to get memory for dev->priv.\n");
-		goto out_dev;
+#if !defined(CONFIG_REDWOOD_4)
+		release_region(dev->base_addr, OAKNET_IO_SIZE);
+#endif
+		return (-ENOMEM);
 	}
 
 	/*
@@ -182,11 +261,14 @@ static int __init oaknet_init(void)
 
 	/* Attempt to get the interrupt line */
 
-	ret = -EAGAIN;
 	if (request_irq(dev->irq, ei_interrupt, 0, name, dev)) {
 		printk("%s: unable to request interrupt %d.\n",
 		       dev->name, dev->irq);
-		goto out_priv;
+		dev->priv = NULL;
+#if !defined(CONFIG_REDWOOD_4)
+		release_region(dev->base_addr, OAKNET_IO_SIZE);
+#endif
+		return (EAGAIN);
 	}
 
 	/* Tell the world about what and where we've found. */
@@ -196,7 +278,7 @@ static int __init oaknet_init(void)
 		dev->dev_addr[i] = bip->bi_enetaddr[i];
 		printk("%c%.2x", (i ? ':' : ' '), dev->dev_addr[i]);
 	}
-	printk(", found at %#lx, using IRQ %d.\n", dev->base_addr, dev->irq);
+	printk(", found at %#lx, irq=%d.\n", dev->base_addr, dev->irq);
 
 	/* Set up some required driver fields and then we're done. */
 
@@ -251,7 +333,9 @@ out_unmap:
 static int
 oaknet_open(struct net_device *dev)
 {
-	int status = ei_open(dev);
+	int status;
+
+	status = ei_open(dev);
 	return (status);
 }
 
@@ -300,7 +384,7 @@ oaknet_close(struct net_device *dev)
 static void
 oaknet_reset_8390(struct net_device *dev)
 {
-	int base = E8390_BASE;
+  	int base = E8390_BASE;
 
 	/*
 	 * We have no provision of reseting the controller as is done
@@ -360,10 +444,10 @@ oaknet_get_8390_hdr(struct net_device *dev, struct e8390_pkt_hdr *hdr,
 	outb_p(E8390_RREAD + E8390_START, base + OAKNET_CMD);
 
 	if (ei_status.word16)
-		insw(base + OAKNET_DATA, hdr,
+		insw((u16 *)base + OAKNET_DATA, hdr,
 		     sizeof(struct e8390_pkt_hdr) >> 1);
 	else
-		insb(base + OAKNET_DATA, hdr,
+		insb((unsigned char *)(base + OAKNET_DATA), hdr,
 		     sizeof(struct e8390_pkt_hdr));
 
 	/* Byte-swap the packet byte count */
@@ -381,6 +465,12 @@ static void
 oaknet_block_input(struct net_device *dev, int count, struct sk_buff *skb,
 		   int ring_offset)
 {
+#ifdef OAKNET_DISINT
+	unsigned long flags;
+#endif 
+#ifdef OAKNET_HEADCHECK
+	int bytes = count;
+#endif  
 	int base = OAKNET_BASE;
 	char *buf = skb->data;
 
@@ -393,6 +483,10 @@ oaknet_block_input(struct net_device *dev, int count, struct sk_buff *skb,
 		oaknet_dma_error(dev, "oaknet_block_input");
 		return;
 	}
+
+#ifdef  CONFIG_REDWOOD_4
+        dma_cache_wback_inv((long)skb->data, (long)count);
+#endif
 
 #ifdef OAKNET_DISINT
 	save_flags(flags);
@@ -407,15 +501,16 @@ oaknet_block_input(struct net_device *dev, int count, struct sk_buff *skb,
 	ei_obp(ring_offset >> 8, base + EN0_RSARHI);
 	ei_obp(E8390_RREAD + E8390_START, base + E8390_CMD);
 	if (ei_status.word16) {
-		ei_isw(base + E8390_DATA, buf, count >> 1);
+		ei_isw((unsigned short *)(base + OAKNET_DATA), buf, count >> 1);
+
 		if (count & 0x01) {
-			buf[count - 1] = ei_ib(base + E8390_DATA);
+			buf[count - 1] = ei_ib(base + OAKNET_DATA);
 #ifdef OAKNET_HEADCHECK
 			bytes++;
 #endif
 		}
 	} else {
-		ei_isb(base + E8390_DATA, buf, count);
+		ei_isb((unsigned char *)(base + OAKNET_DATA), buf, count);
 	}
 #ifdef OAKNET_HEADCHECK
 	/*
@@ -437,10 +532,11 @@ oaknet_block_input(struct net_device *dev, int count, struct sk_buff *skb,
 			if (((ring_offset + bytes) & 0xff) == low)
 				break;
 		} while (--tries > 0);
-	 	if (tries <= 0)
+	 	if (tries <= 0) {
 			printk("%s: RX transfer address mismatch,"
 			       "%#4.4x (expected) vs. %#4.4x (actual).\n",
 			       dev->name, ring_offset + bytes, addr);
+		}	
 	}
 #endif
 	ei_obp(ENISR_RDC, base + EN0_ISR);	/* ACK Remote DMA interrupt */
@@ -512,6 +608,10 @@ oaknet_block_output(struct net_device *dev, int count,
 
 	ei_obp(E8390_PAGE0 + E8390_START + E8390_NODMA, base + E8390_CMD);
 
+#ifdef  CONFIG_REDWOOD_4
+        dma_cache_wback_inv((long)buf, (long)count);
+#endif
+
 #ifdef OAKNET_HEADCHECK
 retry:
 #endif
@@ -581,9 +681,9 @@ retry:
 
 	ei_obp(E8390_RWRITE + E8390_START, base + E8390_CMD);
 	if (ei_status.word16) {
-		ei_osw(E8390_BASE + E8390_DATA, buf, count >> 1);
+		ei_osw((unsigned short *)(base + OAKNET_DATA), buf, count >> 1);
 	} else {
-		ei_osb(E8390_BASE + E8390_DATA, buf, count);
+		ei_osb((unsigned char *)(base + OAKNET_DATA), buf, count);
 	}
 
 #ifdef OAKNET_DISINT
@@ -658,7 +758,7 @@ oaknet_dma_error(struct net_device *dev, const char *name)
 	printk(KERN_EMERG "%s: DMAing conflict in %s."
 	       "[DMAstat:%d][irqlock:%d][intr:%ld]\n",
 	       dev->name, name, ei_status.dmaing, ei_status.irqlock,
-	       dev->interrupt);
+	       dev->irq);
 }
 
 /*
@@ -666,10 +766,18 @@ oaknet_dma_error(struct net_device *dev, const char *name)
  */
 static int __init oaknet_init_module (void)
 {
+	struct net_device *dev;
+
 	if (oaknet_devs != NULL)
 		return (-EBUSY);
 
-	return (oaknet_init());
+	dev = init_etherdev(NULL, 0);
+	if (!dev)
+		return (-ENOMEM);
+
+	SET_MODULE_OWNER(dev);
+
+	return (oaknet_init(dev));
 }
 
 /*
@@ -681,12 +789,14 @@ static void __exit oaknet_cleanup_module (void)
 		return;
 
 	if (oaknet_devs->priv != NULL) {
-		int ioaddr = oaknet_devs->base_addr;
+		unsigned long ioaddr = oaknet_devs->base_addr;
 		void *priv = oaknet_devs->priv;
 		free_irq(oaknet_devs->irq, oaknet_devs);
+#if !defined(CONFIG_REDWOOD_4)
 		release_region(ioaddr, OAKNET_IO_SIZE);
+#endif
 		iounmap(ioaddr);
-		unregister_netdev(oaknet_dev);
+		unregister_netdev(oaknet_devs);
 		kfree(priv);
 	}
 

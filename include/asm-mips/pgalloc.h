@@ -18,14 +18,32 @@
  *  - flush_tlb_mm(mm) flushes the specified mm context TLB entries
  *  - flush_tlb_page(mm, vmaddr) flushes a single page
  *  - flush_tlb_range(mm, start, end) flushes a range of pages
+ *  - flush_tlb_pgtables(mm, start, end) flushes a range of page tables
  */
-extern void flush_tlb_all(void);
-extern void flush_tlb_mm(struct mm_struct *mm);
-extern void flush_tlb_range(struct mm_struct *mm, unsigned long start,
+extern void local_flush_tlb_all(void);
+extern void local_flush_tlb_mm(struct mm_struct *mm);
+extern void local_flush_tlb_range(struct mm_struct *mm, unsigned long start,
 			       unsigned long end);
-extern void flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
+extern void local_flush_tlb_page(struct vm_area_struct *vma,
+                                 unsigned long page);
 
-extern inline void flush_tlb_pgtables(struct mm_struct *mm,
+#ifdef CONFIG_SMP
+
+extern void flush_tlb_all(void);
+extern void flush_tlb_mm(struct mm_struct *);
+extern void flush_tlb_range(struct mm_struct *, unsigned long, unsigned long);
+extern void flush_tlb_page(struct vm_area_struct *, unsigned long);
+
+#else /* CONFIG_SMP */
+
+#define flush_tlb_all()			local_flush_tlb_all()
+#define flush_tlb_mm(mm)		local_flush_tlb_mm(mm)
+#define flush_tlb_range(mm,vmaddr,end)	local_flush_tlb_range(mm, vmaddr, end)
+#define flush_tlb_page(vma,page)	local_flush_tlb_page(vma, page)
+
+#endif /* CONFIG_SMP */
+
+static inline void flush_tlb_pgtables(struct mm_struct *mm,
                                       unsigned long start, unsigned long end)
 {
 	/* Nothing to do on MIPS.  */
@@ -65,20 +83,26 @@ extern __inline__ pgd_t *get_pgd_fast(void)
 {
 	unsigned long *ret;
 
+	preempt_disable();
 	if((ret = pgd_quicklist) != NULL) {
 		pgd_quicklist = (unsigned long *)(*ret);
 		ret[0] = ret[1];
 		pgtable_cache_size--;
-	} else
+		preempt_enable();
+	} else {
+		preempt_enable();
 		ret = (unsigned long *)get_pgd_slow();
+	}
 	return (pgd_t *)ret;
 }
 
 extern __inline__ void free_pgd_fast(pgd_t *pgd)
 {
+	preempt_disable();
 	*(unsigned long *)pgd = (unsigned long) pgd_quicklist;
 	pgd_quicklist = (unsigned long *) pgd;
 	pgtable_cache_size++;
+	preempt_enable();
 }
 
 extern __inline__ void free_pgd_slow(pgd_t *pgd)
@@ -92,19 +116,23 @@ extern __inline__ pte_t *get_pte_fast(void)
 {
 	unsigned long *ret;
 
+	preempt_disable();
 	if((ret = (unsigned long *)pte_quicklist) != NULL) {
 		pte_quicklist = (unsigned long *)(*ret);
 		ret[0] = ret[1];
 		pgtable_cache_size--;
 	}
+	preempt_enable();
 	return (pte_t *)ret;
 }
 
 extern __inline__ void free_pte_fast(pte_t *pte)
 {
+	preempt_disable();
 	*(unsigned long *)pte = (unsigned long) pte_quicklist;
 	pte_quicklist = (unsigned long *) pte;
 	pgtable_cache_size++;
+	preempt_enable();
 }
 
 extern __inline__ void free_pte_slow(pte_t *pte)
@@ -142,19 +170,23 @@ static inline pte_t *pte_alloc_one_fast(struct mm_struct *mm, unsigned long addr
 {
 	unsigned long *ret;
 
+	preempt_disable();
 	if ((ret = (unsigned long *)pte_quicklist) != NULL) {
 		pte_quicklist = (unsigned long *)(*ret);
 		ret[0] = ret[1];
 		pgtable_cache_size--;
 	}
+	preempt_enable();
 	return (pte_t *)ret;
 }
 
 extern __inline__ void pte_free_fast(pte_t *pte)
 {
+	preempt_disable();
 	*(unsigned long *)pte = (unsigned long) pte_quicklist;
 	pte_quicklist = (unsigned long *) pte;
 	pgtable_cache_size++;
+	preempt_enable();
 }
 
 extern __inline__ void pte_free_slow(pte_t *pte)
@@ -162,7 +194,7 @@ extern __inline__ void pte_free_slow(pte_t *pte)
 	free_page((unsigned long)pte);
 }
 
-#define pte_free(pte)           pte_free_slow(pte)
+#define pte_free(pte)           pte_free_fast(pte)
 #define pgd_free(pgd)           free_pgd_fast(pgd)
 #define pgd_alloc(mm)           get_pgd_fast()
 

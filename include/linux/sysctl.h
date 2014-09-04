@@ -1,3 +1,5 @@
+/* $USAGI: sysctl.h,v 1.20 2002/03/13 13:39:49 yoshfuji Exp $ */
+
 /*
  * sysctl.h: General linux system control interface
  *
@@ -140,6 +142,9 @@ enum
 	VM_PAGERDAEMON=8,	/* struct: Control kswapd behaviour */
 	VM_PGT_CACHE=9,		/* struct: Set page table cache parameters */
 	VM_PAGE_CLUSTER=10,	/* int: set number of pages to swap together */
+#if defined(CONFIG_XFS_FS) || defined(CONFIG_XFS_FS_MODULE)
+	VM_PAGEBUF=11,		/* struct: Control pagebuf parameters */
+#endif
        VM_MIN_READAHEAD=12,    /* Min file readahead */
        VM_MAX_READAHEAD=13     /* Max file readahead */
 };
@@ -164,7 +169,8 @@ enum
 	NET_TR=14,
 	NET_DECNET=15,
 	NET_ECONET=16,
-	NET_KHTTPD=17
+	NET_KHTTPD=17,
+	NET_IPSEC=18
 };
 
 /* /proc/sys/kernel/random */
@@ -366,7 +372,25 @@ enum {
 	NET_IPV6_DAD_TRANSMITS=7,
 	NET_IPV6_RTR_SOLICITS=8,
 	NET_IPV6_RTR_SOLICIT_INTERVAL=9,
-	NET_IPV6_RTR_SOLICIT_DELAY=10
+	NET_IPV6_RTR_SOLICIT_DELAY=10,
+#ifdef __KERNEL__
+	NET_IPV6_BINDV6ONLY,
+	NET_IPV6_ACCEPT_NI,
+	NET_IPV6_USE_TEMPADDR,
+	NET_IPV6_TEMP_VALID_LFT,
+	NET_IPV6_TEMP_PREFERED_LFT,
+	NET_IPV6_REGEN_MAX_RETRY,
+	NET_IPV6_MAX_DESYNC_FACTOR,
+#endif
+};
+
+/* /proc/net/ipsec */
+enum {
+	NET_IPSEC_REPLAY_WINDOW=1,
+	NET_IPSEC_DEBUG_IPV6=5,
+	NET_IPSEC_DEBUG_PFKEY=6,
+	NET_IPSEC_DEBUG_SADB=7,
+	NET_IPSEC_DEBUG_SPD=8,
 };
 
 /* /proc/sys/net/<protocol>/neigh/<dev> */
@@ -532,7 +556,7 @@ enum
 	FS_STATINODE=2,
 	FS_MAXINODE=3,	/* int:maximum number of inodes that can be allocated */
 	FS_NRDQUOT=4,	/* int:current number of allocated dquots */
-	FS_MAXDQUOT=5,	/* int:maximum number of dquots that can be allocated */
+	/* was FS_MAXDQUOT */
 	FS_NRFILE=6,	/* int:current number of allocated filedescriptors */
 	FS_MAXFILE=7,	/* int:maximum number of filedescriptors that can be allocated */
 	FS_DENTRY=8,
@@ -543,6 +567,9 @@ enum
 	FS_LEASES=13,	/* int: leases enabled */
 	FS_DIR_NOTIFY=14,	/* int: directory notification enabled */
 	FS_LEASE_TIME=15,	/* int: maximum time to wait for a lease break */
+#if defined(CONFIG_XFS_FS) || defined(CONFIG_XFS_FS_MODULE)
+	FS_XFS=16,	/* struct: control xfs parameters */
+#endif
 };
 
 /* CTL_DEBUG names: */
@@ -623,6 +650,12 @@ enum
 	ABI_DEFHANDLER_LIBCSO=4,/* default handler for an libc.so ELF interp */
 	ABI_TRACE=5,		/* tracing flags */
 	ABI_FAKE_UTSNAME=6,	/* fake target utsname information */
+};
+
+enum {
+	CPU_NR_FREQ_MAX = 1,
+	CPU_NR_FREQ_MIN = 2,
+	CPU_NR_FREQ = 3
 };
 
 #ifdef __KERNEL__

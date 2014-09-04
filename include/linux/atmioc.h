@@ -29,7 +29,7 @@
 #define ATMIOC_ITF_END	  0x8f
 #define ATMIOC_BACKEND	  0x90 /* ATM generic backend ioctls, u. per backend */
 #define ATMIOC_BACKEND_END 0xaf
-/* 0xb0-0xbf: Reserved for future use */
+#define ATMIOC_IPV6       0xb0 /* IPv6 enhancement, glob. u. */
 #define ATMIOC_AREQUIPA	  0xc0 /* Application requested IP over ATM, glob. u. */
 #define ATMIOC_LANE	  0xd0 /* LAN Emulation, globally unique */
 #define ATMIOC_MPOA       0xd8 /* MPOA, globally unique */

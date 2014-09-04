@@ -1,0 +1,100 @@
+balloc.o: balloc.c \
+   hfs_btree.h
+bdelete.o: bdelete.c \
+   hfs_btree.h
+bfind.o: bfind.c \
+   hfs_btree.h
+bins_del.o: bins_del.c \
+   hfs_btree.h
+binsert.o: binsert.c \
+   hfs_btree.h
+bitmap.o: bitmap.c \
+   hfs.h
+bitops.o: bitops.c \
+   hfs.h
+bnode.o: bnode.c \
+   hfs_btree.h
+brec.o: brec.c \
+   hfs_btree.h
+btree.o: btree.c \
+   hfs_btree.h
+catalog.o: catalog.c \
+   hfs.h
+dir.o: dir.c \
+   hfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs.h
+dir_cap.o: dir_cap.c \
+   hfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs.h
+dir_dbl.o: dir_dbl.c \
+   hfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs.h
+dir_nat.o: dir_nat.c \
+   hfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs.h
+extent.o: extent.c \
+   hfs.h
+file.o: file.c \
+   hfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs.h
+file_cap.o: file_cap.c \
+   hfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs.h
+file_hdr.o: file_hdr.c \
+   hfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs.h
+hfs.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_sysdep.h
+	@touch hfs.h
+hfs_btree.h: \
+   hfs.h
+	@touch hfs_btree.h
+inode.o: inode.c \
+   hfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+mdb.o: mdb.c \
+   hfs.h
+part_tbl.o: part_tbl.c \
+   hfs.h
+string.o: string.c \
+   hfs.h
+super.o: super.c \
+   hfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blkdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mac/partition.h)
+sysdep.o: sysdep.c \
+   hfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+trans.o: trans.c \
+   hfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hfs_fs.h
+.PRECIOUS:	hfs.h \
+	hfs_btree.h \
+

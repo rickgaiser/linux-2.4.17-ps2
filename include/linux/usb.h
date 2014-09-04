@@ -574,6 +574,7 @@ struct usb_bus {
 	struct usb_devmap devmap;       /* Device map */
 	struct usb_operations *op;      /* Operations (specific to the HC) */
 	struct usb_device *root_hub;    /* Root hub */
+	struct semaphore dev_tree_sem;  /* Lock for device tree */
 	struct list_head bus_list;
 	void *hcpriv;                   /* Host Controller private data */
 
@@ -622,6 +623,9 @@ struct usb_device {
 	struct usb_bus *bus;		/* Bus we're part of */
 
 	struct usb_device_descriptor descriptor;/* Descriptor */
+	char *manufacturer;
+	char *product;
+	char *serial;
 	struct usb_config_descriptor *config;	/* All of the configs */
 	struct usb_config_descriptor *actconfig;/* the active configuration */
 
@@ -806,6 +810,7 @@ int usb_get_report(struct usb_device *dev, int ifnum, unsigned char type,
 int usb_set_report(struct usb_device *dev, int ifnum, unsigned char type,
 	unsigned char id, void *buf, int size);
 int usb_string(struct usb_device *dev, int index, char *buf, size_t size);
+int usb_alloc_string(struct usb_device *dev, int index, char **ptr);
 int usb_clear_halt(struct usb_device *dev, int pipe);
 void usb_set_maxpacket(struct usb_device *dev);
 

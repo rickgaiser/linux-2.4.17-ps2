@@ -23,6 +23,8 @@
 #include <linux/interrupt.h>
 #include <linux/kernel_stat.h>
 
+#include <linux/trace.h>
+
 #include <asm/uaccess.h>
 
 /*
@@ -583,7 +585,15 @@ void update_process_times(int user_tick)
 
 	update_one_process(p, user_tick, system, cpu);
 	if (p->pid) {
+#ifdef CONFIG_RTSCHED
+                /* SCHED_FIFO and the idle(s) have counters set to -100, 
+                 * so we won't count them, seems like a good idea for 
+                 * both schedulers, but, being pure...
+                 */
+		if (p->counter >= 0 && --p->counter <= 0) {
+#else
 		if (--p->counter <= 0) {
+#endif
 			p->counter = 0;
 			p->need_resched = 1;
 		}
@@ -667,8 +677,17 @@ static inline void update_times(void)
 
 void timer_bh(void)
 {
+	TRACE_EVENT(TRACE_EV_KERNEL_TIMER, NULL);
 	update_times();
 	run_timer_list();
+    {
+	/* XXX for tq_disk stall problem */
+	static int x = 0;
+	if (++x > 300) {
+	    x = 0;
+	    run_task_queue(&tq_disk);
+	}
+    }
 }
 
 void do_timer(struct pt_regs *regs)

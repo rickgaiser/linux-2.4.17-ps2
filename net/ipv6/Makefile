@@ -1,3 +1,4 @@
+# $USAGI: Makefile,v 1.11 2002/01/21 14:49:52 yoshfuji Exp $
 #
 # Makefile for the Linux TCP/IP (INET6) layer.
 #
@@ -9,14 +10,31 @@
 
 O_TARGET := ipv6.o
 
+export-objs :=	ipv6_tunnel.o
+
 obj-y :=	af_inet6.o ip6_output.o ip6_input.o addrconf.o sit.o \
 		route.o ip6_fib.o ipv6_sockglue.o ndisc.o udp.o raw.o \
 		protocol.o icmp.o mcast.o reassembly.o tcp_ipv6.o \
 		exthdrs.o sysctl_net_ipv6.o datagram.o proc.o \
-		ip6_flowlabel.o
+		ip6_flowlabel.o mipglue.o utils.o
 
-obj-m  := $(O_TARGET)
+ifneq ($(CONFIG_IPV6_ANYCAST),n)
+ifneq ($(CONFIG_IPV6_ANYCAST),)
+obj-y += anycast.o
+endif
+endif
 
-#obj-$(CONFIG_IPV6_FIREWALL) += ip6_fw.o
+obj-$(CONFIG_IPV6_IPSEC) += ip6packettools.o ipsec6_init.o ipsec6_input.o \
+                ipsec6_output.o ipsec6_utils.o 
+
+
+
+obj-$(CONFIG_IPV6_IPV6_TUNNEL) += ipv6_tunnel.o
+
+ifneq ($(CONFIG_IPV6),y)
+ifneq ($(CONFIG_IPV6),)
+obj-m += $(O_TARGET)
+endif
+endif
 
 include $(TOPDIR)/Rules.make

@@ -165,6 +165,22 @@ int __init ne_probe(struct net_device *dev)
 
 	SET_MODULE_OWNER(dev);
 
+#if defined(CONFIG_NEC_OSPREY)
+       /* [jsun] Okay, this is a total hack.  NE2k on NEC Osprey is
+        * at 0x03fe0300 (+ VR4181_PORT_BASE).  However, the stupid
+        * include/linux/if.h:ifmap structure cannot handle u32 base value.
+         * We get the address chopped off.
+        *
+        * The real fix is to change ifmap structure.  However,
+        * There are some concerns (from David Miller) as to binary
+        * compatibility.  So I just hack this file for mvista tree only.
+        */
+       if (dev->base_addr == 0x0300) {
+               base_addr = dev->base_addr = 0x03fe0300;
+               printk(KERN_WARNING "nec.c : Modify NE2K base addr from 0x300 to 0x03fe0300 for NEC Osprey board!\n");
+       }
+#endif
+
 	/* First check any supplied i/o locations. User knows best. <cough> */
 	if (base_addr > 0x1ff)	/* Check a single specified location. */
 		return ne_probe1(dev, base_addr);

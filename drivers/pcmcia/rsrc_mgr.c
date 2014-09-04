@@ -62,7 +62,7 @@
 #define INT_MODULE_PARM(n, v) static int n = v; MODULE_PARM(n, "i")
 
 INT_MODULE_PARM(probe_mem,	1);		/* memory probe? */
-#ifdef CONFIG_ISA
+#ifdef CONFIG_PCMCIA_PROBE
 INT_MODULE_PARM(probe_io,	1);		/* IO port probe? */
 INT_MODULE_PARM(mem_limit,	0x10000);
 #endif
@@ -85,7 +85,7 @@ static resource_map_t mem_db = { 0, 0, &mem_db };
 /* IO port resource database */
 static resource_map_t io_db = { 0, 0, &io_db };
 
-#ifdef CONFIG_ISA
+#ifdef CONFIG_PCMCIA_PROBE
 
 typedef struct irq_info_t {
     u_int			Attributes;
@@ -103,6 +103,11 @@ static irq_info_t irq_table[NR_IRQS] = { { 0, 0, 0 }, /* etc */ };
     Linux resource management extensions
 
 ======================================================================*/
+
+#if defined(CONFIG_MIPS_SNSC_MPU210) && defined(CONFIG_ISA)
+/* For 16-bit PC Card Support */
+static struct resource pccard_io_resource = { "PC Card I/O", 0x0000, 0xffff, IORESOURCE_IO, NULL, NULL, NULL };
+#endif
 
 static struct resource *resource_parent(unsigned long b, unsigned long n,
 					int flags, struct pci_dev *dev)
@@ -127,6 +132,11 @@ static struct resource *resource_parent(unsigned long b, unsigned long n,
 static inline int check_io_resource(unsigned long b, unsigned long n,
 				    struct pci_dev *dev)
 {
+#if defined(CONFIG_MIPS_SNSC_MPU210) && defined(CONFIG_ISA)
+	/* For 16-bit PC Card support */
+	if ((b & ~0xffffUL) == 0)
+		return check_resource(&pccard_io_resource, b, n);
+#endif
 	return check_resource(resource_parent(b, n, IORESOURCE_IO, dev), b, n);
 }
 
@@ -158,6 +168,11 @@ static int request_io_resource(unsigned long b, unsigned long n,
 	struct resource *pr = resource_parent(b, n, IORESOURCE_IO, dev);
 	int err = -ENOMEM;
 
+#if defined(CONFIG_MIPS_SNSC_MPU210) && defined(CONFIG_ISA)
+	/* For 16-bit PC Card support */
+	if ((b & ~0xffffUL) == 0)
+		pr = &pccard_io_resource;
+#endif
 	if (res) {
 		err = request_resource(pr, res);
 		if (err)
@@ -251,7 +266,7 @@ static int sub_interval(resource_map_t *map, u_long base, u_long num)
     
 ======================================================================*/
 
-#ifdef CONFIG_ISA
+#ifdef CONFIG_PCMCIA_PROBE
 static void do_io_probe(ioaddr_t base, ioaddr_t num)
 {
     
@@ -356,7 +371,7 @@ static int do_mem_probe(u_long base, u_long num,
     return (num - bad);
 }
 
-#ifdef CONFIG_ISA
+#ifdef CONFIG_PCMCIA_PROBE
 
 static u_long inv_probe(int (*is_valid)(u_long),
 			int (*do_cksum)(u_long),
@@ -414,7 +429,7 @@ void validate_mem(int (*is_valid)(u_long), int (*do_cksum)(u_long),
     }
 }
 
-#else /* CONFIG_ISA */
+#else /* CONFIG_PCMCIA_PROBE */
 
 void validate_mem(int (*is_valid)(u_long), int (*do_cksum)(u_long),
 		  int force_low, socket_info_t *s)
@@ -429,7 +444,7 @@ void validate_mem(int (*is_valid)(u_long), int (*do_cksum)(u_long),
 	    return;
 }
 
-#endif /* CONFIG_ISA */
+#endif /* CONFIG_PCMCIA_PROBE */
 
 /*======================================================================
 
@@ -500,7 +515,7 @@ int find_mem_region(u_long *base, u_long num, u_long align,
     
 ======================================================================*/
 
-#ifdef CONFIG_ISA
+#ifdef CONFIG_PCMCIA_PROBE
 
 static void fake_irq(int i, void *d, struct pt_regs *r) { }
 static inline int check_irq(int irq)
@@ -567,7 +582,7 @@ int try_irq(u_int Attributes, int irq, int specific)
 
 /*====================================================================*/
 
-#ifdef CONFIG_ISA
+#ifdef CONFIG_PCMCIA_PROBE
 
 void undo_irq(u_int Attributes, int irq)
 {
@@ -650,7 +665,7 @@ static int adjust_io(adjust_t *adj)
     case ADD_MANAGED_RESOURCE:
 	if (add_interval(&io_db, base, num) != 0)
 	    return CS_IN_USE;
-#ifdef CONFIG_ISA
+#ifdef CONFIG_PCMCIA_PROBE
 	if (probe_io)
 	    do_io_probe(base, num);
 #endif
@@ -670,7 +685,7 @@ static int adjust_io(adjust_t *adj)
 
 static int adjust_irq(adjust_t *adj)
 {
-#ifdef CONFIG_ISA
+#ifdef CONFIG_PCMCIA_PROBE
     int irq;
     irq_info_t *info;
     

@@ -13,16 +13,18 @@
 #include <asm/atomic.h>
 #include <asm/hardirq.h>
 
-extern inline void cpu_bh_disable(int cpu)
+static inline void cpu_bh_disable(int cpu)
 {
+	preempt_disable();
 	local_bh_count(cpu)++;
 	barrier();
 }
  
-extern inline void __cpu_bh_enable(int cpu)
+static inline void __cpu_bh_enable(int cpu)
 {
 	barrier();
 	local_bh_count(cpu)--;
+	preempt_enable();
 }
 
 
@@ -36,10 +38,9 @@ do {								\
 	cpu = smp_processor_id();				\
 	if (!--local_bh_count(cpu) && softirq_pending(cpu))	\
 		do_softirq();					\
+	preempt_enable();                                       \
 } while (0)
 
 #define in_softirq() (local_bh_count(smp_processor_id()) != 0)
-
-#define __cpu_raise_softirq(cpu, nr)	set_bit(nr, &softirq_pending(cpu))
 
 #endif /* _ASM_SOFTIRQ_H */

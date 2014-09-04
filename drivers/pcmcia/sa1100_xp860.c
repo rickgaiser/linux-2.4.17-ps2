@@ -23,6 +23,14 @@ static int xp860_pcmcia_init(struct pcmcia_init *init){
   
   /* MAX1600 to standby mode: */
   PA_DWR &= ~(GPIO_GPIO0 | GPIO_GPIO1 | GPIO_GPIO2 | GPIO_GPIO3);
+
+#error Consider the following comment
+  /*
+   * 1- Please move GPDR initialisation  where it is interrupt or preemption
+   *    safe (like from xp860_map_io).
+   * 2- The GPCR line is bogus i.e. it will simply have absolutely no effect.
+   *    Please see its definition in the SA1110 manual.
+   */
   GPDR |= (NCR_A0VPP | NCR_A1VPP);
   GPCR &= ~(NCR_A0VPP | NCR_A1VPP);
 

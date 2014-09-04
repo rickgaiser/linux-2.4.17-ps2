@@ -1,0 +1,143 @@
+xfs_behavior.o: xfs_behavior.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h
+xfs_behavior.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/behavior.h
+	@touch xfs_behavior.h
+xfs_cred.o: xfs_cred.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h
+xfs_cred.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/param.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/capability.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h
+	@touch xfs_cred.h
+xfs_dmistubs.o: xfs_dmistubs.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h
+xfs_file.o: xfs_file.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/dcache.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pagemap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/have/xfs/dmapi.h)
+xfs_fs_subr.o: xfs_fs_subr.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h
+xfs_globals.o: xfs_globals.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h
+xfs_griostubs.o: xfs_griostubs.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h
+xfs_ioctl.o: xfs_ioctl.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs_fsops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs_dfrag.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_iops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/dcache.h
+xfs_iops.o: xfs_iops.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_iops.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/fs/posix/acl.h)
+xfs_linux.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/xfs_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_vfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_vnode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/pagebuf/avl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/pagebuf/page_buf.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/file.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/swap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/page.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/div64.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/param.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_cred.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_stats.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_super.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_globals.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_behavior.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_fs_subr.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_xattr.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/dmapi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/dmapi_kern.h
+	@touch xfs_linux.h
+xfs_lrw.o: xfs_lrw.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pagemap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/capability.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_iops.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/have/xfs/dmapi.h)
+xfs_stats.o: xfs_stats.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/time.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h)
+xfs_super.o: xfs_super.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_iops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blkdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/xfs/grio.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/fs/posix/acl.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/xfs/quota.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/xfs/vnode/tracing.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/have/xfs/dmapi.h)
+xfs_super.h: \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/debug/spinlock.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/fs/posix/acl.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/have/xfs/dmapi.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/xfs/quota.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/xfs/grio.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/xfs/rt.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/xfs/vnode/tracing.h)
+	@touch xfs_super.h
+xfs_sysctl.o: xfs_sysctl.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/time.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h
+xfs_sysctl.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h
+	@touch xfs_sysctl.h
+xfs_vfs.o: xfs_vfs.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+xfs_vfs.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vfs.h
+	@touch xfs_vfs.h
+xfs_vnode.o: xfs_vnode.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/linux/xfs_iops.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/xfs/vnode/tracing.h)
+xfs_vnode.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vnode.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/xfs/vnode/tracing.h)
+	@touch xfs_vnode.h
+xfs_xattr.o: xfs_xattr.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/fs/xfs/xfs.h
+xfs_xattr.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/xattr.h
+	@touch xfs_xattr.h
+.PRECIOUS:	xfs_behavior.h \
+	xfs_cred.h \
+	xfs_linux.h \
+	xfs_super.h \
+	xfs_sysctl.h \
+	xfs_vfs.h \
+	xfs_vnode.h \
+	xfs_xattr.h \
+

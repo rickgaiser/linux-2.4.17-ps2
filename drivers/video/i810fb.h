@@ -1,0 +1,950 @@
+/*-*- linux-c -*-
+ *  linux/drivers/video/i810fb.h -- Intel 810 frame buffer device header file
+ *
+ *      Copyright (C) 2001 Antonino Daplas
+ *      All Rights Reserved      
+ *
+ *
+ *  This file is subject to the terms and conditions of the GNU General Public
+ *  License. See the file COPYING in the main directory of this archive for
+ *  more details.
+ */
+
+
+/*
+ * Intel 810 Chipset Family PRM 15 3.1 
+ * GC Register Memory Address Map 
+ *
+ * Based on:
+ * Intel (R) 810 Chipset Family 
+ * Programmer s Reference Manual 
+ * November 1999 
+ * Revision 1.0 
+ * Order Number: 298026-001 R
+ *
+ * All GC registers are memory-mapped. In addition, the VGA and extended VGA registers 
+ * are I/O mapped. 
+ */
+
+#define I810_ACCEL 1
+ 
+/*  Instruction and Interrupt Control Registers (01000h 02FFFh) */
+#define FENCE                 0x02000                
+#define PGTBL_CTL             0x02020 
+#define PGTBL_ER              0x02024               
+#define RINGBUFFER            0x02030
+#define    LRING              0x02030
+#define    IRING              0x02040
+#define HWS_PGA               0x02080 
+#define IPEIR                 0x02088
+#define IPEHR                 0x0208C 
+#define INSTDONE              0x02090 
+#define NOPID                 0x02094
+#define HWSTAM                0x02098 
+#define IER                   0x020A0
+#define IIR                   0x020A4
+#define IMR                   0x020A8 
+#define ISR                   0x020AC 
+#define EIR                   0x020B0 
+#define EMR                   0x020B4 
+#define ESR                   0x020B8 
+#define INSTPM                0x020C0
+#define INSTPS                0x020C4 
+#define BBP_PTR               0x020C8 
+#define ABB_SRT               0x020CC
+#define ABB_END               0x020D0
+#define DMA_FADD              0x020D4 
+#define FW_BLC                0x020D8
+#define MEM_MODE              0x020DC        
+
+/*  Memory Control Registers (03000h 03FFFh) */
+#define DRT                   0x03000
+#define DRAMCL                0x03001
+#define DRAMCH                0x03002
+ 
+
+/* Span Cursor Registers (04000h 04FFFh) */
+#define UI_SC_CTL             0x04008 
+
+/* I/O Control Registers (05000h 05FFFh) */
+#define HVSYNC                0x05000 
+#define GPIOA                 0x05010
+#define GPIOB                 0x05014 
+
+/* Clock Control and Power Management Registers (06000h 06FFFh) */
+#define DCLK_0D               0x06000
+#define DCLK_1D               0x06004
+#define DCLK_2D               0x06008
+#define LCD_CLKD              0x0600C
+#define DCLK_0DS              0x06010
+#define PWR_CLKC              0x06014
+
+/* Graphics Translation Table Range Definition (10000h 1FFFFh) */
+#define GTT                   0x10000  
+
+/*  Overlay Registers (30000h 03FFFFh) */
+#define OVOADDR               0x30000
+#define DOVOSTA               0x30008
+#define GAMMA                 0x30010
+#define OBUF_0Y               0x30100
+#define OBUF_1Y               0x30104
+#define OBUF_0U               0x30108
+#define OBUF_0V               0x3010C
+#define OBUF_1U               0x30110
+#define OBUF_1V               0x30114 
+#define OVOSTRIDE             0x30118
+#define YRGB_VPH              0x3011C
+#define UV_VPH                0x30120
+#define HORZ_PH               0x30124
+#define INIT_PH               0x30128
+#define DWINPOS               0x3012C 
+#define DWINSZ                0x30130
+#define SWID                  0x30134
+#define SWIDQW                0x30138
+#define SHEIGHT               0x3013F
+#define YRGBSCALE             0x30140 
+#define UVSCALE               0x30144
+#define OVOCLRCO              0x30148
+#define OVOCLRC1              0x3014C
+#define DCLRKV                0x30150
+#define DLCRKM                0x30154
+#define SCLRKVH               0x30158
+#define SCLRKVL               0x3015C
+#define SCLRKM                0x30160
+#define OVOCONF               0x30164
+#define OVOCMD                0x30168
+#define AWINPOS               0x30170
+#define AWINZ                 0x30174
+
+/*  BLT Engine Status (40000h 4FFFFh) (Software Debug) */
+#define BR00                  0x40000
+#define BRO1                  0x40004
+#define BR02                  0x40008
+#define BR03                  0x4000C
+#define BR04                  0x40010
+#define BR05                  0x40014
+#define BR06                  0x40018
+#define BR07                  0x4001C
+#define BR08                  0x40020
+#define BR09                  0x40024
+#define BR10                  0x40028
+#define BR11                  0x4002C
+#define BR12                  0x40030
+#define BR13                  0x40034
+#define BR14                  0x40038
+#define BR15                  0x4003C
+#define BR16                  0x40040
+#define BR17                  0x40044
+#define BR18                  0x40048
+#define BR19                  0x4004C
+#define SSLADD                0x40074
+#define DSLH                  0x40078
+#define DSLRADD               0x4007C
+
+
+/* LCD/TV-Out and HW DVD Registers (60000h 6FFFFh) */
+/* LCD/TV-Out */
+#define HTOTAL                0x60000
+#define HBLANK                0x60004
+#define HSYNC                 0x60008
+#define VTOTAL                0x6000C
+#define VBLANK                0x60010
+#define VSYNC                 0x60014
+#define LCDTV_C               0x60018
+#define OVRACT                0x6001C
+#define BCLRPAT               0x60020
+
+/*  Display and Cursor Control Registers (70000h 7FFFFh) */
+#define DISP_SL               0x70000
+#define DISP_SLC              0x70004
+#define PIXCONF               0x70008
+#define PIXCONF1              0x70009
+#define BLTCNTL               0x7000C
+#define SWF                   0x70014
+#define DPLYBASE              0x70020
+#define DPLYSTAS              0x70024
+#define CURCNTR               0x70080
+#define CURBASE               0x70084
+#define CURPOS                0x70088
+
+
+/* VGA Registers */
+
+/* SMRAM Registers */
+#define SMRAM                 0x10
+
+/* Graphics Control Registers */
+#define GR_INDEX              0x3CE
+#define GR_DATA               0x3CF
+
+#define GR10                  0x10
+#define GR11                  0x11
+
+/* CRT Controller Registers */
+#define CR_INDEX_MDA          0x3B4
+#define CR_INDEX_CGA          0x3D4
+#define CR_DATA_MDA           0x3B5
+#define CR_DATA_CGA           0x3D5
+
+#define CR30                  0x30
+#define CR31                  0x31
+#define CR32                  0x32
+#define CR33                  0x33
+#define CR35                  0x35
+#define CR39                  0x39
+#define CR40                  0x40
+#define CR41                  0x41
+#define CR42                  0x42
+#define CR70                  0x70
+#define CR80                  0x80 
+#define CR81                  0x82
+
+/* Extended VGA Registers */
+
+/* General Control and Status Registers */
+#define ST00                  0x3C2
+#define ST01_MDA              0x3BA
+#define ST01_CGA              0x3DA
+#define FRC_READ              0x3CA
+#define FRC_WRITE_MDA         0x3BA
+#define FRC_WRITE_CGA         0x3DA
+#define MSR_READ              0x3CC
+#define MSR_WRITE             0x3C2
+
+/* Sequencer Registers */
+#define SR_INDEX              0x3C4
+#define SR_DATA               0x3C5
+
+#define SR01                  0x01
+#define SR02                  0x02
+#define SR03                  0x03
+#define SR04                  0x04
+#define SR07                  0x07
+
+/* Graphics Controller Registers */
+#define GR00                  0x00   
+#define GR01                  0x01
+#define GR02                  0x02
+#define GR03                  0x03
+#define GR04                  0x04
+#define GR05                  0x05
+#define GR06                  0x06
+#define GR07                  0x07
+#define GR08                  0x08  
+
+/* Attribute Controller Registers */
+#define ATTR_WRITE              0x3C0
+#define ATTR_READ               0x3C1
+
+/* VGA Color Palette Registers */
+
+/* CLUT */
+#define CLUT_DATA             0x3C9        /* DACDATA */
+#define CLUT_INDEX_READ       0x3C7        /* DACRX */
+#define CLUT_INDEX_WRITE      0x3C8        /* DACWX */
+#define DACMASK               0x3C6
+
+/* CRT Controller Registers */
+#define CR00                  0x00
+#define CR01                  0x01
+#define CR02                  0x02
+#define CR03                  0x03
+#define CR04                  0x04
+#define CR05                  0x05
+#define CR06                  0x06
+#define CR07                  0x07
+#define CR08                  0x08
+#define CR09                  0x09
+#define CR0A                  0x0A
+#define CR0B                  0x0B
+#define CR0C                  0x0C
+#define CR0D                  0x0D
+#define CR0E                  0x0E
+#define CR0F                  0x0F
+#define CR10                  0x10
+#define CR11                  0x11
+#define CR12                  0x12
+#define CR13                  0x13
+#define CR14                  0x14
+#define CR15                  0x15
+#define CR16                  0x16
+#define CR17                  0x17
+#define CR18                  0x18
+
+/* CLUT - EGA planes equivalent */
+/* FIXME:  I can't find an easy way to load the CLUT except to
+ *         make a table.  I extrapolated the values from EGA
+ *         and I'm not sure if they're correct.  
+ */
+	 
+#define RGB16(r,g,b) ((r & 0xF8) << 8 | (g & 0xFC) << 3 | (b & 0xF8) >> 3)
+#define RGB24(r,g,b) ((r & 0xFF) << 16 | (g & 0xFF) << 8 | (b & 0xFF))
+ 
+u16 i810_cfb16[] = {
+	RGB16(0x00,0x00,0x00),                /* black */
+	RGB16(0x00,0x00,0xaa),                /* dark blue */
+	RGB16(0x00,0xaa,0x00),                /* dark green */
+	RGB16(0x00,0xaa,0xaa),                /* dark cyan */
+	RGB16(0xaa,0x00,0x00),                /* dark red */
+	RGB16(0xaa,0x00,0xaa),                /* dark magenta */
+	RGB16(0xaa,0x55,0x00),                /* dark yellow */
+	RGB16(0xaa,0xaa,0xaa),                /* light grey */
+	RGB16(0x55,0x55,0x55),                /* dark grey */
+	RGB16(0x55,0x55,0xff),                /* blue */
+	RGB16(0x55,0xff,0x55),                /* green */
+	RGB16(0x55,0xff,0xff),                /* cyan */
+	RGB16(0xff,0x55,0x55),                /* red */
+	RGB16(0xff,0x55,0xff),                /* magenta */
+	RGB16(0xff,0xff,0x55),                /* yellow */
+	RGB16(0xff,0xff,0x55)                 /* white */
+};
+
+u32 i810_cfb24[] = {
+	RGB24(0x00,0x00,0x00),                /* black */
+	RGB24(0x00,0x00,0xaa),                /* dark blue */
+	RGB24(0x00,0xaa,0x00),                /* dark green */
+	RGB24(0x00,0xaa,0xaa),                /* dark cyan */
+	RGB24(0xaa,0x00,0x00),                /* dark red */
+	RGB24(0xaa,0x00,0xaa),                /* dark magenta */
+	RGB24(0xaa,0x55,0x00),                /* dark yellow */
+	RGB24(0xaa,0xaa,0xaa),                /* light grey */
+	RGB24(0x55,0x55,0x55),                /* dark grey */
+	RGB24(0x55,0x55,0xff),                /* blue */
+	RGB24(0x55,0xff,0x55),                /* green */
+	RGB24(0x55,0xff,0xff),                /* cyan */
+	RGB24(0xff,0x55,0x55),                /* red */
+	RGB24(0xff,0x55,0xff),                /* magenta */
+	RGB24(0xff,0xff,0x55),                /* yellow */
+	RGB24(0xff,0xff,0x55)                 /* white */
+};
+
+
+/* Fence */
+#define TILEWALK_X            0 << 12
+#define TILEWALK_Y            1 << 12
+
+/* Raster ops */
+#define COLOR_COPY_ROP        0xF0
+#define PAT_COPY_ROP          0xCC
+#define CLEAR_ROP             0x00
+#define WHITE_ROP             0xFF
+#define INVERT_ROP            0x55
+
+/* 2D Engine definitions */
+#define SOLIDPATTERN          0x80000000
+#define NONSOLID              0x00000000
+#define BPP8                  0 << 24
+#define BPP16                 1 << 24
+#define BPP24                 2 << 24
+#define DYN_COLOR_EN          1 << 26
+#define DYN_COLOR_DIS         0 << 26
+#define INCREMENT             0x00000000
+#define DECREMENT             0x01 << 30
+#define ARB_ON                0x00000001
+#define ARB_OFF               0x00000000
+#define SYNC_FLIP             0x00000000
+#define ASYNC_FLIP            0x00000040
+#define OPTYPE_MASK           0xE0000000
+#define PARSER_MASK           0x001F8000 
+#define D2_MASK               0x001FC000         /* 2D mask */
+
+/* Instruction type */
+/* There are more but pertains to 3D */
+#define PARSER                0x00000000
+#define BLIT                  0x02 << 29
+#define RENDER                0x03 << 29
+            
+/* Parser */
+#define NOP                   0x00               /* No operation, padding */
+#define BP_INT                0x01 << 23         /* Breakpoint interrupt */
+#define USR_INT               0x02 << 23         /* User interrupt */
+#define WAIT_FOR_EVNT         0x03 << 23         /* Wait for event */
+#define FLUSH                 0x04 << 23              
+#define CONTEXT_SEL           0x05 << 23
+#define REPORT_HEAD           0x07 << 23
+#define ARB_ON_OFF            0x08 << 23
+#define OVERLAY_FLIP          0x11 << 23
+#define LOAD_SCAN_INC         0x12 << 23
+#define LOAD_SCAN_EX          0x13 << 23
+#define FRONT_BUFFER          0x14 << 23
+#define DEST_BUFFER           0x15 << 23
+#define Z_BUFFER              0x16 << 23              /* we won't need this */
+#define STORE_DWORD_IMM       0x20 << 23
+#define STORE_DWORD_IDX       0x21 << 23
+#define BATCH_BUFFER          0x30 << 23
+
+/* Blit */
+#define SETUP_BLIT                      0x00
+#define SETUP_MONO_PATTERN_SL_BLT       0x10 << 22
+#define PIXEL_BLT                       0x20 << 22
+#define SCANLINE_BLT                    0x21 << 22 
+#define TEXT_BLT                        0x22 << 22
+#define TEXT_IMM_BLT                    0x30 << 22
+#define COLOR_BLT                       0x40 << 22
+#define MONO_PAT_BLIT                   0x42 << 22
+#define SOURCE_COPY_BLIT                0x43 << 22
+
+/* Macros */
+
+#define PUT_RING(n) {                                                                           \
+	*(volatile unsigned int *)(i810_info->lring_start_virtual + i810_info->cur_tail) = n;   \
+        i810_info->cur_tail += 4;                                                               \
+        i810_info->cur_tail &= RING_SIZE_MASK;                                                  \
+}                                                                      
+
+
+
+/* Registers to set on a per display mode basis */
+struct mode_registers {
+	u32 pixclock;
+	u32 M;
+	u32 N;
+	u32 P;
+	u8 cr00;
+	u8 cr01;
+	u8 cr02;
+	u8 cr03;
+	u8 cr04;
+	u8 cr05;
+	u8 cr06;
+	u8 cr07;
+	u8 cr09;
+	u8 cr10;
+	u8 cr11;
+	u8 cr12;
+	u8 cr13;
+	u8 cr15;
+	u8 cr16;
+	u8 cr30;
+	u8 cr31;
+	u8 cr32;
+	u8 cr33;
+	u8 cr35;
+	u8 cr39;
+	u32 bpp8_100;
+	u32 bpp16_100;
+	u32 bpp24_100;
+	u32 bpp8_133;
+	u32 bpp16_133;
+	u32 bpp24_133;
+	u8 msr;
+
+};
+
+#ifdef CONFIG_FB_I810_NONSTD
+/*
+ * FIFO and Watermark tables - based almost wholly on i810_wmark.c in XFree86 v4.03 by
+ * Precision Insight.  Slightly modified for integer operation, instead of float
+ */
+
+struct wm_info {
+   u32 freq;
+   u32  wm;
+};
+
+struct wm_info i810_wm_8_100[] = {
+	{ 25, 0x22003000 },
+	{ 28, 0x22003000 },
+	{ 31, 0x22003000 },
+	{ 36, 0x22007000 },
+	{ 40, 0x22007000 },
+	{ 45, 0x22007000 },
+	{ 49, 0x22008000 },
+	{ 50, 0x22008000 },
+	{ 56, 0x22008000 },
+	{ 65, 0x22008000 },
+	{ 75, 0x22008000 },
+	{ 78, 0x22008000 },
+	{ 80, 0x22008000 },
+	{ 94, 0x22008000 },
+	{ 96, 0x22107000 },
+	{ 99, 0x22107000 },
+	{ 108, 0x22107000 },
+	{ 121, 0x22107000 },
+	{ 128, 0x22107000 },
+	{ 132, 0x22109000 },
+	{ 135, 0x22109000 },
+	{ 157, 0x2210b000 },
+	{ 162, 0x2210b000 },
+	{ 175, 0x2210b000 },
+	{ 189, 0x2220e000 },
+	{ 202, 0x2220e000 },
+};
+
+struct wm_info i810_wm_16_100[] = {
+	{ 25, 0x22006000 },
+	{ 28, 0x22006000 },
+	{ 31, 0x22007000 },
+	{ 36, 0x22007000 },
+	{ 40, 0x22007000 },
+	{ 45, 0x22007000 },
+	{ 49, 0x22009000 },
+	{ 50, 0x22009000 },
+	{ 56, 0x22108000 },
+	{ 65, 0x2210e000 },
+	{ 75, 0x2210e000 },
+	{ 78, 0x2210e000 },
+	{ 80, 0x22210000 },
+	{ 94, 0x22210000 },
+	{ 96, 0x22210000 },
+	{ 99, 0x22210000 },
+	{ 108, 0x22210000 },
+	{ 121, 0x22210000 },
+	{ 128, 0x22210000 },
+	{ 132, 0x22314000 },
+	{ 135, 0x22314000 },
+	{ 157, 0x22415000 },
+	{ 162, 0x22416000 },
+	{ 175, 0x22416000 },
+	{ 189, 0x22416000 },
+	{ 195, 0x22416000 },
+	{ 202, 0x22416000 },
+};
+
+
+struct wm_info i810_wm_24_100[] = {
+	{ 25, 0x22009000 },
+	{ 28, 0x22009000 },
+	{ 31, 0x2200a000 },
+	{ 36, 0x2210c000 },
+	{ 40, 0x2210c000 },
+	{ 45, 0x2210c000 },
+	{ 49, 0x22111000 },
+	{ 50, 0x22111000 },
+	{ 56, 0x22111000 },
+	{ 65, 0x22214000 },
+	{ 75, 0x22214000 },
+	{ 78, 0x22215000 },
+	{ 80, 0x22216000 },
+	{ 94, 0x22218000 },
+	{ 96, 0x22418000 },
+	{ 99, 0x22418000 },
+	{ 108, 0x22418000 },
+	{ 121, 0x22418000 },
+	{ 128, 0x22419000 },
+	{ 132, 0x22519000 },
+	{ 135, 0x4441d000 },
+	{ 157, 0x44419000 },
+	{ 162, 0x44419000 },
+	{ 175, 0x44419000 },
+	{ 189, 0x44419000 },
+	{ 195, 0x44419000 },
+	{ 202, 0x44419000 },
+};
+
+
+
+struct wm_info i810_wm_8_133[] = {
+	{ 25, 0x22003000 },
+	{ 28, 0x22003000 },
+	{ 31, 0x22003000 },
+	{ 36, 0x22007000 },
+	{ 40, 0x22007000 },
+	{ 45, 0x22007000 },
+	{ 49, 0x22008000 },
+	{ 50, 0x22008000 },
+	{ 56, 0x22008000 },
+	{ 65, 0x22008000 },
+	{ 75, 0x22008000 },
+	{ 78, 0x22008000 },
+	{ 80, 0x22008000 },
+	{ 94, 0x22008000 },
+	{ 96, 0x22107000 },
+	{ 99, 0x22107000 },
+	{ 108, 0x22107000 },
+	{ 121, 0x22107000 },
+	{ 128, 0x22107000 },
+	{ 132, 0x22109000 },
+	{ 135, 0x22109000 },
+	{ 157, 0x2210b000 },
+	{ 162, 0x2210b000 },
+	{ 175, 0x2210b000 },
+	{ 189, 0x2220e000 },
+	{ 202, 0x2220e000 },
+};
+
+
+struct wm_info i810_wm_16_133[] = {
+	{ 25, 0x22006000 },
+	{ 28, 0x22006000 },
+	{ 31, 0x22007000 },
+	{ 36, 0x22007000 },
+	{ 40, 0x22007000 },
+	{ 45, 0x22007000 },
+	{ 49, 0x22009000 },
+	{ 50, 0x22009000 },
+	{ 56, 0x22108000 },
+	{ 65, 0x2210e000 },
+	{ 75, 0x2210e000 },
+	{ 78, 0x2210e000 },
+	{ 80, 0x22210000 },
+	{ 94, 0x22210000 },
+	{ 96, 0x22210000 },
+	{ 99, 0x22210000 },
+	{ 108, 0x22210000 },
+	{ 121, 0x22210000 },
+	{ 128, 0x22210000 },
+	{ 132, 0x22314000 },
+	{ 135, 0x22314000 },
+	{ 157, 0x22415000 },
+	{ 162, 0x22416000 },
+	{ 175, 0x22416000 },
+	{ 189, 0x22416000 },
+	{ 195, 0x22416000 },
+	{ 202, 0x22416000 },
+};
+
+struct wm_info i810_wm_24_133[] = {
+	{ 25, 0x22009000 },
+	{ 28, 0x22009000 },
+	{ 31, 0x2200a000 },
+	{ 36, 0x2210c000 },
+	{ 40, 0x2210c000 },
+	{ 45, 0x2210c000 },
+	{ 49, 0x22111000 },
+	{ 50, 0x22111000 },
+	{ 56, 0x22111000 },
+	{ 65, 0x22214000 },
+	{ 75, 0x22214000 },
+	{ 78, 0x22215000 },
+	{ 80, 0x22216000 },
+	{ 94, 0x22218000 },
+	{ 96, 0x22418000 },
+	{ 99, 0x22418000 },
+	{ 108, 0x22418000 },
+	{ 121, 0x22418000 },
+	{ 128, 0x22419000 },
+	{ 132, 0x22519000 },
+	{ 135, 0x4441d000 },
+	{ 157, 0x44419000 },
+	{ 162, 0x44419000 },
+	{ 175, 0x44419000 },
+	{ 189, 0x44419000 },
+	{ 195, 0x44419000 },
+	{ 202, 0x44419000 },
+};
+
+#else
+struct mode_registers std_modes[] = {
+	/* 640x480 @ 60Hz */
+	{ 25000, 0x0013, 0x0003, 0x40, 0x5F, 0x4F, 0x50, 0x82, 0x51, 0x9D,
+	  0x0B, 0x10, 0x40, 0xE9, 0x0B, 0xDF, 0x50, 0xE7, 0x04, 0x02,
+	  0x01, 0x01, 0x01, 0x00, 0x01, 0x22002000, 0x22004000, 0x22006000,
+	  0x22002000, 0x22004000, 0x22006000, 0xC0 }, 
+	  
+	/* 640x480 @ 70Hz */
+	{ 28000, 0x0053, 0x0010, 0x40, 0x61, 0x4F, 0x4F, 0x85, 0x52, 0x9A,
+	  0xF2, 0x10, 0x40, 0xE0, 0x03, 0xDF, 0x50, 0xDF, 0xF3, 0x01, 
+	  0x01, 0x01, 0x01, 0x00, 0x01, 0x22002000, 0x22004000, 0x22005000,
+          0x22002000, 0x22004000, 0x22005000, 0xC0 },
+          
+        /* 640x480 @ 72Hz */
+        { 31000, 0x0013, 0x0002, 0x40, 0x63, 0x4F, 0x4F, 0x87, 0x52, 0x97,
+          0x06, 0x0F, 0x40, 0xE8, 0x0B, 0xDF, 0x50, 0xDF, 0x07, 0x02, 
+          0x01, 0x01, 0x01, 0x00, 0x01, 0x22003000, 0x22005000, 0x22007000,
+          0x22003000, 0x22005000, 0x22007000, 0xC0 },
+          
+        /* 640x480 @ 75Hz */
+        { 31000, 0x0013, 0x0002, 0x40, 0x64, 0x4F, 0x4F, 0x88, 0x51, 0x99, 
+          0xF2, 0x10, 0x40, 0xE0, 0x03, 0xDF, 0x50, 0xDF, 0xF3, 0x01, 
+          0x01, 0x01, 0x01, 0x00, 0x01, 0x22003000, 0x22005000, 0x22007000, 
+          0x22003000, 0x22005000, 0x22007000, 0xC0 },
+          
+        /* 640x480 @ 85Hz */
+        { 36000, 0x0010, 0x0001, 0x40, 0x63, 0x4F, 0x4F, 0x87, 0x56, 0x9D,
+          0xFB, 0x10, 0x40, 0xE0, 0x03, 0xDF, 0x50, 0xDF, 0xFC, 0x01,
+          0x01, 0x01, 0x01, 0x00, 0x01, 0x22003000, 0x22005000, 0x22107000,
+          0x22003000, 0x22005000, 0x22107000, 0xC0 },
+          
+#ifdef I810_ACCEL
+        /* 720x480 @ 60Hz */
+        { 28000, 0x0053, 0x0010, 0x40, 0x6B, 0x59, 0x59, 0x8F, 0x5B, 0x84,
+          0xEF, 0x10, 0x40, 0xE0, 0x03, 0xDF, 0x5A, 0xDF, 0xF0, 0x01,
+          0x01, 0x01, 0x01, 0x00, 0x00, 0x22002000, 0x22004000, 0x22006000,
+          0x22002000, 0x22004000, 0x22006000, 0x00 },
+#endif
+
+        /* 800x600 @ 56Hz */
+        { 36000, 0x0010, 0x0001, 0x40, 0x7B, 0x63, 0x63, 0x9F, 0x66, 0x8F,
+          0x6F, 0x10, 0x40, 0x58, 0x0A, 0x57, 0xC8, 0x57, 0x70, 0x02, 
+          0x02, 0x02, 0x02, 0x00, 0x01, 0x22003000, 0x22005000, 0x22107000,
+          0x22003000, 0x22005000, 0x22107000, 0x00 },
+          
+        /* 800x600 @ 60Hz */
+        { 40000, 0x0008, 0x0001, 0x30, 0x7F, 0x63, 0x63, 0x83, 0x68, 0x18, 
+          0x72, 0x10, 0x40, 0x58, 0x0C, 0x57, 0xC8, 0x57, 0x73, 0x02,
+          0x02, 0x02, 0x02, 0x00, 0x00, 0x22003000, 0x22006000, 0x22108000,
+          0x22003000, 0x22006000, 0x22108000, 0x00 },
+          
+        /* 800x600 @ 70Hz */
+        { 45000, 0x0054, 0x0015, 0x30, 0x7D, 0x63, 0x63, 0x81, 0x68, 0x12,
+          0x6f, 0x10, 0x40, 0x58, 0x0b, 0x57, 0x64, 0x57, 0x70, 0x02, 
+          0x02, 0x02, 0x02, 0x00, 0x00, 0x22004000, 0x22007000, 0x2210A000, 
+          0x22004000, 0x22007000, 0x2210A000, 0x00 },
+          
+        /* 800x600 @ 72Hz */
+        { 50000, 0x0017, 0x0004, 0x30, 0x7D, 0x63, 0x63, 0x81, 0x6A, 0x19,
+          0x98, 0x10, 0x40, 0x7C, 0x02, 0x57, 0xC8, 0x57, 0x99, 0x02, 
+          0x02, 0x02, 0x02, 0x00, 0x00, 0x22004000, 0x22007000, 0x2210A000,
+          0x22004000, 0x22007000, 0x2210A000, 0x00 }, 
+          
+        /* 800x600 @ 75Hz */
+        { 49000, 0x001F, 0x0006, 0x30, 0x7F, 0x63, 0x63, 0x83, 0x65, 0x0F,
+          0x6F, 0x10, 0x40, 0x58, 0x0B, 0x57, 0xC8, 0x57, 0x70, 0x02, 
+          0x02, 0x02, 0x02, 0x00, 0x00, 0x22004000, 0x22007000, 0x2210B000,
+          0x22004000, 0x22007000, 0x2210B000, 0x00 },
+          
+        /* 800x600 @ 85Hz */
+        { 56000, 0x0049, 0x000E, 0x30, 0x7E, 0x63, 0x63, 0x82, 0x67, 0x0F,
+          0x75, 0x10, 0x40, 0x58, 0x0B, 0x57, 0xC8, 0x57, 0x76, 0x02,
+          0x02, 0x02, 0x02, 0x00, 0x00, 0x22004000, 0x22108000, 0x2210b000, 
+          0x22004000, 0x22108000, 0x2210b000, 0x00 },
+          
+        /* 1024x768 @ 60Hz */
+        { 65000, 0x003F, 0x000A, 0x30, 0xA3, 0x7F, 0x7F, 0x87, 0x83, 0x94,
+          0x24, 0x10, 0x40, 0x02, 0x08, 0xFF, 0x80, 0xFF, 0x25, 0x03,
+          0x02, 0x03, 0x02, 0x00, 0x00, 0x22005000, 0x22109000, 0x2220D000,
+          0x22005000, 0x22109000, 0x2220D000, 0xC0 },
+          
+        /* 1024x768 @ 70Hz */
+	{ 75000, 0x0017, 0x0002, 0x30, 0xA1, 0x7F, 0x7F, 0x85, 0x82, 0x93,
+	  0x24, 0x10, 0x40, 0x02, 0x08, 0xFF, 0x80, 0xFF, 0x25, 0x03,
+	  0x02, 0x03, 0x02, 0x00, 0x00, 0x22005000, 0x2210A000, 0x2220F000,
+	  0x22005000, 0x2210A000, 0x2220F000, 0xC0 }, 
+	  
+	/* 1024x768 @ 75Hz */          
+	{ 78000, 0x0050, 0x0017, 0x20, 0x9F, 0x7F, 0x7F, 0x83, 0x81, 0x8D,
+	  0x1E, 0x10, 0x40, 0x00, 0x03, 0xFF, 0x80, 0xFF, 0x1F, 0x03,
+	  0x02, 0x03, 0x02, 0x00, 0x00, 0x22006000, 0x2210B000, 0x22210000,
+	  0x22006000, 0x2210B000, 0x22210000, 0x00 },
+	  
+	/* 1024x768 @ 85Hz */
+	{ 94000, 0x003D, 0x000E, 0x20, 0xA7, 0x7F, 0x7F, 0x8B, 0x85, 0x91,
+	  0x26, 0x10, 0x40, 0x00, 0x03, 0xFF, 0x80, 0xFF, 0x27, 0x03,
+	  0x02, 0x03, 0x02, 0x00, 0x00, 0x22007000, 0x2220E000, 0x22212000,
+	  0x22007000, 0x2220E000, 0x22212000, 0x00 },
+	  
+	/* 1152x864 @ 60Hz */ 
+	{ 80000, 0x0008, 0x0001, 0x20, 0xB3, 0x8F, 0x8F, 0x97, 0x93, 0x9f,
+	  0x87, 0x10, 0x40, 0x60, 0x03, 0x5F, 0x90, 0x5f, 0x88, 0x03,
+	  0x03, 0x03, 0x03, 0x00, 0x00, 0x2220C000, 0x22210000, 0x22415000,   
+	  0x2220C000, 0x22210000, 0x22415000, 0x00 },
+	  
+	/* 1152x864 @ 70Hz */
+	{ 96000, 0x000a, 0x0001, 0x20, 0xbb, 0x8F, 0x8F, 0x9f, 0x98, 0x87, 
+	  0x82, 0x10, 0x40, 0x60, 0x03, 0x5F, 0x90, 0x5F, 0x83, 0x03,
+	  0x03, 0x03, 0x03, 0x00, 0x00, 0x22107000, 0x22210000, 0x22415000,
+	  0x22107000, 0x22210000, 0x22415000, 0x00 },
+	  
+	/* 1152x864 @ 72Hz */
+	{ 99000, 0x001f, 0x0006, 0x20, 0xbb, 0x8F, 0x8F, 0x9f, 0x98, 0x87,
+	  0x83, 0x10, 0x40, 0x60, 0x03, 0x5F, 0x90, 0x5F, 0x84, 0x03,
+	  0x03, 0x03, 0x03, 0x00, 0x00, 0x22107000, 0x22210000, 0x22415000,
+	  0x22107000, 0x22210000, 0x22415000, 0x00 },
+	  
+	/* 1152x864 @ 75Hz */
+	{ 108000, 0x0010, 0x0002, 0x20, 0xC3, 0x8F, 0x8F, 0x87, 0x97, 0x07,
+	  0x82, 0x10, 0x40, 0x60, 0x03, 0x5F, 0x90, 0x5F, 0x83, 0x03, 
+	  0x03, 0x03, 0x03, 0x00, 0x01, 0x22107000, 0x22210000, 0x22415000,
+	  0x22107000, 0x22210000, 0x22415000, 0x00 },
+	  
+	/* 1152x864 @ 85Hz */
+	{ 121000, 0x006D, 0x0014, 0x20, 0xc0, 0x8F, 0x8F, 0x84, 0x97, 0x07,
+	  0x93, 0x10, 0x40, 0x60, 0x03, 0x5F, 0x90, 0x5F, 0x94, 0x03, 
+	  0x03, 0x03, 0x03, 0x00, 0x01, 0x2220C000, 0x22210000, 0x22415000,
+	  0x2220C000, 0x22210000, 0x22415000, 0x0 },
+	  
+	/* 1280x960 @ 60Hz */
+	{ 108000, 0x0010, 0x0002, 0x20, 0xDC, 0x9F, 0x9F, 0x80, 0xAB, 0x99,
+	  0xE6, 0x10, 0x40, 0xC0, 0x03, 0xBF, 0xA0, 0xBF, 0xE7, 0x03,
+	  0x03, 0x03, 0x03, 0x00, 0x01, 0x2210A000, 0x22210000, 0x22415000,
+	  0x2210A000, 0x22210000, 0x22415000, 0x00 },
+	  
+	/* 1280x960 @ 75Hz */
+	{ 129000, 0x0029, 0x0006, 0x20, 0xD3, 0x9F, 0x9F, 0x97, 0xaa, 0x1b,
+	  0xE8, 0x10, 0x40, 0xC0, 0x03, 0xBF, 0xA0, 0xBF, 0xE9, 0x03,
+	  0x03, 0x03, 0x03, 0x00, 0x01, 0x2210A000, 0x22210000, 0x2241B000,
+	  0x2210A000, 0x22210000, 0x2241B000, 0x00 },
+	  
+	/* 1280x960 @ 85Hz */
+	{ 148000, 0x0042, 0x0009, 0x20, 0xD3, 0x9F, 0x9F, 0x97, 0xA7, 0x1B,
+	  0xF1, 0x10, 0x40, 0xC0, 0x03, 0xBF, 0xA0, 0xBF, 0xF2, 0x03,
+	  0x03, 0x03, 0x03, 0x00, 0x01, 0x2210A000, 0x22220000, 0x2241D000,       
+	  0x2210A000, 0x22220000, 0x2241D000, 0x00 },
+
+#ifdef I810_ACCEL
+        /* 1280x1024 @ 60Hz */
+        { 108000, 0x0010, 0x0002, 0x20, 0xCE, 0x9F, 0x9F, 0x92, 0xA5, 0x13,
+          0x28, 0x10, 0x40, 0x00, 0x03, 0xFF, 0xA0, 0xFF, 0x29, 0x04,
+          0x03, 0x04, 0x03, 0x00, 0x01, 0x22107000, 0x22210000, 0x22415000,
+          0x22107000, 0x22210000, 0x22415000, 0x00 },
+
+        /* 1280x1024 @ 70Hz */
+        { 129000, 0x0029, 0x0006, 0x20, 0xD3, 0x9F, 0x9F, 0x97, 0xAA, 0x1B,
+          0x28, 0x10, 0x40, 0x00, 0x03, 0xFF, 0xA0, 0xFF, 0x29, 0x04,
+          0x03, 0x04, 0x03, 0x00, 0x01, 0x22107000, 0x22210000, 0x22419000,
+          0x22107000, 0x22210000, 0x22419000, 0x00 },
+
+        /* 1280x1024 @ 72Hz */
+        { 132000, 0x0014, 0x0002, 0x20, 0xD3, 0x9F, 0x9F, 0x97, 0xAA, 0x1B,
+          0x29, 0x10, 0x40, 0x00, 0x03, 0xFF, 0xA0, 0xFF, 0x2A, 0x04,
+          0x03, 0x04, 0x03, 0x00, 0x01, 0x22109000, 0x22314000, 0x22515000,
+          0x22109000, 0x22314000, 0x22515000, 0x00 },
+
+        /* 1280x1024 @ 75Hz */
+        { 135000, 0x002B, 0x0006, 0x20, 0xCE, 0x9F, 0x9F, 0x92, 0xA1, 0x13,
+          0x28, 0x10, 0x40, 0x00, 0x03, 0xFF, 0xA0, 0xFF, 0x29, 0x04,
+          0x03, 0x04, 0x03, 0x00, 0x01, 0x22109000, 0x22314000, 0x2251D000,
+          0x22109000, 0x22314000, 0x2251D000, 0x00 },
+
+        /* 1280x1024 @ 85Hz */
+        { 157000, 0x0050, 0x0017, 0x10, 0xD3, 0x9F, 0x9F, 0x97, 0xA7, 0x1B,
+          0x2E, 0x10, 0x40, 0x00, 0x03, 0xFF, 0xA0, 0xFF, 0x2F, 0x04,
+          0x03, 0x04, 0x03, 0x00, 0x01, 0x2210B000, 0x22415000, 0x2251D000,
+          0x2210B000, 0x22415000, 0x2251D000, 0x00 },
+#endif
+	  
+	/* 1600x1200 @ 60Hz */
+	{ 162000, 0x0019, 0x0006, 0x10, 0x09, 0xC7, 0xC7, 0x8D, 0xcf, 0x07,
+	  0xE0, 0x10, 0x40, 0xB0, 0x03, 0xAF, 0xC8, 0xAF, 0xE1, 0x04, 
+	  0x04, 0x04, 0x04, 0x01, 0x00, 0x2210b000, 0x22416000, 0x44419000,
+	  0x2210b000, 0x22416000, 0x44419000, 0x00 },
+	  
+	/* 1600x1200 @ 65 Hz */
+	{ 175000, 0x005d, 0x0018, 0x10, 0x09, 0xC7, 0xC7, 0x8D, 0xcf, 0x07,
+	  0xE0, 0x10, 0x40, 0xB0, 0x03, 0xAF, 0xC8, 0xAF, 0xE1, 0x04, 
+	  0x04, 0x04, 0x04, 0x01, 0x00, 0x2210c000, 0x22416000, 0x44419000,     
+	  0x2210c000, 0x22416000, 0x44419000, 0x00 },
+	  
+	/* 1600x1200 @ 70 Hz */
+	{ 189000, 0x003D, 0x000e, 0x10, 0x09, 0xC7, 0xC7, 0x8d, 0xcf, 0x07,
+	  0xE0, 0x10, 0x40, 0xb0, 0x03, 0xAF, 0xC8, 0xaf, 0xE1, 0x04, 
+	  0x04, 0x04, 0x04, 0x01, 0x00, 0x2220e000, 0x22416000, 0x44419000,
+	  0x2220e000, 0x22416000, 0x44419000, 0x00 },
+	  
+ 	/* 1600x1200 @ 72 Hz */
+ 	{ 195000, 0x003f, 0x000e, 0x10, 0x0b, 0xC7, 0xC7, 0x8f, 0xd5, 0x0b,
+ 	  0xE1, 0x10, 0x40, 0xb0, 0x03, 0xAF, 0xC8, 0xaf, 0xe2, 0x04, 0x04,
+ 	  0x04, 0x04, 0x01, 0x00, 0x2220e000, 0x22416000, 0x44419000,
+ 	  0x2220e000, 0x22416000, 0x44419000, 0x00 }, 
+ 	  
+ 	/* 1600x1200 @ 75 Hz */
+ 	{ 202000, 0x0024, 0x0007, 0x10, 0x09, 0xC7, 0xC7, 0x8d, 0xcf, 0x07,
+ 	  0xE0, 0x10, 0x40, 0xb0, 0x03, 0xAF, 0xC8, 0xaf, 0xE1, 0x04, 0x04,
+ 	  0x04, 0x04, 0x01, 0x00, 0x2220e000, 0x22416000, 0x44419000,      
+ 	  0x2220e000, 0x22416000, 0x44419000,  0x00 },
+ 	  
+ 	/* 1600x1200 @ 85 Hz */
+	{ 229000, 0x0029, 0x0007, 0x10, 0x09, 0xC7, 0xC7, 0x8d, 0xcf, 0x07,
+	  0xE0, 0x10, 0x40, 0xb0, 0x03, 0xAF, 0xC8, 0xaf, 0xE1, 0x04, 0x04,
+	  0x04, 0x04, 0x01, 0x00, 0x22210000, 0x22416000, 0x0,
+	  0x22210000, 0x22416000, 0x0, 0x00 },
+};	 
+#endif /* CONFIG_FB_I810_NONSTD */	    
+
+/* 
+ * IOCTL's
+ */
+
+/* surface type */
+#define AGP_DMA        1
+#define AGP_SURFACE    2
+#define AGP_SAREA      3
+
+/* command */
+#define RELEASE_FB     1
+#define EMIT_DMA       2
+
+typedef struct __agp_surface {
+	u32 user_key;
+	u32 surface_key;
+	u32 offset;
+	u32 pgsize;
+	u32 type;
+} agp_mem_user;
+
+typedef struct __agp_mem_struct {
+	struct list_head agp_list;
+	agp_memory *surface;
+	u32 user_key;
+	u32 surface_type;
+	u32 trusted;
+} agp_mem_struct;	
+
+
+typedef struct __i810_command_struct {
+	u32 command;                        /* command type */ 
+	u32 user_key;                       /* user key */
+	u32 surface_key;                    /* key to the agp memory pertaining to the structure */
+	u32 dma_cmd_start;                  /* offset to start of instruction packets */
+	u32 dma_cmd_dsize;                  /* the number of instructions in dwords to DMA */
+} i810_command;
+
+/* 
+ * if cur_user_key and cur_surface_key matches, and is_valid is true, then head and tail
+ * can be read.  Otherwise, treat the DMA buffer to have undergone a sync/reset where the 
+ * software can arbitrarily choose its own tail and head values.
+ */ 
+typedef struct __i810_gtt_shared {
+	u32 reserved[4];
+	u32 cur_user_key;                   /* user key of current DMA being processed */
+	u32 cur_surface_key;                /* surface key of current DMA bing processed */
+	u32 is_valid;                        /* if true, all values in the sarea are 
+					       valid for the current user/surface key */        
+	u32 head;                           /* current IP start offset of DMA buffer */
+	u32 tail;                           /* current IP end offset of DMA buffer */
+} i810_sarea; 
+
+/* structures for hardware free cursor */
+typedef struct i810_cursor_data {
+	unsigned char  pattern[64 * 16];	/* 64 x 64, 2bpp */
+} i810_cursor_data;
+
+typedef struct i810_cursor_clut {
+	u32  clut[4];			/* RGB24 */
+} i810_cursor_clut;
+
+typedef struct i810_cursor_pos {
+	int  x;
+	int  y;
+} i810_cursor_pos;
+
+#define I810FB_IOC_AREYOUTHERE         _IO  ('F', 0xFF)
+#define I810FB_IOC_REQUESTAGPMEM       _IOWR('F', 0xFE, agp_mem_user)
+#define I810FB_IOC_RELEASEAGPMEM       _IOW ('F', 0xFD, agp_mem_user)
+#define I810FB_IOC_COMMAND             _IOW ('F', 0xFC, i810_command) 
+#define I810FB_IOC_ACQUIREFB           _IOR ('F', 0xFB, int)
+#define I810FB_IOC_RELEASEGART         _IO  ('F', 0xFA)
+#define I810FB_IOC_CLAIMGART           _IO  ('F', 0xF9)
+
+#define I810FB_IOC_FILL                _IO  ('F', 0xBF)
+#define I810FB_IOC_BLT                 _IO  ('F', 0xBE)
+#define I810FB_IOC_RECT                _IO  ('F', 0xBD)
+#define I810FB_IOC_SET_DISPTYPE        _IO  ('F', 0xBC)
+#define I810FB_IOC_GET_DISPTYPE        _IO  ('F', 0xBB)
+
+#define I810FB_IOC_CURSOR              _IO  ('F', 0xEF)
+#define I810FB_IOC_CURSOR_DATA         _IOW ('F', 0xEE, i810_cursor_data)
+#define I810FB_IOC_CURSOR_CLUT         _IOW ('F', 0xED, i810_cursor_clut)
+#define I810FB_IOC_CURSOR_POS          _IOW ('F', 0xEC, i810_cursor_pos)
+
+typedef struct {
+    int   src_y;
+    int   src_x;
+    int   src_width;
+    int   src_height;
+    int   dst_y;
+    int   dst_x;
+    int   dst_width;
+    int   dst_height;
+    int   mask;
+    int   pattern;
+    unsigned int bg_color;
+    unsigned int fg_color;
+    unsigned int cursor_color1;
+    unsigned int cursor_blink1;
+    unsigned int cursor_color2;
+    unsigned int cursor_blink2;
+    unsigned char* src;
+    int   srcsize;
+} blt_info_t;

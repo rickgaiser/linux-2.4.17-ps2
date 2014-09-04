@@ -90,6 +90,7 @@ extern int apne_probe(struct net_device *);
 extern int bionet_probe(struct net_device *);
 extern int pamsnet_probe(struct net_device *);
 extern int cs89x0_probe(struct net_device *dev);
+extern int cerf89x0_probe(struct net_device *dev);
 extern int ethertap_probe(struct net_device *dev);
 extern int hplance_probe(struct net_device *dev);
 extern int bagetlance_probe(struct net_device *);
@@ -249,6 +250,9 @@ static struct devprobe isa_probes[] __initdata = {
 #ifdef CONFIG_SMC9194
 	{smc_init, 0},
 #endif
+#ifdef CONFIG_SMC91111
+	{smc_init, 0},
+#endif
 #ifdef CONFIG_SEEQ8005 
 	{seeq8005_probe, 0},
 #endif
@@ -257,6 +261,9 @@ static struct devprobe isa_probes[] __initdata = {
 #endif
 #ifdef CONFIG_CS89x0
  	{cs89x0_probe, 0},
+#endif
+#ifdef CONFIG_CERF_CS8900A
+	{cerf89x0_probe, 0},
 #endif
 #ifdef CONFIG_AT1700
 	{at1700_probe, 0},

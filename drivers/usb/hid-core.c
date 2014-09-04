@@ -1241,6 +1241,18 @@ static void* hid_probe(struct usb_device *dev, unsigned int ifnum,
 			break;
 		}
 
+        /* wait for completion of outstanding urbs */
+        {
+		int trial_count = 10;
+		while ( trial_count-- && 
+			((hid->outhead != hid->outtail) || (hid->urbout.status == -EINPROGRESS)))
+		{
+			set_current_state(TASK_INTERRUPTIBLE);
+			schedule_timeout( 1 * HZ / 1000 ); /* wait 1 frame */
+		}
+		if ( !trial_count )
+			printk("urbs not completed but continue\n");
+        }
 	printk(": USB HID v%x.%02x %s [%s] on usb%d:%d.%d\n",
 		hid->version >> 8, hid->version & 0xff, c, hid->name,
 		dev->bus->busnum, dev->devnum, ifnum);

@@ -1,3 +1,5 @@
+/* $USAGI: ipv6_sockglue.c,v 1.30 2002/01/26 06:32:18 mk Exp $ */
+
 /*
  *	IPv6 BSD socket options interface
  *	Linux INET6 implementation 
@@ -16,8 +18,6 @@
  *
  *	FIXME: Make the setsockopt code POSIX compliant: That is
  *
- *	o	Return -EINVAL for setsockopt of short lengths
- *	o	Truncate getsockopt returns
  *	o	Return an optlen of the truncated length if need be
  */
 
@@ -50,6 +50,13 @@
 #include <net/udp.h>
 
 #include <asm/uaccess.h>
+
+#ifdef CONFIG_IPV6_IPSEC
+#include <linux/ipsec.h>
+#include <linux/ipsec6.h>
+#include <linux/ip6packettools.h> /* struct ip6_packet_refs{} */
+#include <net/ipsec6_utils.h>
+#endif /* CONFIG_IPV6_IPSEC */
 
 struct ipv6_mib ipv6_statistics[NR_CPUS*2];
 
@@ -132,9 +139,12 @@ int ipv6_setsockopt(struct sock *sk, int level, int optname, char *optval,
 	if(level!=SOL_IPV6)
 		goto out;
 
+	if (optlen < 0)
+		goto e_inval;
+
 	if (optval == NULL)
 		val=0;
-	else if (get_user(val, (int *) optval))
+	else if (get_user(val, (int *) optval) && get_user(val, (u8 *) optval))
 		return -EFAULT;
 
 	valbool = (val!=0);
@@ -143,6 +153,7 @@ int ipv6_setsockopt(struct sock *sk, int level, int optname, char *optval,
 
 	switch (optname) {
 
+	/* XXX: IPV6_ADDRFORM is deprecated */
 	case IPV6_ADDRFORM:
 		if (val == PF_INET) {
 			struct ipv6_txoptions *opt;
@@ -204,16 +215,22 @@ int ipv6_setsockopt(struct sock *sk, int level, int optname, char *optval,
 		goto e_inval;
 
 	case IPV6_PKTINFO:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		np->rxopt.bits.rxinfo = valbool;
 		retv = 0;
 		break;
 
 	case IPV6_HOPLIMIT:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		np->rxopt.bits.rxhlim = valbool;
 		retv = 0;
 		break;
 
 	case IPV6_RTHDR:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		if (val < 0 || val > 2)
 			goto e_inval;
 		np->rxopt.bits.srcrt = val;
@@ -221,21 +238,29 @@ int ipv6_setsockopt(struct sock *sk, int level, int optname, char *optval,
 		break;
 
 	case IPV6_HOPOPTS:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		np->rxopt.bits.hopopts = valbool;
 		retv = 0;
 		break;
 
 	case IPV6_AUTHHDR:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		np->rxopt.bits.authhdr = valbool;
 		retv = 0;
 		break;
 
 	case IPV6_DSTOPTS:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		np->rxopt.bits.dstopts = valbool;
 		retv = 0;
 		break;
 
 	case IPV6_FLOWINFO:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		np->rxopt.bits.rxflow = valbool;
 		retv = 0;
 		break;
@@ -250,7 +275,7 @@ int ipv6_setsockopt(struct sock *sk, int level, int optname, char *optval,
 		fl.fl6_flowlabel = 0;
 		fl.oif = sk->bound_dev_if;
 
-		if (optlen == 0)
+		if (!optval || optlen == 0)
 			goto update;
 
 		/* 1K is probably excessive
@@ -274,7 +299,7 @@ int ipv6_setsockopt(struct sock *sk, int level, int optname, char *optval,
 		msg.msg_controllen = optlen;
 		msg.msg_control = (void*)(opt+1);
 
-		retv = datagram_send_ctl(&msg, &fl, opt, &junk);
+		retv = datagram_send_ctl(&msg, &fl, opt, &junk, &junk);
 		if (retv)
 			goto done;
 update:
@@ -284,7 +309,22 @@ update:
 				struct tcp_opt *tp = &sk->tp_pinfo.af_tcp;
 				if (!((1<<sk->state)&(TCPF_LISTEN|TCPF_CLOSE))
 				    && sk->daddr != LOOPBACK4_IPV6) {
+#ifdef CONFIG_IPV6_IPSEC
+					struct ipsec_sp *policy_ptr = NULL;
+					int action = ipsec6_output_check(sk,NULL,&policy_ptr);
+#endif /* CONFIG_IPV6_IPSEC */
 					tp->ext_header_len = opt->opt_flen + opt->opt_nflen;
+#ifdef CONFIG_IPV6_IPSEC
+					/* StS: Adapt ext_header_len according to AH/ESP size */
+
+					if (action != IPSEC_ACTION_DROP) {
+						printk(KERN_DEBUG "ipv6_setsockopt: ipsec6_output_check said DROP.\n");
+						if (opt->auth) 
+							action &=! IPSEC_ACTION_AUTH;
+						tp->ext_header_len += ipsec6_out_get_hdrsize(action, policy_ptr);
+					}
+					/* StS end */
+#endif /* CONFIG_IPV6_IPSEC */
 					tcp_sync_mss(sk, tp->pmtu_cookie);
 				}
 			}
@@ -303,6 +343,8 @@ done:
 		break;
 	}
 	case IPV6_UNICAST_HOPS:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		if (val > 255 || val < -1)
 			goto e_inval;
 		np->hop_limit = val;
@@ -310,6 +352,8 @@ done:
 		break;
 
 	case IPV6_MULTICAST_HOPS:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		if (sk->type == SOCK_STREAM)
 			goto e_inval;
 		if (val > 255 || val < -1)
@@ -319,11 +363,17 @@ done:
 		break;
 
 	case IPV6_MULTICAST_LOOP:
+		if (optlen != sizeof(int))
+			goto e_inval;
+		if (val != 0 && val != 1)
+			goto e_inval;
 		np->mc_loop = valbool;
 		retv = 0;
 		break;
 
 	case IPV6_MULTICAST_IF:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		if (sk->type == SOCK_STREAM)
 			goto e_inval;
 		if (sk->bound_dev_if && sk->bound_dev_if != val)
@@ -336,48 +386,102 @@ done:
 		np->mcast_oif = val;
 		retv = 0;
 		break;
-	case IPV6_ADD_MEMBERSHIP:
-	case IPV6_DROP_MEMBERSHIP:
+	case IPV6_JOIN_GROUP:
+	case IPV6_LEAVE_GROUP:
 	{
 		struct ipv6_mreq mreq;
+
+		if (optlen != sizeof(struct ipv6_mreq))
+			goto e_inval;
 
 		retv = -EFAULT;
 		if (copy_from_user(&mreq, optval, sizeof(struct ipv6_mreq)))
 			break;
 
-		if (optname == IPV6_ADD_MEMBERSHIP)
+		if (optname == IPV6_JOIN_GROUP)
 			retv = ipv6_sock_mc_join(sk, mreq.ipv6mr_ifindex, &mreq.ipv6mr_multiaddr);
 		else
 			retv = ipv6_sock_mc_drop(sk, mreq.ipv6mr_ifindex, &mreq.ipv6mr_multiaddr);
 		break;
 	}
+#ifdef CONFIG_IPV6_ANYCAST
+	case IPV6_JOIN_ANYCAST:
+	case IPV6_LEAVE_ANYCAST:
+	{
+		struct ipv6_areq areq;
+
+		if (optlen != sizeof(struct ipv6_areq))
+			goto e_inval;
+
+		retv = -EFAULT;
+		if (copy_from_user(&areq, optval, sizeof(struct ipv6_areq)))
+			break;
+
+		if (optname == IPV6_JOIN_ANYCAST)
+			retv = ipv6_sock_ac_join(sk, areq.ipv6ar_ifindex, &areq.ipv6ar_acaddr);
+		else
+			retv = ipv6_sock_ac_drop(sk, areq.ipv6ar_ifindex, &areq.ipv6ar_acaddr);
+		break;
+	}
+#endif
 	case IPV6_ROUTER_ALERT:
 		retv = ip6_ra_control(sk, val, NULL);
 		break;
 	case IPV6_MTU_DISCOVER:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		if (val<0 || val>2)
 			goto e_inval;
 		np->pmtudisc = val;
 		retv = 0;
 		break;
 	case IPV6_MTU:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		if (val && val < IPV6_MIN_MTU)
 			goto e_inval;
 		np->frag_size = val;
 		retv = 0;
 		break;
 	case IPV6_RECVERR:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		np->recverr = valbool;
 		if (!val)
 			skb_queue_purge(&sk->error_queue);
 		retv = 0;
 		break;
 	case IPV6_FLOWINFO_SEND:
+		if (optlen != sizeof(int))
+			goto e_inval;
 		np->sndflow = valbool;
 		retv = 0;
 		break;
 	case IPV6_FLOWLABEL_MGR:
 		retv = ipv6_flowlabel_opt(sk, optval, optlen);
+		break;
+
+	case IPV6_V6ONLY:
+		if (optlen != sizeof(int))
+			goto e_inval;
+		if (sk->userlocks&SOCK_BINDADDR_LOCK)
+			goto e_inval;
+		np->ipv6only = valbool;
+		retv = 0;
+		break;
+
+	case IPV6_RECVTCLASS:
+		if (optlen != sizeof(int))
+			goto e_inval;
+		np->recvopt.tclass = valbool;
+		retv = 0;
+		break;
+
+	case IPV6_TCLASS:
+		if (optlen != sizeof(int))
+			goto e_inval;
+		np->tclass = val;
+		retv = 0;
 		break;
 
 #ifdef CONFIG_NETFILTER
@@ -411,6 +515,8 @@ int ipv6_getsockopt(struct sock *sk, int level, int optname, char *optval,
 		return -ENOPROTOOPT;
 	if (get_user(len, optlen))
 		return -EFAULT;
+	if (optlen < 0)
+		return -EINVAL;
 	switch (optname) {
 	case IPV6_PKTOPTIONS:
 	{
@@ -450,6 +556,7 @@ int ipv6_getsockopt(struct sock *sk, int level, int optname, char *optval,
 		len -= msg.msg_controllen;
 		return put_user(len, optlen);
 	}
+
 	case IPV6_MTU:
 	{
 		struct dst_entry *dst;
@@ -521,6 +628,22 @@ int ipv6_getsockopt(struct sock *sk, int level, int optname, char *optval,
 	case IPV6_FLOWINFO_SEND:
 		val = np->sndflow;
 		break;
+
+	case IPV6_JOIN_GROUP:
+	case IPV6_LEAVE_GROUP:
+		return -EOPNOTSUPP;
+
+	case IPV6_V6ONLY:
+		val = np->ipv6only;
+		break;
+
+	case IPV6_RECVTCLASS:
+                val = np->recvopt.tclass;
+                break;
+
+	case IPV6_TCLASS:
+		val = np->tclass;
+                break;
 
 	default:
 #ifdef CONFIG_NETFILTER

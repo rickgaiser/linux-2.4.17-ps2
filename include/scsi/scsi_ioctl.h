@@ -15,6 +15,10 @@
 #define	SCSI_REMOVAL_PREVENT	1
 #define	SCSI_REMOVAL_ALLOW	0
 
+/* to examine internal state of the device */
+#define SCSI_IOCTL_GET_DEVICE_INTERNAL_STATE 0x53E0
+#define SCSI_IOCTL_SET_DEVICE_INTERNAL_STATE 0x53E1 /* DON'T USE. for test only */
+
 #ifdef __KERNEL__
 
 /*
@@ -45,6 +49,33 @@ extern int scsi_ioctl_send_command(Scsi_Device *dev,
 				   Scsi_Ioctl_Command *arg);
 
 #endif
+
+typedef struct scsi_device_internal_state {
+	unsigned online;
+	unsigned writeable;
+	unsigned removable; 
+	unsigned random;
+	unsigned has_cmdblocks;
+	unsigned changed;             /* Data invalid due to media change */
+	unsigned busy;                /* Used to prevent races */
+	unsigned lockable;            /* Able to prevent media removal */
+	unsigned borken;              /* Tell the Seagate driver to be 
+				       * painfully slow on this device */ 
+	unsigned tagged_supported;    /* Supports SCSI-II tagged queuing */
+	unsigned tagged_queue;        /* SCSI-II tagged queuing enabled */
+	unsigned disconnect;          /* can disconnect */
+	unsigned soft_reset;          /* Uses soft reset option */
+	unsigned sync;                /* Negotiate for sync transfers */
+	unsigned wide;                /* Negotiate for WIDE transfers */
+	unsigned single_lun;          /* Indicates we should only allow I/O to
+				       * one of the luns for the device at a 
+				       * time. */
+	unsigned was_reset;           /* There was a bus reset on the bus for 
+				       * this device */
+	unsigned expecting_cc_ua;     /* Expecting a CHECK_CONDITION/UNIT_ATTN
+				       * because we did a bus reset. */
+	unsigned device_blocked;      /* Device returned QUEUE_FULL. */
+} Scsi_Device_Internal_State;
 
 #endif
 

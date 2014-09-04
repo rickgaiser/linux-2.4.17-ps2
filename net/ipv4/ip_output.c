@@ -59,6 +59,7 @@
 #include <linux/proc_fs.h>
 #include <linux/stat.h>
 #include <linux/init.h>
+#include <linux/security.h>
 
 #include <net/snmp.h>
 #include <net/ip.h>
@@ -872,6 +873,7 @@ int ip_fragment(struct sk_buff *skb, int (*output)(struct sk_buff*))
 		skb2->nf_debug = skb->nf_debug;
 #endif
 #endif
+		security_ip_fragment(skb2, skb);
 
 		/*
 		 *	Put this fragment into the sending queue.

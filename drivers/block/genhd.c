@@ -173,6 +173,8 @@ extern int cpqarray_init(void);
 
 int __init device_init(void)
 {
+	struct gendisk *gp;
+
 	rwlock_init(&gendisk_lock);
 	blk_dev_init();
 	sti();
@@ -198,6 +200,11 @@ int __init device_init(void)
 #ifdef CONFIG_VT
 	console_map_init();
 #endif
+	
+	for (gp = gendisk_head ; gp ; gp=gp->next){
+	  blk_dev[gp->major].gd = gp;
+	}
+
 	return 0;
 }
 

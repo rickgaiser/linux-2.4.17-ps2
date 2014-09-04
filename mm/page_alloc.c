@@ -19,6 +19,8 @@
 #include <linux/slab.h>
 #include <linux/compiler.h>
 
+#include <linux/trace.h>
+
 int nr_swap_pages;
 int nr_active_pages;
 int nr_inactive_pages;
@@ -70,6 +72,9 @@ static void __free_pages_ok (struct page *page, unsigned int order)
 	struct page *base;
 	zone_t *zone;
 
+	if (PageLRU(page))
+		lru_cache_del(page);
+
 	if (page->buffers)
 		BUG();
 	if (page->mapping)
@@ -84,6 +89,9 @@ static void __free_pages_ok (struct page *page, unsigned int order)
 		BUG();
 	if (PageActive(page))
 		BUG();
+
+	TRACE_MEMORY(TRACE_EV_MEMORY_PAGE_FREE, order);
+
 	page->flags &= ~((1<<PG_referenced) | (1<<PG_dirty));
 
 	if (current->flags & PF_FREE_PAGES)
@@ -410,6 +418,7 @@ unsigned long __get_free_pages(unsigned int gfp_mask, unsigned int order)
 	page = alloc_pages(gfp_mask, order);
 	if (!page)
 		return 0;
+	TRACE_MEMORY(TRACE_EV_MEMORY_PAGE_ALLOC, order);
 	return (unsigned long) page_address(page);
 }
 
@@ -506,6 +515,37 @@ unsigned int nr_free_highpages (void)
 #endif
 
 #define K(x) ((x) << (PAGE_SHIFT-10))
+
+/*
+ * If it returns non zero it means there's lots of ram "free"
+ * (note: not in cache!) so any caller will know that
+ * he can allocate some memory to do some more aggressive
+ * (possibly wasteful) readahead. The state of the memory
+ * should be rechecked after every few pages allocated for
+ * doing this aggressive readahead.
+ *
+ * NOTE: caller passes in gfp_mask of zones to check
+ */
+int start_aggressive_readahead(int gfp_mask)
+{
+	pg_data_t *pgdat = pgdat_list;
+	zonelist_t *zonelist;
+	zone_t **zonep, *zone;
+	int ret = 0;
+
+	do {
+		zonelist = pgdat->node_zonelists + (gfp_mask & GFP_ZONEMASK);
+		zonep = zonelist->zones;
+
+		for (zone = *zonep++; zone; zone = *zonep++)
+			if (zone->free_pages > zone->pages_high * 2)
+				ret = 1;
+
+		pgdat = pgdat->node_next;
+	} while (pgdat);
+
+	return ret;
+}
 
 /*
  * Show free area list (used inside shift_scroll-lock stuff)
@@ -735,7 +775,7 @@ void __init free_area_init_core(int nid, pg_data_t *pgdat, struct page **gmap,
 			struct page *page = mem_map + offset + i;
 			page->zone = zone;
 			if (j != ZONE_HIGHMEM)
-				page->virtual = __va(zone_start_paddr);
+				page->virtual = (void*)__va(zone_start_paddr);
 			zone_start_paddr += PAGE_SIZE;
 		}
 

@@ -2585,19 +2585,15 @@ int __init irda_proto_init(void)
 	sock_register(&irda_family_ops);
 
 	irda_packet_type.type = htons(ETH_P_IRDA);
-        dev_add_pack(&irda_packet_type);
+	dev_add_pack(&irda_packet_type);
 
 	register_netdevice_notifier(&irda_dev_notifier);
-
 	irda_init();
 #ifdef MODULE
- 	irda_device_init();  /* Called by init/main.c when non-modular */
+	irda_device_init();  /* Called by init/main.c when non-modular */
 #endif
 	return 0;
 }
-#ifdef MODULE
-module_init(irda_proto_init);	/* If non-module, called from init/main.c */
-#endif
 
 /*
  * Function irda_proto_cleanup (void)
@@ -2605,25 +2601,27 @@ module_init(irda_proto_init);	/* If non-module, called from init/main.c */
  *    Remove IrDA protocol layer
  *
  */
-#ifdef MODULE
-void irda_proto_cleanup(void)
+static void __exit irda_proto_cleanup(void)
 {
 	irda_packet_type.type = htons(ETH_P_IRDA);
-        dev_remove_pack(&irda_packet_type);
+	dev_remove_pack(&irda_packet_type);
 
-        unregister_netdevice_notifier(&irda_dev_notifier);
-	
+	unregister_netdevice_notifier(&irda_dev_notifier);
+
 	sock_unregister(PF_IRDA);
+
 	irda_cleanup();
-	
-        return;
 }
+
+#ifdef MODULE
+module_init(irda_proto_init);
 module_exit(irda_proto_cleanup);
- 
+
 MODULE_AUTHOR("Dag Brattli <dagb@cs.uit.no>");
-MODULE_DESCRIPTION("The Linux IrDA Protocol Subsystem"); 
+MODULE_DESCRIPTION("The Linux IrDA Protocol Subsystem");
 MODULE_LICENSE("GPL");
 #ifdef CONFIG_IRDA_DEBUG
 MODULE_PARM(irda_debug, "1l");
 #endif
-#endif /* MODULE */
+#endif
+

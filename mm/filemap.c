@@ -24,6 +24,9 @@
 #include <linux/mm.h>
 #include <linux/iobuf.h>
 #include <linux/compiler.h>
+#include <linux/security.h>
+
+#include <linux/trace.h>
 
 #include <asm/pgalloc.h>
 #include <asm/uaccess.h>
@@ -120,6 +123,12 @@ static inline void remove_page_from_hash_queue(struct page * page)
  */
 void __remove_inode_page(struct page *page)
 {
+
+	if (DelallocPage(page)) {
+		printk("Delalloc page %p removed from inode\n", page);
+		BUG();
+	}
+
 	if (PageDirty(page)) BUG();
 	remove_page_from_inode_queue(page);
 	remove_page_from_hash_queue(page);
@@ -296,6 +305,7 @@ static int truncate_list_pages(struct list_head *head, unsigned long start, unsi
 
 			page_cache_release(page);
 
+			/* we hit this with lock depth of 1 or 2 */
 			if (current->need_resched) {
 				__set_current_state(TASK_RUNNING);
 				schedule();
@@ -406,6 +416,8 @@ static int invalidate_list_pages2(struct list_head *head)
 		}
 
 		page_cache_release(page);
+
+		debug_lock_break(551);
 		if (current->need_resched) {
 			__set_current_state(TASK_RUNNING);
 			schedule();
@@ -594,11 +606,15 @@ void filemap_fdatasync(struct address_space * mapping)
 		list_del(&page->list);
 		list_add(&page->list, &mapping->locked_pages);
 
-		if (!PageDirty(page))
-			continue;
-
 		page_cache_get(page);
 		spin_unlock(&pagecache_lock);
+
+		/* BKL is held ... */
+		debug_lock_break(1);
+		conditional_schedule();
+
+		if (!PageDirty(page))
+			goto clean;
 
 		lock_page(page);
 
@@ -607,7 +623,7 @@ void filemap_fdatasync(struct address_space * mapping)
 			writepage(page);
 		} else
 			UnlockPage(page);
-
+clean:
 		page_cache_release(page);
 		spin_lock(&pagecache_lock);
 	}
@@ -623,14 +639,28 @@ void filemap_fdatasync(struct address_space * mapping)
  */
 void filemap_fdatawait(struct address_space * mapping)
 {
+	DEFINE_LOCK_COUNT();
+
 	spin_lock(&pagecache_lock);
 
+restart:
         while (!list_empty(&mapping->locked_pages)) {
 		struct page *page = list_entry(mapping->locked_pages.next, struct page, list);
 
 		list_del(&page->list);
 		list_add(&page->list, &mapping->clean_pages);
-
+ 
+		if (TEST_LOCK_COUNT(32)) {
+			RESET_LOCK_COUNT();
+			debug_lock_break(2);
+			if (conditional_schedule_needed()) {
+				page_cache_get(page);
+				break_spin_lock_and_resched(&pagecache_lock);
+				page_cache_release(page);
+				goto restart;
+			}
+		}
+ 
 		if (!PageLocked(page))
 			continue;
 
@@ -787,10 +817,12 @@ void ___wait_on_page(struct page *page)
 		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
 		if (!PageLocked(page))
 			break;
+		TRACE_MEMORY(TRACE_EV_MEMORY_PAGE_WAIT_START, 0);
 		sync_page(page);
 		schedule();
 	} while (PageLocked(page));
 	tsk->state = TASK_RUNNING;
+	TRACE_MEMORY(TRACE_EV_MEMORY_PAGE_WAIT_END, 0);
 	remove_wait_queue(&page->wait, &wait);
 }
 
@@ -894,6 +926,7 @@ static struct page * __find_lock_page_helper(struct address_space *mapping,
 	 * the hash-list needs a held write-lock.
 	 */
 repeat:
+	break_spin_lock(&pagecache_lock);
 	page = __find_page_nolock(mapping, offset, hash);
 	if (page) {
 		page_cache_get(page);
@@ -941,7 +974,6 @@ struct page * find_or_create_page(struct address_space *mapping, unsigned long i
 	spin_unlock(&pagecache_lock);
 	if (!page) {
 		struct page *newpage = alloc_page(gfp_mask);
-		page = NULL;
 		if (newpage) {
 			spin_lock(&pagecache_lock);
 			page = __find_lock_page_helper(mapping, index, *hash);
@@ -1267,6 +1299,8 @@ void mark_page_accessed(struct page *page)
 	/* Mark the page referenced, AFTER checking for previous usage.. */
 	SetPageReferenced(page);
 }
+
+EXPORT_SYMBOL(mark_page_accessed);
 
 /*
  * This is a generic file read routine, and uses the
@@ -1706,6 +1740,9 @@ asmlinkage ssize_t sys_sendfile(int out_fd, int in_fd, off_t *offset, size_t cou
 	if (retval)
 		goto fput_in;
 
+	if ((retval = security_file_permission (in_file, MAY_READ)))
+		goto fput_in;
+
 	/*
 	 * Get output file, and verify that it is ok..
 	 */
@@ -1721,6 +1758,9 @@ asmlinkage ssize_t sys_sendfile(int out_fd, int in_fd, off_t *offset, size_t cou
 	out_inode = out_file->f_dentry->d_inode;
 	retval = locks_verify_area(FLOCK_VERIFY_WRITE, out_inode, out_file, out_file->f_pos, count);
 	if (retval)
+		goto fput_out;
+
+	if ((retval = security_file_permission (out_file, MAY_WRITE)))
 		goto fput_out;
 
 	retval = 0;
@@ -2055,6 +2095,8 @@ static inline int filemap_sync_pte_range(pmd_t * pmd,
 		address += PAGE_SIZE;
 		pte++;
 	} while (address && (address < end));
+	debug_lock_break(1);
+	break_spin_lock(&vma->vm_mm->page_table_lock);
 	return error;
 }
 
@@ -2085,6 +2127,9 @@ static inline int filemap_sync_pmd_range(pgd_t * pgd,
 		address = (address + PMD_SIZE) & PMD_MASK;
 		pmd++;
 	} while (address && (address < end));
+
+	debug_lock_break(1);
+	break_spin_lock(&vma->vm_mm->page_table_lock);
 	return error;
 }
 
@@ -2135,6 +2180,7 @@ int generic_file_mmap(struct file * file, struct vm_area_struct * vma)
 		return -ENOEXEC;
 	UPDATE_ATIME(inode);
 	vma->vm_ops = &generic_file_vm_ops;
+	vma->vm_flags &= ~VM_IO;
 	return 0;
 }
 
@@ -2443,7 +2489,7 @@ static long madvise_dontneed(struct vm_area_struct * vma,
 	if (vma->vm_flags & VM_LOCKED)
 		return -EINVAL;
 
-	zap_page_range(vma->vm_mm, start, end - start);
+	zap_page_range(vma->vm_mm, start, end - start, ZPR_PARTITION);
 	return 0;
 }
 

@@ -327,12 +327,13 @@ static void arp_solicit(struct neighbour *neigh, struct sk_buff *skb)
 	else
 		saddr = inet_select_addr(dev, target, RT_SCOPE_LINK);
 
+	read_lock_bh(&neigh->lock);
 	if ((probes -= neigh->parms->ucast_probes) < 0) {
 		if (!(neigh->nud_state&NUD_VALID))
 			printk(KERN_DEBUG "trying to ucast probe in NUD_INVALID\n");
 		dst_ha = neigh->ha;
-		read_lock_bh(&neigh->lock);
 	} else if ((probes -= neigh->parms->app_probes) < 0) {
+		read_unlock_bh(&neigh->lock);
 #ifdef CONFIG_ARPD
 		neigh_app_ns(neigh);
 #endif
@@ -341,8 +342,7 @@ static void arp_solicit(struct neighbour *neigh, struct sk_buff *skb)
 
 	arp_send(ARPOP_REQUEST, ETH_P_ARP, target, dev, saddr,
 		 dst_ha, dev->dev_addr, NULL);
-	if (dst_ha)
-		read_unlock_bh(&neigh->lock);
+	read_unlock_bh(&neigh->lock);
 }
 
 static int arp_filter(__u32 sip, __u32 tip, struct net_device *dev)
@@ -395,6 +395,7 @@ int arp_find(unsigned char *haddr, struct sk_buff *skb)
 	struct net_device *dev = skb->dev;
 	u32 paddr;
 	struct neighbour *n;
+	int free_skb = 0, ret = 0;
 
 	if (!skb->dst) {
 		printk(KERN_DEBUG "arp_find is called with dst==NULL\n");
@@ -410,18 +411,34 @@ int arp_find(unsigned char *haddr, struct sk_buff *skb)
 	n = __neigh_lookup(&arp_tbl, &paddr, dev, 1);
 
 	if (n) {
+		int copy = 0;
+		write_lock_bh(&n->lock);
 		n->used = jiffies;
-		if (n->nud_state&NUD_VALID || neigh_event_send(n, skb) == 0) {
-			read_lock_bh(&n->lock);
- 			memcpy(haddr, n->ha, dev->addr_len);
-			read_unlock_bh(&n->lock);
-			neigh_release(n);
-			return 0;
+		if (n->nud_state&NUD_VALID) {
+			copy = 1;
+			ret = 0;
+			free_skb = 0;
+		} else {
+			int ne_ret = __neigh_event_send(n, skb);
+			if (ne_ret == 0) {
+				copy = 1;
+				ret = 0;
+			} else if (ne_ret < 0) {
+				free_skb = 1;
+				ret = 1;
+			} else {
+				ret = 1;
+			}
 		}
+		if (copy)
+			memcpy(haddr, n->ha, dev->addr_len);
+		write_unlock_bh(&n->lock);
 		neigh_release(n);
 	} else
+		ret = 1;
+	if (free_skb)
 		kfree_skb(skb);
-	return 1;
+	return ret;
 }
 
 /* END OF OBSOLETE FUNCTIONS */

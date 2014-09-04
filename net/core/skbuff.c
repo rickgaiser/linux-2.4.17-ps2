@@ -52,6 +52,7 @@
 #include <linux/rtnetlink.h>
 #include <linux/init.h>
 #include <linux/highmem.h>
+#include <linux/security.h>
 
 #include <net/protocol.h>
 #include <net/dst.h>
@@ -111,33 +112,38 @@ void skb_under_panic(struct sk_buff *skb, int sz, void *here)
 
 static __inline__ struct sk_buff *skb_head_from_pool(void)
 {
-	struct sk_buff_head *list = &skb_head_pool[smp_processor_id()].list;
+	struct sk_buff_head *list;
+        struct sk_buff *skb = NULL;
+        unsigned long flags;
+
+        local_irq_save(flags);
+
+        list = &skb_head_pool[smp_processor_id()].list;
 
 	if (skb_queue_len(list)) {
-		struct sk_buff *skb;
-		unsigned long flags;
 
-		local_irq_save(flags);
 		skb = __skb_dequeue(list);
-		local_irq_restore(flags);
-		return skb;
 	}
-	return NULL;
+        local_irq_restore(flags);
+        return skb;
 }
 
 static __inline__ void skb_head_to_pool(struct sk_buff *skb)
 {
-	struct sk_buff_head *list = &skb_head_pool[smp_processor_id()].list;
+	struct sk_buff_head *list;
+        unsigned long flags;
+
+        local_irq_save(flags);
+        list = &skb_head_pool[smp_processor_id()].list;
 
 	if (skb_queue_len(list) < sysctl_hot_list_len) {
-		unsigned long flags;
 
-		local_irq_save(flags);
 		__skb_queue_head(list, skb);
 		local_irq_restore(flags);
 
 		return;
 	}
+        local_irq_restore(flags);
 	kmem_cache_free(skbuff_head_cache, skb);
 }
 
@@ -189,6 +195,11 @@ struct sk_buff *alloc_skb(unsigned int size,int gfp_mask)
 	data = kmalloc(size + sizeof(struct skb_shared_info), gfp_mask);
 	if (data == NULL)
 		goto nodata;
+
+	if (security_skb_alloc(skb)) {
+ 		kfree(data);
+		goto nodata;
+	}
 
 	/* XXX: does not include slab overhead */ 
 	skb->truesize = size + sizeof(struct sk_buff);
@@ -249,6 +260,7 @@ static inline void skb_headerinit(void *p, kmem_cache_t *cache,
 #ifdef CONFIG_NET_SCHED
 	skb->tc_index = 0;
 #endif
+	skb->lsm_security = NULL;
 }
 
 static void skb_drop_fraglist(struct sk_buff *skb)
@@ -326,6 +338,7 @@ void __kfree_skb(struct sk_buff *skb)
 #ifdef CONFIG_NETFILTER
 	nf_conntrack_put(skb->nfct);
 #endif
+	security_skb_free(skb);
 	skb_headerinit(skb, NULL, 0);  /* clean state */
 	kfree_skbmem(skb);
 }
@@ -353,6 +366,11 @@ struct sk_buff *skb_clone(struct sk_buff *skb, int gfp_mask)
 		n = kmem_cache_alloc(skbuff_head_cache, gfp_mask);
 		if (!n)
 			return NULL;
+	}
+	
+	if (security_skb_clone(n, skb)) {
+		skb_head_to_pool(n);
+		return NULL;
 	}
 
 #define C(x) n->x = skb->x
@@ -441,6 +459,7 @@ static void copy_skb_header(struct sk_buff *new, const struct sk_buff *old)
 #ifdef CONFIG_NET_SCHED
 	new->tc_index = old->tc_index;
 #endif
+	security_skb_copy(new, old);
 }
 
 /**

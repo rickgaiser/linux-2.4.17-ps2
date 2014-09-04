@@ -442,6 +442,14 @@ static int sd_open(struct inode *inode, struct file *filp)
 
 	if (target >= sd_template.dev_max || !rscsi_disks[target].device)
 		return -ENXIO;	/* No such device */
+        /* avoid race condition: return error */
+        /* this might occur while scsi_register_host() running */
+	if ( !rscsi_disks[target].device->device_attach_finished ) {
+#ifdef DEBUG
+		printk("sd_open: error while initializing host & target=%d\n", target);
+#endif
+		return -ENXIO;
+	}
 
 	/*
 	 * If the device is in error recovery, wait until it is done.
@@ -1377,6 +1385,34 @@ static void sd_detach(Scsi_Device * SDp)
 		}
 	return;
 }
+/*
+ * purge inode & buffer cache associated sd disk
+ * specified by SDp.
+ * This will also destroy dirty buffers.
+ */
+int sd_purge_buffers(Scsi_Device * SDp)
+{
+	int sd_no, j;
+	int max_p;
+	int start;
+	int ret = 0;
+
+	for (sd_no = 0; sd_no < sd_template.dev_max; sd_no++) {
+
+		if ( rscsi_disks[sd_no].device != SDp )
+			continue;
+
+                max_p = sd_gendisk.max_p;
+                start = sd_no << sd_gendisk.minor_shift;
+
+                for (j = max_p - 1; j >= 0; j--) {
+			int index = start + j;
+			ret |= invalidate_device(MKDEV_SD_PARTITION(index), 0);
+			destroy_buffers(MKDEV_SD_PARTITION(index));
+                }
+	}
+	return ret;
+}
 
 static int __init init_sd(void)
 {
@@ -1415,3 +1451,9 @@ static void __exit exit_sd(void)
 module_init(init_sd);
 module_exit(exit_sd);
 MODULE_LICENSE("GPL");
+
+/*
+ * for dynamic attached disks ( esp. for usb storage )
+ */
+EXPORT_SYMBOL(sd_purge_buffers);
+

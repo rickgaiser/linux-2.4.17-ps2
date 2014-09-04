@@ -1046,6 +1046,7 @@ static int pcnet_close(struct net_device *dev)
 
     DEBUG(2, "pcnet_close('%s')\n", dev->name);
 
+    ei_close(dev);
     free_irq(dev->irq, dev);
     
     link->open--;

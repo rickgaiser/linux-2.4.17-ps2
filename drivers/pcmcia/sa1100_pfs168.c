@@ -1,4 +1,3 @@
-#warning	"REVISIT_PFS168: Need to verify and test GPIO power encodings."
 /*
  * drivers/pcmcia/sa1100_pfs168.c
  *
@@ -13,6 +12,11 @@
 #include <asm/irq.h>
 #include <asm/arch/pcmcia.h>
 
+
+#define SA1111_IRQMASK_LO(x)	(1 << (x - IRQ_SA1111_START))
+#define SA1111_IRQMASK_HI(x)	(1 << (x - IRQ_SA1111_START - 32))
+
+
 static int pfs168_pcmcia_init(struct pcmcia_init *init){
   int return_val=0;
 
@@ -22,14 +26,14 @@ static int pfs168_pcmcia_init(struct pcmcia_init *init){
   /* Set GPIO_A<3:0> to be outputs for PCMCIA (socket 0) power controller: */
   PA_DDR &= ~(GPIO_GPIO0 | GPIO_GPIO1 | GPIO_GPIO2 | GPIO_GPIO3);
 
-  INTPOL1 |=
-    (1 << (S0_READY_NINT - SA1111_IRQ(32))) |
-    (1 << (S1_READY_NINT - SA1111_IRQ(32))) |
-    (1 << (S0_CD_VALID - SA1111_IRQ(32))) |
-    (1 << (S1_CD_VALID - SA1111_IRQ(32))) |
-    (1 << (S0_BVD1_STSCHG - SA1111_IRQ(32))) |
-    (1 << (S1_BVD1_STSCHG - SA1111_IRQ(32)));
+  INTPOL1 |= SA1111_IRQMASK_HI(S0_READY_NINT) |
+	     SA1111_IRQMASK_HI(S1_READY_NINT) |
+	     SA1111_IRQMASK_HI(S0_CD_VALID) |
+	     SA1111_IRQMASK_HI(S1_CD_VALID) |
+	     SA1111_IRQMASK_HI(S0_BVD1_STSCHG) |
+	     SA1111_IRQMASK_HI(S1_BVD1_STSCHG);
 
+#warning what if a request_irq fails?
   return_val+=request_irq(S0_CD_VALID, init->handler, SA_INTERRUPT,
 			  "PFS168 PCMCIA (0) CD", NULL);
   return_val+=request_irq(S1_CD_VALID, init->handler, SA_INTERRUPT,
@@ -49,11 +53,10 @@ static int pfs168_pcmcia_shutdown(void){
   free_irq(S0_BVD1_STSCHG, NULL);
   free_irq(S1_BVD1_STSCHG, NULL);
 
-  INTPOL1 &=
-    ~((1 << (S0_CD_VALID - SA1111_IRQ(32))) |
-      (1 << (S1_CD_VALID - SA1111_IRQ(32))) |
-      (1 << (S0_BVD1_STSCHG - SA1111_IRQ(32))) |
-      (1 << (S1_BVD1_STSCHG - SA1111_IRQ(32))));
+  INTPOL1 &= ~(SA1111_IRQMASK_HI(S0_CD_VALID) |
+	       SA1111_IRQMASK_HI(S1_CD_VALID) |
+	       SA1111_IRQMASK_HI(S0_BVD1_STSCHG) |
+	       SA1111_IRQMASK_HI(S1_BVD1_STSCHG));
 
   return 0;
 }
@@ -123,8 +126,8 @@ static int pfs168_pcmcia_configure_socket(const struct pcmcia_configure
 					    *configure){
   unsigned long pccr=PCCR, gpio=PA_DWR;
 
-  /* PFS168 uses the Texas Instruments TPS2211 for PCMCIA (socket 0) voltage control only,
-   * with the following connections:
+  /* PFS168 uses the Texas Instruments TPS2211 for PCMCIA (socket 0) voltage
+   * control only, with the following connections:
    *
    *   TPS2211      PFS168
    *

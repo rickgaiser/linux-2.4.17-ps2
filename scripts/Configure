@@ -116,7 +116,7 @@ ${var}:\\
 #	readln prompt default oldval
 #
 function readln () {
-	if [ "$DEFAULT" = "-d" -a -n "$3" ]; then
+	if [ "$DEFAULT" = "-d" -a \( -n "$3" -o "$HHL_CONFIG_DEFAULTNEW" = "y" \) ]; then
 		echo "$1"
 		ans=$2
 	else

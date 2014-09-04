@@ -5,6 +5,7 @@
 mainmenu_option next_comment
 comment 'Joysticks'
 
+
 if [ "$CONFIG_INPUT" != "n" ]; then
    dep_tristate 'Game port support' CONFIG_INPUT_GAMEPORT $CONFIG_INPUT
       dep_tristate '  Classic ISA/PnP gameports' CONFIG_INPUT_NS558 $CONFIG_INPUT_GAMEPORT
@@ -45,6 +46,11 @@ if [ "$CONFIG_INPUT" != "n" ]; then
 
    if [ "$CONFIG_AMIGA" = "y" ]; then
       dep_tristate '  Amiga joysticks' CONFIG_INPUT_AMIJOY $CONFIG_INPUT
+   fi
+
+   if [ "$CONFIG_SH_DREAMCAST" = "y" -a "$CONFIG_MAPLE" != "n" ]; then
+   comment 'Dreamcast Maple Bus controllers'
+      dep_tristate '  Maple Bus controllers' CONFIG_INPUT_MAPLE_CONTROL $CONFIG_INPUT
    fi
 else
    comment 'Input core support is needed for joysticks'

@@ -14,17 +14,11 @@
 static int pangolin_pcmcia_init(struct pcmcia_init *init){
   int irq, res;
 
-  /* set GPIO_PCMCIA_CD & GPIO_PCMCIA_IRQ as inputs */
-  GPDR &= ~(GPIO_PCMCIA_CD|GPIO_PCMCIA_IRQ);
 #ifndef CONFIG_SA1100_PANGOLIN_PCMCIA_IDE
-  /* set GPIO pins GPIO_PCMCIA_BUS_ON & GPIO_PCMCIA_RESET as output */
-  GPDR |= (GPIO_PCMCIA_BUS_ON|GPIO_PCMCIA_RESET);
   /* Enable PCMCIA bus: */
   GPCR = GPIO_PCMCIA_BUS_ON;
-#else
-  /* set GPIO pin GPIO_PCMCIA_RESET as output */
-  GPDR |= GPIO_PCMCIA_RESET;
 #endif
+
   /* Set transition detect */
   set_GPIO_IRQ_edge( GPIO_PCMCIA_CD, GPIO_BOTH_EDGES );
   set_GPIO_IRQ_edge( GPIO_PCMCIA_IRQ, GPIO_FALLING_EDGE );

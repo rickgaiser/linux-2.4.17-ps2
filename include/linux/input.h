@@ -469,7 +469,7 @@ struct input_event {
 #define BUS_ISAPNP		0x02
 #define BUS_USB			0x03
 
-#define BUS_ISA			0x10
+/* #define BUS_ISA			0x10   conflicts with sysctl.h */
 #define BUS_I8042		0x11
 #define BUS_XTKBD		0x12
 #define BUS_RS232		0x13
@@ -478,6 +478,7 @@ struct input_event {
 #define BUS_AMIGA		0x16
 #define BUS_ADB			0x17
 #define BUS_I2C			0x18
+#define BUS_MAPLE		0x19
 
 /*
  * Structures used in ioctls to upload effects to a device

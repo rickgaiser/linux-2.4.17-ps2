@@ -1,0 +1,137 @@
+isdn_audio.o: isdn_audio.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn.h \
+   isdn_audio.h \
+   isdn_common.h
+isdn_bsdcomp.o: isdn_bsdcomp.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fcntl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ptrace.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/in.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/segment.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_ether.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inet.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ppp_defs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn_ppp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ip.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tcp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if_arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ppp-comp.h \
+   isdn_ppp.h
+isdn_common.o: isdn_common.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   isdn_common.h \
+   isdn_tty.h \
+   isdn_net.h \
+   isdn_ppp.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/audio.h) \
+   isdn_audio.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/diversion/module.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/diversion.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn_divertif.h \
+   isdn_v110.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/devfs_fs_kernel.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/ppp.h) \
+   avmb1/capicmd.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/x25.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/tty/fax.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/netdevices.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/devfs/fs.h)
+isdn_concap.o: isdn_concap.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn.h \
+   isdn_x25iface.h \
+   isdn_net.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/concap.h \
+   isdn_concap.h
+isdn_net.o: isdn_net.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/arp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/dst.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/pkt_sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inetdevice.h \
+   isdn_common.h \
+   isdn_net.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/ppp.h) \
+   isdn_ppp.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/x25.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/concap.h \
+   isdn_concap.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/inet.h)
+isdn_ppp.o: isdn_ppp.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/poll.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ppp-comp.h \
+   isdn_common.h \
+   isdn_ppp.h \
+   isdn_net.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/mpp.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/ppp/vj.h)
+isdn_ppp.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ppp_defs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn_ppp.h
+	@touch isdn_ppp.h
+isdn_tty.o: isdn_tty.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn.h \
+   isdn_common.h \
+   isdn_tty.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/audio.h) \
+   isdn_audio.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/devfs/fs.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/tty/fax.h) \
+   avmb1/capicmd.h
+isdn_tty.h: \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/isdn/tty/fax.h)
+	@touch isdn_tty.h
+isdn_ttyfax.o: isdn_ttyfax.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn.h \
+   isdn_common.h \
+   isdn_tty.h \
+   isdn_ttyfax.h
+isdn_v110.o: isdn_v110.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn.h \
+   isdn_v110.h
+isdn_x25iface.o: isdn_x25iface.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/concap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wanrouter.h \
+   isdn_x25iface.h
+isdn_x25iface.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wanrouter.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/isdn.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/concap.h
+	@touch isdn_x25iface.h
+.PRECIOUS:	isdn_ppp.h \
+	isdn_tty.h \
+	isdn_x25iface.h \
+

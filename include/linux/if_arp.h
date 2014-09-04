@@ -82,6 +82,7 @@
 	/* 787->799 reserved for fibrechannel media types */
 #define ARPHRD_IEEE802_TR 800		/* Magic type ident for TR	*/
 #define ARPHRD_IEEE80211 801		/* IEEE 802.11			*/
+#define ARPHRD_IPV6_IPV6_TUNNEL 803	/* IPv6-IPv6 tunnel		*/
 
 #define ARPHRD_VOID	  0xFFFF	/* Void type, nothing is known */
 

@@ -1,3 +1,5 @@
+/* $USAGI: utsname.h,v 1.4 2001/05/26 11:05:48 yoshfuji Exp $ */
+
 #ifndef _LINUX_UTSNAME_H
 #define _LINUX_UTSNAME_H
 
@@ -33,4 +35,10 @@ struct new_utsname {
 extern struct new_utsname system_utsname;
 
 extern struct rw_semaphore uts_sem;
+
+#ifdef CONFIG_IPV6_NODEINFO
+extern void (*icmpv6_sethostname_hook)(struct new_utsname *);
+extern struct rw_semaphore icmpv6_sethostname_hook_sem;
+#endif
+
 #endif

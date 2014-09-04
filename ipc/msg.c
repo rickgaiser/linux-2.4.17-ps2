@@ -25,6 +25,9 @@
 #include <asm/uaccess.h>
 #include "util.h"
 
+#include <linux/trace.h>
+#include <linux/security.h>
+
 /* sysctl: */
 int msg_ctlmax = MSGMAX;
 int msg_ctlmnb = MSGMNB;
@@ -51,34 +54,6 @@ struct msg_sender {
 struct msg_msgseg {
 	struct msg_msgseg* next;
 	/* the next part of the message follows immediately */
-};
-/* one msg_msg structure for each message */
-struct msg_msg {
-	struct list_head m_list; 
-	long  m_type;          
-	int m_ts;           /* message text size */
-	struct msg_msgseg* next;
-	/* the actual message follows immediately */
-};
-
-#define DATALEN_MSG	(PAGE_SIZE-sizeof(struct msg_msg))
-#define DATALEN_SEG	(PAGE_SIZE-sizeof(struct msg_msgseg))
-
-/* one msq_queue structure for each present queue on the system */
-struct msg_queue {
-	struct kern_ipc_perm q_perm;
-	time_t q_stime;			/* last msgsnd time */
-	time_t q_rtime;			/* last msgrcv time */
-	time_t q_ctime;			/* last change time */
-	unsigned long q_cbytes;		/* current number of bytes on queue */
-	unsigned long q_qnum;		/* number of messages in queue */
-	unsigned long q_qbytes;		/* max number of bytes on queue */
-	pid_t q_lspid;			/* pid of last msgsnd */
-	pid_t q_lrpid;			/* last receive pid */
-
-	struct list_head q_messages;
-	struct list_head q_receivers;
-	struct list_head q_senders;
 };
 
 #define SEARCH_ANY		1
@@ -117,18 +92,27 @@ void __init msg_init (void)
 static int newque (key_t key, int msgflg)
 {
 	int id;
+	int retval;
 	struct msg_queue *msq;
 
 	msq  = (struct msg_queue *) kmalloc (sizeof (*msq), GFP_KERNEL);
 	if (!msq) 
 		return -ENOMEM;
+
+	msq->q_perm.mode = (msgflg & S_IRWXUGO);
+	msq->q_perm.key = key;
+
+	msq->q_perm.security = NULL;
+	if ((retval = security_msg_queue_alloc(msq))) {
+		kfree(msq);
+		return retval;
+	}
+
 	id = ipc_addid(&msg_ids, &msq->q_perm, msg_ctlmni);
 	if(id == -1) {
 		kfree(msq);
 		return -ENOSPC;
 	}
-	msq->q_perm.mode = (msgflg & S_IRWXUGO);
-	msq->q_perm.key = key;
 
 	msq->q_stime = msq->q_rtime = 0;
 	msq->q_ctime = CURRENT_TIME;
@@ -146,6 +130,9 @@ static int newque (key_t key, int msgflg)
 static void free_msg(struct msg_msg* msg)
 {
 	struct msg_msgseg* seg;
+
+	security_msg_msg_free(msg);
+
 	seg = msg->next;
 	kfree(msg);
 	while(seg != NULL) {
@@ -200,6 +187,11 @@ static struct msg_msg* load_msg(void* src, int len)
 		len -= alen;
 		src = ((char*)src)+alen;
 	}
+	
+	msg->security = NULL;
+	if ((err = security_msg_msg_alloc (msg)))
+		goto out_err;
+
 	return msg;
 
 out_err:
@@ -285,6 +277,8 @@ static void freeque (int id)
 
 	msq = msg_rmid(id);
 
+	security_msg_queue_free(msq);
+
 	expunge_all(msq,-EIDRM);
 	ss_wakeup(&msq->q_senders,1);
 	msg_unlock(id);
@@ -321,11 +315,15 @@ asmlinkage long sys_msgget (key_t key, int msgflg)
 			BUG();
 		if (ipcperms(&msq->q_perm, msgflg))
 			ret = -EACCES;
-		else
-			ret = msg_buildid(id, msq->q_perm.seq);
+		else {
+			int qid = msg_buildid(id, msq->q_perm.seq);
+			if (!(ret = security_msg_queue_associate(msq, qid, msgflg)))
+				ret = qid;
+		}
 		msg_unlock(id);
 	}
 	up(&msg_ids.sem);
+	TRACE_IPC(TRACE_EV_IPC_MSG_CREATE, ret, msgflg);
 	return ret;
 }
 
@@ -444,6 +442,10 @@ asmlinkage long sys_msgctl (int msqid, int cmd, struct msqid_ds *buf)
 		 * due to padding, it's not enough
 		 * to set all member fields.
 		 */
+
+		if ((err = security_ipc_getinfo(msqid, cmd)))
+			return err;
+
 		memset(&msginfo,0,sizeof(msginfo));	
 		msginfo.msgmni = msg_ctlmni;
 		msginfo.msgmax = msg_ctlmax;
@@ -494,6 +496,9 @@ asmlinkage long sys_msgctl (int msqid, int cmd, struct msqid_ds *buf)
 		if (ipcperms (&msq->q_perm, S_IRUGO))
 			goto out_unlock;
 
+		if ((err = security_msg_queue_msgctl(msq, msqid, cmd)))
+			goto out_unlock;
+
 		kernel_to_ipc64_perm(&msq->q_perm, &tbuf.msg_perm);
 		tbuf.msg_stime  = msq->q_stime;
 		tbuf.msg_rtime  = msq->q_rtime;
@@ -541,6 +546,10 @@ asmlinkage long sys_msgctl (int msqid, int cmd, struct msqid_ds *buf)
 	{
 		if (setbuf.qbytes > msg_ctlmnb && !capable(CAP_SYS_RESOURCE))
 			goto out_unlock_up;
+
+		if ((err = security_msg_queue_msgctl(msq, msqid, cmd)))
+			goto out_unlock_up;
+		
 		msq->q_qbytes = setbuf.qbytes;
 
 		ipcp->uid = setbuf.uid;
@@ -560,6 +569,9 @@ asmlinkage long sys_msgctl (int msqid, int cmd, struct msqid_ds *buf)
 		break;
 	}
 	case IPC_RMID:
+		if ((err = security_msg_queue_msgctl(msq, msqid, cmd)))
+			goto out_unlock_up;
+
 		freeque (msqid); 
 		break;
 	}
@@ -606,7 +618,8 @@ int inline pipelined_send(struct msg_queue* msq, struct msg_msg* msg)
 		struct msg_receiver* msr;
 		msr = list_entry(tmp,struct msg_receiver,r_list);
 		tmp = tmp->next;
-		if(testmsg(msg,msr->r_msgtype,msr->r_mode)) {
+		if(testmsg(msg,msr->r_msgtype,msr->r_mode) &&
+		   !security_msg_queue_msgrcv(msq, msg, msr->r_tsk, msr->r_msgtype, msr->r_mode)) {
 			list_del(&msr->r_list);
 			if(msr->r_maxsize < msg->m_ts) {
 				msr->r_msg = ERR_PTR(-E2BIG);
@@ -655,6 +668,9 @@ retry:
 
 	err=-EACCES;
 	if (ipcperms(&msq->q_perm, S_IWUGO)) 
+		goto out_unlock_free;
+
+	if ((err = security_msg_queue_msgsnd(msq, msg, msqid, msgflg)))
 		goto out_unlock_free;
 
 	if(msgsz + msq->q_cbytes > msq->q_qbytes ||
@@ -755,7 +771,8 @@ retry:
 	found_msg=NULL;
 	while (tmp != &msq->q_messages) {
 		msg = list_entry(tmp,struct msg_msg,m_list);
-		if(testmsg(msg,msgtyp,mode)) {
+		if(testmsg(msg,msgtyp,mode) &&
+		   !security_msg_queue_msgrcv(msq, msg, current, msgtyp, mode)) {
 			found_msg = msg;
 			if(mode == SEARCH_LESSEQUAL && msg->m_type != 1) {
 				found_msg=msg;
@@ -773,6 +790,7 @@ retry:
 			err=-E2BIG;
 			goto out_unlock;
 		}
+
 		list_del(&msg->m_list);
 		msq->q_qnum--;
 		msq->q_rtime = CURRENT_TIME;

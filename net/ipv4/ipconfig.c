@@ -101,7 +101,7 @@
  */
 int ic_set_manually __initdata = 0;		/* IPconfig parameters set manually */
 
-int ic_enable __initdata = 0;			/* IP config enabled? */
+int ic_enable __initdata = 1;			/* IP config enabled? */
 
 /* Protocol choice */
 int ic_proto_enabled __initdata = 0

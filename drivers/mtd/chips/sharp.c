@@ -4,7 +4,7 @@
  * Copyright 2000,2001 David A. Schleef <ds@schleef.org>
  *           2000,2001 Lineo, Inc.
  *
- * $Id: sharp.c,v 1.6 2001/10/02 15:05:12 dwmw2 Exp $
+ * $Id: sharp.c,v 1.8 2002/05/17 08:59:19 dwmw2 Exp $
  *
  * Devices supported:
  *   LH28F016SCT Symmetrical block flash memory, 2Mx8
@@ -421,6 +421,7 @@ static int sharp_erase(struct mtd_info *mtd, struct erase_info *instr)
 		}
 	}
 
+	instr->state = MTD_ERASE_DONE;
 	if(instr->callback)
 		instr->callback(instr);
 
@@ -440,7 +441,7 @@ static int sharp_do_wait_for_ready(struct map_info *map, struct flchip *chip,
 
 	timeo = jiffies + HZ;
 
-	while(jiffies<timeo){
+	while(time_before(jiffies, timeo)){
 		map->write32(map,CMD_READ_STATUS,adr);
 		status = map->read32(map,adr);
 		if((status & SR_READY)==SR_READY){

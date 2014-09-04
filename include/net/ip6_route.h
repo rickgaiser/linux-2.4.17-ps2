@@ -1,3 +1,5 @@
+/* $USAGI: ip6_route.h,v 1.7 2002/01/21 14:49:39 yoshfuji Exp $ */
+
 #ifndef _NET_IP6_ROUTE_H
 #define _NET_IP6_ROUTE_H
 
@@ -52,6 +54,9 @@ extern void			rt6_sndmsg(int type, struct in6_addr *dst,
 					   int dstlen, int srclen,
 					   int metric, __u32 flags);
 
+#define RT6_LOOKUP_FLAG_STRICT	0x1
+#define RT6_LOOKUP_FLAG_NOUSE	0x2
+
 extern struct rt6_info		*rt6_lookup(struct in6_addr *daddr,
 					    struct in6_addr *saddr,
 					    int oif, int flags);
@@ -64,6 +69,7 @@ extern struct rt6_info *	rt6_get_dflt_router(struct in6_addr *addr,
 						    struct net_device *dev);
 extern struct rt6_info *	rt6_add_dflt_router(struct in6_addr *gwaddr,
 						    struct net_device *dev);
+extern struct rt6_info *	rt6_exist_dflt_router(void);
 
 extern void			rt6_purge_dflt_routers(int lst_resort);
 

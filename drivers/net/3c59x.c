@@ -1529,7 +1529,15 @@ vortex_up(struct net_device *dev)
 		vp->cur_rx = vp->dirty_rx = 0;
 		/* Initialize the RxEarly register as recommended. */
 		outw(SetRxThreshold + (1536>>2), ioaddr + EL3_CMD);
+#ifdef CONFIG_CPU_LX45XXX
+		/*
+		 * We must disable unsupported Memory Write and Invalidate 
+		 * PCI commands
+		 */
+		outl(0x00100020, ioaddr + PktStatus);
+#else	
 		outl(0x0020, ioaddr + PktStatus);
+#endif
 		outl(vp->rx_ring_dma, ioaddr + UpListPtr);
 	}
 	if (vp->full_bus_master_tx) { 		/* Boomerang bus master Tx. */

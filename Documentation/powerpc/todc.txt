@@ -1,0 +1,49 @@
+	Documentation for arch/ppc/kernel/todc_time.c
+	=============================================
+
+Author: Mark A. Greer (mgreer@mvista.com)
+Date:   3.5.2001
+
+Last Change: 7.20.2001
+
+arch/ppc/kernel/todc_time.c supports the mk48txx and mc146818 family of
+Time-of-Day (todc)/RealTime Clocks (rtc).  Its intent is to replace most or all
+of the *_time.c files in arch/ppc/kernel that have very similar code.
+
+To hook into the routines of this file, do the following:
+
+- Add '#include "todc.h"' to your *_setup.c file.
+- Add a line similar to 'TODC_ALLOC();' outside of the scope of any routine.
+- Add a line similar to 'TODC_INIT(TODC_TYPE_MK48T37, as0, as1, data, bits)'
+  where 'as0' is the nvram as0 address, 'as1' is the nvram as1 address,
+  'data' is the TODC chip's data register address, and 'bits' is the number of
+  address bits used by the as0 register (rest are used by as1).
+- Set 'ppc_md.time_init', 'ppc_md.set_rtc_time', and 'ppc_md.get_rtc_time' to
+  'todc_time_init', 'todc_set_rtc_time', and 'todc_get_rtc_time', respectively.
+- If you want to use the TODC to calibrate you decrementer, set
+  'ppc_md.calibrate_decr' to 'todc_calibrate_decr'.
+
+There are 3 sets of pre-defined todc access register routines:
+- 'todc_direct_read_val' and 'todc_direct_write_val' for direct access
+  (e.g., mk48txx whose NVRAM & TODC/RTC registers are directly mapped into the
+  physical address space of the processor);
+- 'todc_m48txx_read_val' and 'todc_m48txx_write_val' for an mk48txx whose NVRAM
+  & TODC/RTC registers are accessed via address strobe & data registers;
+- 'todc_mc146818_read_val' and 'todc_mc146818_write_val' for mc146818 RTC whose
+  registers are accessed via an address/data registers pair.
+
+To use one of these sets of access routines, set 'ppc_md.nvram_read_val' and
+'ppc_md.nvram_write_val' to the appropriate values for your TODC and board
+combination.
+
+For an example using a mk48txx, look at arch/ppc/kernel/mcpn765_setup.c;
+for an example using a mc146818, look at arch/ppc/kernel/sandpoint_setup.c.
+
+If your board doesn't have a full 8 bits wired to AS0, you can change the
+'as0_bits' in the 'todc_info_t' structure.  See arch/ppc/kernel/menf1_setup.c
+for an example.
+
+Adding support for other closely related TODC chips should be easy.  To do so,
+you simply add the appropriate macros to arch/ppc/kernel/todc.h.
+
+If you encounter problems, please email me at mgreer@mvista.com

@@ -18,8 +18,18 @@ __delay(unsigned long loops)
 {
 	__asm__ __volatile__ (
 		".set\tnoreorder\n"
+#ifdef CONFIG_CPU_R5900	/* inhibit short loop */
+		"1:\n\t"
+		"beqz\t%0,2f\n\t"
+		"subu\t%0,1\n\t"
+		""
+		"bnez\t%0,1b\n\t"
+		"subu\t%0,1\n\t"
+		"2:\n\t"
+#else
 		"1:\tbnez\t%0,1b\n\t"
 		"subu\t%0,1\n\t"
+#endif
 		".set\treorder"
 		:"=r" (loops)
 		:"0" (loops));

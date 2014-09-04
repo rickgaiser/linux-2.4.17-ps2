@@ -26,6 +26,7 @@ extern unsigned long event;
 #include <linux/signal.h>
 #include <linux/securebits.h>
 #include <linux/fs_struct.h>
+#include <linux/lock_break.h>
 
 struct exec_domain;
 
@@ -88,6 +89,7 @@ extern int last_pid;
 #define TASK_UNINTERRUPTIBLE	2
 #define TASK_ZOMBIE		4
 #define TASK_STOPPED		8
+#define PREEMPT_ACTIVE		0x40000000
 
 #define __set_task_state(tsk, state_value)		\
 	do { (tsk)->state = (state_value); } while (0)
@@ -115,6 +117,21 @@ extern int last_pid;
 #define SCHED_OTHER		0
 #define SCHED_FIFO		1
 #define SCHED_RR		2
+#ifdef CONFIG_RTSCHED
+#ifdef CONFIG_MAX_PRI
+#if CONFIG_MAX_PRI < 99
+#define MAX_PRI                 99
+#elif CONFIG_MAX_PRI > 2047
+#define MAX_PRI                 2047
+#else
+#define MAX_PRI                 CONFIG_MAX_PRI
+#endif
+#else
+#define MAX_PRI                 127
+#endif
+#else
+#define MAX_PRI                 99
+#endif
 
 /*
  * This is an additional bit set when we want to
@@ -154,6 +171,9 @@ extern void update_one_process(struct task_struct *p, unsigned long user,
 #define	MAX_SCHEDULE_TIMEOUT	LONG_MAX
 extern signed long FASTCALL(schedule_timeout(signed long timeout));
 asmlinkage void schedule(void);
+#ifdef CONFIG_PREEMPT
+asmlinkage void preempt_schedule(void);
+#endif
 
 extern int schedule_task(struct tq_struct *task);
 extern void flush_scheduled_tasks(void);
@@ -283,7 +303,17 @@ struct task_struct {
 	 * offsets of these are hardcoded elsewhere - touch with care
 	 */
 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
-	unsigned long flags;	/* per process flags, defined below */
+        /*
+         * We want the preempt_count in this cache line, but we
+         * a) don't want to mess up the offsets in asm code, and
+         * b) the alignment of the next line below,
+         * so we move "flags" down
+	 *
+	 * Also note we don't make preempt_count volatile, but we do
+	 * need to make sure it is never hiding in a register when
+	 * we have an interrupt, so we need to use barrier()
+         */
+	int preempt_count;          /* 0=> preemptable, < 0 => BUG */
 	int sigpending;
 	mm_segment_t addr_limit;	/* thread address space:
 					 	0-0xBFFFFFFF for user-thead
@@ -319,12 +349,16 @@ struct task_struct {
 	 * that's just fine.)
 	 */
 	struct list_head run_list;
+#ifdef CONFIG_RTSCHED
+        int counter_recalc;
+#endif
 	unsigned long sleep_time;
 
 	struct task_struct *next_task, *prev_task;
 	struct mm_struct *active_mm;
 	struct list_head local_pages;
 	unsigned int allocation_order, nr_local_pages;
+	unsigned long flags;
 
 /* task state */
 	struct linux_binfmt *binfmt;
@@ -401,7 +435,13 @@ struct task_struct {
 	int (*notifier)(void *priv);
 	void *notifier_data;
 	sigset_t *notifier_mask;
+#ifdef CONFIG_RTSCHED
+        int effprio;                    /* effective real time priority */
+        void (*newprio)(struct task_struct*, int);
+#endif
 	
+	void *security;
+
 /* Thread group tracking */
    	u32 parent_exec_id;
    	u32 self_exec_id;
@@ -427,6 +467,7 @@ struct task_struct {
 #define PF_MEMDIE	0x00001000	/* Killed for out-of-memory */
 #define PF_FREE_PAGES	0x00002000	/* per process page freeing */
 #define PF_NOIO		0x00004000	/* avoid generating further I/O */
+#define PF_FSTRANS	0x00008000	/* inside a filesystem transaction */
 
 #define PF_USEDFPU	0x00100000	/* task used FPU this quantum (SMP) */
 
@@ -729,19 +770,19 @@ static inline int fsuser(void)
  * fsuser(). See include/linux/capability.h for defined capabilities.
  */
 
+#ifdef CONFIG_SECURITY
+/* capable prototype and code moved to security.[hc] */
+extern int capable (int cap);
+#else
 static inline int capable(int cap)
 {
-#if 1 /* ok now */
-	if (cap_raised(current->cap_effective, cap))
-#else
-	if (cap_is_fs_cap(cap) ? current->fsuid == 0 : current->euid == 0)
-#endif
-	{
+	if (cap_raised(current->cap_effective, cap)) {
 		current->flags |= PF_SUPERPRIV;
 		return 1;
 	}
 	return 0;
 }
+#endif
 
 /*
  * Routines for handling mm_structs
@@ -785,6 +826,11 @@ extern void exit_sighand(struct task_struct *);
 
 extern void reparent_to_init(void);
 extern void daemonize(void);
+
+/* Used by core dumps to make sure all the threads the core is taken for
+   are not running.  This just sends SIGSTOP to all the threads.  */
+extern int stop_all_threads(struct mm_struct *mm);
+extern void start_all_threads(struct mm_struct *mm);
 
 extern int do_execve(char *, char **, char **, struct pt_regs *);
 extern int do_fork(unsigned long, unsigned long, struct pt_regs *, unsigned long);
@@ -875,10 +921,16 @@ do {									\
 
 static inline void del_from_runqueue(struct task_struct * p)
 {
+#ifdef CONFIG_RTSCHED
+extern void __del_from_runqueue(struct task_struct * p);
+
+        __del_from_runqueue(p);
+#else
 	nr_running--;
 	p->sleep_time = jiffies;
 	list_del(&p->run_list);
 	p->run_list.next = NULL;
+#endif
 }
 
 static inline int task_on_runqueue(struct task_struct *p)
@@ -926,6 +978,11 @@ static inline char * d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
 	mntput(rootmnt);
 	return res;
 }
+
+#define _TASK_STRUCT_DEFINED
+#include <linux/dcache.h>
+#include <linux/tqueue.h>
+#include <linux/fs_struct.h>
 
 #endif /* __KERNEL__ */
 

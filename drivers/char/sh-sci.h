@@ -202,6 +202,7 @@ struct sci_port {
 	struct async_icount icount;
 	struct tq_struct tqueue;
 	unsigned long event;
+	int break_flag;
 };
 
 #define SCI_IN(size, offset)					\

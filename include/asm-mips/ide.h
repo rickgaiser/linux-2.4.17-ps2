@@ -16,6 +16,10 @@
 #include <linux/config.h>
 #include <asm/io.h>
 
+#ifdef CONFIG_PS2
+#include <asm/ps2/ide.h>
+#endif
+
 #ifndef MAX_HWIFS
 # ifdef CONFIG_BLK_DEV_IDEPCI
 #define MAX_HWIFS	10
@@ -64,11 +68,15 @@ static __inline__ void ide_init_default_hwifs(void)
 #ifndef CONFIG_BLK_DEV_IDEPCI
 	hw_regs_t hw;
 	int index;
+	ide_ioreg_t base;
 
 	for(index = 0; index < MAX_HWIFS; index++) {
-		ide_init_hwif_ports(&hw, ide_default_io_base(index), 0, NULL);
-		hw.irq = ide_default_irq(ide_default_io_base(index));
-		ide_register_hw(&hw, NULL);
+		base = ide_default_io_base(index);
+		if (base) {
+			ide_init_hwif_ports(&hw, base, 0, NULL);
+			hw.irq = ide_default_irq(base);
+			ide_register_hw(&hw, NULL);
+		}
 	}
 #endif /* CONFIG_BLK_DEV_IDEPCI */
 }

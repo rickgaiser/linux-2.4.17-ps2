@@ -793,12 +793,17 @@ _static int uhci_submit_control_urb (urb_t *urb)
 
 	qh->hw.qh.element &= cpu_to_le32(~UHCI_PTR_TERM);
 
+#ifdef CONFIG_USB_UHCI_CONTROLFIRST
+	/* put control packet prior to bulk packet */
+	insert_qh (s, s->control_chain, qh, 0);
+#else
 	//uhci_show_queue(qh);
 	/* Start it up... put low speed first */
 	if (urb->pipe & TD_CTRL_LS)
 		insert_qh (s, s->control_chain, qh, 0);
 	else
 		insert_qh (s, s->bulk_chain, qh, 0);
+#endif
 
 	dbg("uhci_submit_control end");
 	return 0;

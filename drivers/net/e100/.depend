@@ -1,0 +1,128 @@
+ans.o: ans.c \
+   ans_driver.h
+ans.h: \
+   base_comm_os.h \
+   ans_os.h \
+   ans_hw.h
+	@touch ans.h
+ans_driver.o: ans_driver.c \
+   ans_driver.h \
+   e100_config.h
+ans_driver.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   ans.h \
+   e100.h
+	@touch ans_driver.h
+ans_hw.o: ans_hw.c \
+   ans_driver.h
+ans_os.o: ans_os.c \
+   ans_driver.h \
+   ans_os.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h
+ans_os.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h
+	@touch ans_os.h
+base_comm_os.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sockios.h \
+   base_comm.h
+	@touch base_comm_os.h
+e100.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/etherdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/skbuff.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/interrupt.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/wait.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/unaligned.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/processor.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ethtool.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/inetdevice.h \
+   ans_driver.h \
+   idiag_pro.h \
+   idiag_e100.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/if.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/proc_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ip.h \
+   e100_kcompat.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/pm.h)
+	@touch e100.h
+e100_config.o: e100_config.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ethtool.h \
+   e100_config.h
+e100_config.h: \
+   e100.h
+	@touch e100_config.h
+e100_eeprom.o: e100_eeprom.c \
+   e100.h
+e100_kcompat.o: e100_kcompat.c \
+   e100_kcompat.h
+e100_kcompat.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/netdevice.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h
+	@touch e100_kcompat.h
+e100_main.o: e100_main.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/checksum.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tcp.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/udp.h \
+   e100.h \
+   e100_ucode.h \
+   e100_config.h \
+   e100_phy.h \
+   e100_vendor.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mii.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/pm.h)
+e100_phy.o: e100_phy.c \
+   e100_phy.h
+e100_phy.h: \
+   e100.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mii.h
+	@touch e100_phy.h
+e100_proc.o: e100_proc.c \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/proc/fs.h) \
+   e100.h \
+   e100_phy.h
+e100_test.o: e100_test.c \
+   e100.h \
+   e100_phy.h \
+   e100_config.h
+idiag_e100.o: idiag_e100.c \
+   e100.h \
+   e100_config.h \
+   idiag_pro.h \
+   idiag_e100.h
+.PRECIOUS:	ans.h \
+	ans_driver.h \
+	ans_os.h \
+	base_comm_os.h \
+	e100.h \
+	e100_config.h \
+	e100_kcompat.h \
+	e100_phy.h \
+

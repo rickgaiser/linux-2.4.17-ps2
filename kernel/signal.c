@@ -13,6 +13,9 @@
 #include <linux/smp_lock.h>
 #include <linux/init.h>
 #include <linux/sched.h>
+#include <linux/security.h>
+
+#include <linux/trace.h>
 
 #include <asm/uaccess.h>
 
@@ -518,6 +521,8 @@ printk("SIG queue (%s:%d): %d ", t->comm, t->pid, sig);
 	ret = -EPERM;
 	if (bad_signal(sig, info, t))
 		goto out_nolock;
+	if ((ret = security_task_kill(t, info, sig)))
+		goto out_nolock;
 
 	/* The null signal is a permissions and process existance probe.
 	   No signal is actually delivered.  Same goes for zombies. */
@@ -540,6 +545,8 @@ printk("SIG queue (%s:%d): %d ", t->comm, t->pid, sig);
 	   the signal. */
 	if (sig < SIGRTMIN && sigismember(&t->pending.signal, sig))
 		goto out;
+
+	TRACE_PROCESS(TRACE_EV_PROCESS_SIGNAL, sig, t->pid);
 
 	ret = deliver_signal(sig, info, t);
 out:
@@ -1210,7 +1217,7 @@ out:
 #endif /* __sparc__ */
 #endif
 
-#if !defined(__alpha__) && !defined(__ia64__)
+#if !defined(__alpha__) && !defined(__ia64__) && !defined(__arm__)
 /*
  * For backwards compatibility.  Functionality superseded by sigprocmask.
  */
@@ -1238,7 +1245,8 @@ sys_ssetmask(int newmask)
 }
 #endif /* !defined(__alpha__) */
 
-#if !defined(__alpha__) && !defined(__ia64__) && !defined(__mips__)
+#if !defined(__alpha__) && !defined(__ia64__) && !defined(__mips__) && \
+    !defined(__arm__)
 /*
  * For backwards compatibility.  Functionality superseded by sigaction.
  */
@@ -1255,4 +1263,4 @@ sys_signal(int sig, __sighandler_t handler)
 
 	return ret ? ret : (unsigned long)old_sa.sa.sa_handler;
 }
-#endif /* !alpha && !__ia64__ && !defined(__mips__) */
+#endif /* !alpha && !__ia64__ && !defined(__mips__) && !defined(__arm__) */

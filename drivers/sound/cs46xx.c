@@ -2473,6 +2473,7 @@ static int cs_mmap(struct file *file, struct vm_area_struct *vma)
 		ret = -EAGAIN;
 		goto out;
 	}
+	vma->vm_flags &= ~VM_IO;
 	dmabuf->mapped = 1;
 
 	CS_DBGOUT(CS_FUNCTION, 2, printk("cs46xx: cs_mmap()-\n") );

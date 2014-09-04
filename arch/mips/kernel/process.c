@@ -13,6 +13,7 @@
 #include <linux/mm.h>
 #include <linux/stddef.h>
 #include <linux/unistd.h>
+#include <linux/personality.h>
 #include <linux/ptrace.h>
 #include <linux/slab.h>
 #include <linux/mman.h>
@@ -55,8 +56,8 @@ asmlinkage void ret_from_fork(void);
 void exit_thread(void)
 {
 	/* Forget lazy fpu state */
-	if (last_task_used_math == current) {
-		set_cp0_status(ST0_CU1);
+	if (last_task_used_math == current && mips_cpu.options & MIPS_CPU_FPU) {
+		__enable_fpu();
 		__asm__ __volatile__("cfc1\t$0,$31");
 		last_task_used_math = NULL;
 	}
@@ -64,11 +65,21 @@ void exit_thread(void)
 
 void flush_thread(void)
 {
+	/* Mark fpu context to be cleared */
+	current->used_math = 0;
+
 	/* Forget lazy fpu state */
-	if (last_task_used_math == current) {
-		set_cp0_status(ST0_CU1);
+	if (last_task_used_math == current && mips_cpu.options & MIPS_CPU_FPU) {
+		struct pt_regs *regs;
+
+		/* Make CURRENT lose fpu */ 
+		__enable_fpu();
 		__asm__ __volatile__("cfc1\t$0,$31");
+		__disable_fpu();
 		last_task_used_math = NULL;
+		regs = (struct pt_regs *) ((unsigned long) current +
+			KERNEL_STACK_SIZE - 32 - sizeof(struct pt_regs));
+		regs->cp0_status &= ~ST0_CU1;
 	}
 }
 
@@ -84,29 +95,29 @@ int copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 	if (last_task_used_math == current)
 		if (mips_cpu.options & MIPS_CPU_FPU) {
-			set_cp0_status(ST0_CU1);
+			__enable_fpu();
 			save_fp(p);
 		}
 	/* set up new TSS. */
 	childregs = (struct pt_regs *) childksp - 1;
 	*childregs = *regs;
-	childregs->regs[7] = 0;	/* Clear error flag */
+	set_gpreg(childregs, 7, 0);	/* Clear error flag */
 	if(current->personality == PER_LINUX) {
-		childregs->regs[2] = 0;	/* Child gets zero as return value */
-		regs->regs[2] = p->pid;
+		set_gpreg(childregs, 2, 0); /* Child gets zero as return value */
+		set_gpreg(regs, 2, p->pid);
 	} else {
 		/* Under IRIX things are a little different. */
-		childregs->regs[2] = 0;
-		childregs->regs[3] = 1;
-		regs->regs[2] = p->pid;
-		regs->regs[3] = 0;
+		set_gpreg(childregs, 2, 0);
+		set_gpreg(childregs, 3, 1);
+		set_gpreg(regs, 2, p->pid);
+		set_gpreg(regs, 3, 0);
 	}
 	if (childregs->cp0_status & ST0_CU0) {
-		childregs->regs[28] = (unsigned long) p;
-		childregs->regs[29] = childksp;
+		set_gpreg(childregs, 28, (unsigned long) p);
+		set_gpreg(childregs, 29, childksp);
 		p->thread.current_ds = KERNEL_DS;
 	} else {
-		childregs->regs[29] = usp;
+		set_gpreg(childregs, 29, usp);
 		p->thread.current_ds = USER_DS;
 	}
 	p->thread.reg29 = (unsigned long) childregs;
@@ -116,24 +127,99 @@ int copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	 * New tasks loose permission to use the fpu. This accelerates context
 	 * switching for most programs since they don't use the fpu.
 	 */
+#ifdef CONFIG_PS2
+	/* keep COP2 usable bit to share the VPU0 context */
+	p->thread.cp0_status = read_32bit_cp0_register(CP0_STATUS) &
+                            ~(ST0_CU1|KU_MASK);
+	childregs->cp0_status &= ~(ST0_CU1);
+#else
 	p->thread.cp0_status = read_32bit_cp0_register(CP0_STATUS) &
                             ~(ST0_CU2|ST0_CU1|KU_MASK);
 	childregs->cp0_status &= ~(ST0_CU2|ST0_CU1);
+#endif
 
 	return 0;
+}
+
+/* Fill in the elf_gregset_t structure for a core dump.. */
+void mips_dump_regs(elf_greg_t *r, struct pt_regs *regs)
+{
+	int i;
+
+	r[EF_REG0] = 0;
+	for (i = 1; i < 32; i++)
+		r[EF_REG0 + i] = (elf_greg_t)regs->regs[i];
+	r[EF_LO] = (elf_greg_t)regs->lo;
+	r[EF_HI] = (elf_greg_t)regs->hi;
+#ifdef CONFIG_CPU_R5900_CONTEXT
+	r[EF_SA] = (elf_greg_t)regs->sa;
+#endif
+	r[EF_CP0_EPC] = (elf_greg_t)regs->cp0_epc;
+	r[EF_CP0_BADVADDR] = (elf_greg_t)regs->cp0_badvaddr;
+	r[EF_CP0_STATUS] = (elf_greg_t)regs->cp0_status;
+	r[EF_CP0_CAUSE] = (elf_greg_t)regs->cp0_cause;
+}
+
+extern struct pt_regs *get_task_registers (struct task_struct *task);
+extern void save_fp(struct task_struct *);
+int dump_task_fpu(struct pt_regs *regs, struct task_struct *task, elf_fpregset_t *r)
+{
+	unsigned long long *fregs;
+	int i;
+	unsigned long tmp;
+
+	if (!task->used_math)
+		return 0;
+	if(!(mips_cpu.options & MIPS_CPU_FPU)) {
+		fregs = (unsigned long long *)
+			task->thread.fpu.soft.regs;
+	} else {
+		fregs = (unsigned long long *)
+			&task->thread.fpu.hard.fp_regs[0];
+		if (last_task_used_math == task) {
+			__enable_fpu();
+			save_fp (task);
+			__disable_fpu();
+			last_task_used_math = NULL;
+			regs->cp0_status &= ~ST0_CU1;
+		}
+	}
+	/*
+	 * The odd registers are actually the high
+	 * order bits of the values stored in the even
+	 * registers - unless we're using r2k_switch.S.
+	 */
+	for (i = 0; i < 32; i++)
+	{
+#if defined(CONFIG_CPU_R3000) || defined(CONFIG_CPU_R5900)
+		if (mips_cpu.options & MIPS_CPU_FPU)
+			tmp = *(unsigned long *)(fregs + i);
+		else
+#endif
+		if (i & 1)
+			tmp = (unsigned long) (fregs[(i & ~1)] >> 32);
+		else
+			tmp = (unsigned long) (fregs[i] & 0xffffffff);
+
+		*(unsigned long *)(&(*r)[i]) = tmp;
+	}
+
+	if (mips_cpu.options & MIPS_CPU_FPU)
+		tmp = task->thread.fpu.hard.control;
+	else
+		tmp = task->thread.fpu.soft.sr;
+	*(unsigned long *)(&(*r)[32]) = tmp;
+#ifdef CONFIG_CPU_R5900_CONTEXT
+	tmp = *(unsigned long *)&(task->thread.fpu.hard.fp_acc);
+	*(unsigned long *)(&(*r)[33]) = tmp;
+#endif
+	return 1;
 }
 
 /* Fill in the fpu structure for a core dump.. */
 int dump_fpu(struct pt_regs *regs, elf_fpregset_t *r)
 {
-	/* We actually store the FPU info in the task->thread
-	 * area.
-	 */
-	if(regs->cp0_status & ST0_CU1) {
-		memcpy(r, &current->thread.fpu, sizeof(current->thread.fpu));
-		return 1;
-	}
-	return 0; /* Task didn't use the fpu at all. */
+	return dump_task_fpu (regs, current, r);
 }
 
 /* Fill in the user structure for a core dump.. */
@@ -142,7 +228,7 @@ void dump_thread(struct pt_regs *regs, struct user *dump)
 	dump->magic = CMAGIC;
 	dump->start_code  = current->mm->start_code;
 	dump->start_data  = current->mm->start_data;
-	dump->start_stack = regs->regs[29] & ~(PAGE_SIZE - 1);
+	dump->start_stack = get_gpreg(regs, 29) & ~(PAGE_SIZE - 1);
 	dump->u_tsize = (current->mm->end_code - dump->start_code) >> PAGE_SHIFT;
 	dump->u_dsize = (current->mm->brk + (PAGE_SIZE - 1) - dump->start_data) >> PAGE_SHIFT;
 	dump->u_ssize =
@@ -174,20 +260,20 @@ int kernel_thread(int (*fn)(void *), void * arg, unsigned long flags)
 		"1:  addiu   $sp,32           \n"
 		"    move    %0,$2            \n"
 		".set reorder"
-		:"=r" (retval)
-		:"i" (__NR_clone), "i" (__NR_exit),
-		 "r" (arg), "r" (fn),
-		 "r" (flags | CLONE_VM)
+		: "=r" (retval)
+		: "i" (__NR_clone), "i" (__NR_exit), "r" (arg), "r" (fn),
+		  "r" (flags | CLONE_VM)
 		 /*
 		  * The called subroutine might have destroyed any of the
 		  * at, result, argument or temporary registers ...
 		  */
-		:"$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8",
-		 "$9","$10","$11","$12","$13","$14","$15","$24","$25");
+		: "$2", "$3", "$4", "$5", "$6", "$7", "$8",
+		  "$9","$10","$11","$12","$13","$14","$15","$24","$25");
 
 	return retval;
 }
 
+#ifndef CONFIG_MIPS_STACKTRACE
 /*
  * These bracket the sleeping functions..
  */
@@ -241,3 +327,5 @@ schedule_timeout_caller:
 
 	return pc;
 }
+
+#endif /* !CONFIG_MIPS_STACKTRACE */

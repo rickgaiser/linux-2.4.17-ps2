@@ -2929,7 +2929,7 @@ static int __devinit uhci_pci_probe(struct pci_dev *dev, const struct pci_device
 	return -ENODEV;
 }
 
-static void __devexit uhci_pci_remove(struct pci_dev *dev)
+static void uhci_pci_remove(struct pci_dev *dev)
 {
 	struct uhci *uhci = pci_get_drvdata(dev);
 
@@ -2990,7 +2990,7 @@ static struct pci_driver uhci_pci_driver = {
 	id_table:	uhci_pci_ids,
 
 	probe:		uhci_pci_probe,
-	remove:		__devexit_p(uhci_pci_remove),
+	remove:		uhci_pci_remove,
 
 #ifdef	CONFIG_PM
 	suspend:	uhci_pci_suspend,

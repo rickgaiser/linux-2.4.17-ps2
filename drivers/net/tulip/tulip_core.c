@@ -93,6 +93,8 @@ static int csr0 = 0x01A00000 | 0x8000;
 static int csr0 = 0x01A00000 | 0x9000;
 #elif defined(__arm__) || defined(__sh__)
 static int csr0 = 0x01A00000 | 0x4800;
+#elif defined(__mips__)
+static int csr0 = 0x00200000 | 0x4000;
 #else
 #warning Processor architecture undefined!
 static int csr0 = 0x00A00000 | 0x4800;

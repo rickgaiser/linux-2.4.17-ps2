@@ -1,0 +1,65 @@
+sym53c8xx.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/scsi/sym53c8xx/iomapped.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/scsi/ncr53c8xx/iomapped.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/scsi/sym53c8xx/default/tags.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/scsi/ncr53c8xx/default/tags.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/scsi/sym53c8xx/max/tags.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/scsi/ncr53c8xx/max/tags.h) \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/scsi/scsicam.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/scsi/sym53c8xx/dma/addressing/mode.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/scsi/sym53c8xx/default/sync.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/scsi/sym53c8xx/max/lun.h)
+	@touch sym53c8xx.h
+sym_fw.o: sym_fw.c \
+   sym_glue.h \
+   sym_fw1.h \
+   sym_fw2.h
+sym_glue.o: sym_glue.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   sym_glue.h \
+   ../scsi_module.c
+sym_glue.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/version.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dma.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/system.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/spinlock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/signal.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pci.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/time.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/timer.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/stat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blk.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   ../scsi.h \
+   ../hosts.h \
+   ../constants.h \
+   ../sd.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   sym53c8xx.h \
+   sym_misc.h \
+   sym_conf.h \
+   sym_defs.h \
+   sym_fw.h \
+   sym_hipd.h
+	@touch sym_glue.h
+sym_hipd.o: sym_hipd.c \
+   sym_glue.h
+sym_malloc.o: sym_malloc.c \
+   sym_glue.h
+sym_misc.o: sym_misc.c \
+   sym_glue.h
+sym_nvram.o: sym_nvram.c \
+   sym_glue.h
+.PRECIOUS:	sym53c8xx.h \
+	sym_glue.h \
+

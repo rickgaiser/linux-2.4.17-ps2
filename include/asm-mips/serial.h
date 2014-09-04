@@ -42,7 +42,7 @@
 #define ACCENT_FLAGS 0
 #define BOCA_FLAGS 0
 #define HUB6_FLAGS 0
-#define RS_TABLE_SIZE	64
+#define RS_TABLE_SIZE	32
 #else
 #define RS_TABLE_SIZE
 #endif
@@ -85,6 +85,15 @@
 #define ATLAS_SERIAL_PORT_DEFNS
 #endif
 
+#ifdef CONFIG_COBALT_MICRO_SERVER
+#define COBALT_BASE_BAUD  (18432000 / 16)
+#define COBALT_SERIAL_PORT_DEFNS		\
+	/* UART CLK   PORT  IRQ  FLAGS    */ 		\
+	{ 0, COBALT_BASE_BAUD, 0x1c800000, 7, STD_COM_FLAGS },   /* ttyS0 */
+#else
+#define COBALT_SERIAL_PORT_DEFNS
+#endif
+
 /*
  * Both Galileo boards have the same UART mappings.
  */
@@ -92,12 +101,14 @@
 #include <asm/galileo-boards/ev96100.h>
 #include <asm/galileo-boards/ev96100int.h>
 #define EV96100_SERIAL_PORT_DEFNS                                  \
-    { baud_base: EV96100_BASE_BAUD, port: EV96100_UART0_REGS_BASE, \
-      irq: EV96100INT_UART_0, flags: STD_COM_FLAGS, type: 0x3,   \
-      iomem_base: EV96100_UART0_REGS_BASE },                       \
-    { baud_base: EV96100_BASE_BAUD, port: EV96100_UART1_REGS_BASE, \
-      irq: EV96100INT_UART_0, flags: STD_COM_FLAGS, type: 0x3,   \
-      iomem_base: EV96100_UART1_REGS_BASE },
+    { baud_base: EV96100_BASE_BAUD, irq: EV96100INT_UART_0, \
+      flags: STD_COM_FLAGS,  \
+      iomem_base: EV96100_UART0_REGS_BASE, iomem_reg_shift: 2, \
+      io_type: SERIAL_IO_MEM }, \
+    { baud_base: EV96100_BASE_BAUD, irq: EV96100INT_UART_0, \
+      flags: STD_COM_FLAGS, \
+      iomem_base: EV96100_UART1_REGS_BASE, iomem_reg_shift: 2, \
+      io_type: SERIAL_IO_MEM },
 #else
 #define EV96100_SERIAL_PORT_DEFNS
 #endif
@@ -134,6 +145,27 @@
 #define IVR_SERIAL_PORT_DEFNS
 #endif
 
+#ifdef CONFIG_MIPS_SNSC_MPU210
+#include <asm/it8172/it8172.h>
+#include <asm/it8172/it8172_int.h>
+#include <asm/it8712.h>
+#define SNSC_MPU210_SERIAL_PORT_DEFNS                                  \
+    { baud_base: BASE_BAUD, port: (IT8172_PCI_IO_BASE + IT_UART_BASE), \
+      irq: IT8172_UART_IRQ, flags: STD_COM_FLAGS, type: 0x3 }, \
+    { baud_base: (24000000/(16*13)), port: (IT8172_PCI_IO_BASE + IT8712_UART1_PORT), \
+      irq: IT8172_SERIRQ_4, flags: STD_COM_FLAGS, type: 0x3 }, \
+    { baud_base: (24000000/(16*13)), port: (IT8172_PCI_IO_BASE + IT8712_UART2_PORT), \
+      irq: IT8172_SERIRQ_3, flags: STD_COM_FLAGS, type: 0x3 }, \
+    /* Smart Card Reader 0 */ \
+    { baud_base: BASE_BAUD, port: (IT8172_PCI_IO_BASE + IT_SCR0_BASE), \
+      irq: IT8172_SCR0_IRQ, flags: STD_COM_FLAGS, type: 0x3 }, \
+    /* Smart Card Reader 1 */ \
+    { baud_base: BASE_BAUD, port: (IT8172_PCI_IO_BASE + IT_SCR1_BASE), \
+      irq: IT8172_SCR1_IRQ, flags: STD_COM_FLAGS, type: 0x3 },
+#else
+#define SNSC_MPU210_SERIAL_PORT_DEFNS
+#endif
+
 #ifdef CONFIG_AU1000_UART
 #include <asm/au1000.h>
 #define AU1000_SERIAL_PORT_DEFNS                              \
@@ -147,6 +179,54 @@
       flags: STD_COM_FLAGS, type: 1 },
 #else
 #define AU1000_SERIAL_PORT_DEFNS
+#endif
+
+#ifdef CONFIG_CPU_RC32300
+#include <asm/rc32300/rc32300.h>
+#define RC32300_SERIAL_PORT_DEFNS                 \
+    { baud_base: RC32300_BASE_BAUD,               \
+      iomem_base: KSEG1ADDR(RC32300_UART0_BASE),  \
+      irq: GROUP5_IRQ_BASE,                       \
+      iomem_reg_shift: 2, io_type: SERIAL_IO_MEM, \
+      flags: STD_COM_FLAGS, type: 3 },            \
+    { baud_base: RC32300_BASE_BAUD,               \
+      iomem_base: KSEG1ADDR(RC32300_UART1_BASE),  \
+      irq: GROUP6_IRQ_BASE,                       \
+      iomem_reg_shift: 2, io_type: SERIAL_IO_MEM, \
+      flags: STD_COM_FLAGS, type: 3 },
+#else
+#define RC32300_SERIAL_PORT_DEFNS
+#endif
+
+#ifdef CONFIG_TOSHIBA_JMR3927
+#include <asm/jmr3927/jmr3927.h>
+#define TXX927_SERIAL_PORT_DEFNS                              \
+    { baud_base: JMR3927_BASE_BAUD, port: UART0_ADDR, irq: UART0_INT,  \
+      flags: UART0_FLAGS, type: 1 },                        \
+    { baud_base: JMR3927_BASE_BAUD, port: UART1_ADDR, irq: UART1_INT,  \
+      flags: UART1_FLAGS, type: 1 },     
+#else
+#define TXX927_SERIAL_PORT_DEFNS
+#endif
+
+#ifdef CONFIG_VR4122
+#include <asm/vr4122/vr4122.h>
+#define VR4122_BASE_BAUD 1152000
+#define _VR4122_SERIAL_INIT(int, base)                                 \
+	{ baud_base: VR4122_BASE_BAUD, irq: int, flags: STD_COM_FLAGS, \
+	  iomem_base: (u8 *) base, iomem_reg_shift: 0,                 \
+	  io_type: SERIAL_IO_MEM }
+#if defined(CONFIG_NEC_EAGLE)
+#define VR4122_SERIAL_PORT_DEFNS                                       \
+	_VR4122_SERIAL_INIT(VR4122_IRQ_DSIU, VR4122_DSIURB),           \
+	_VR4122_SERIAL_INIT(VR4122_IRQ_SIU, VR4122_SIURB),
+#else
+#define VR4122_SERIAL_PORT_DEFNS                                       \
+	_VR4122_SERIAL_INIT(VR4122_IRQ_SIU, VR4122_SIURB),             \
+	_VR4122_SERIAL_INIT(VR4122_IRQ_DSIU, VR4122_DSIURB),
+#endif
+#else
+#define VR4122_SERIAL_PORT_DEFNS
 #endif
 
 #ifdef CONFIG_HAVE_STD_PC_SERIAL_PORT
@@ -261,7 +341,10 @@
 #define SERIAL_PORT_DFNS		\
 	IVR_SERIAL_PORT_DEFNS           \
 	ITE_SERIAL_PORT_DEFNS           \
+	SNSC_MPU210_SERIAL_PORT_DEFNS   \
+	RC32300_SERIAL_PORT_DEFNS       \
 	ATLAS_SERIAL_PORT_DEFNS		\
+	COBALT_SERIAL_PORT_DEFNS	\
 	EV96100_SERIAL_PORT_DEFNS	\
 	JAZZ_SERIAL_PORT_DEFNS		\
 	STD_SERIAL_PORT_DEFNS		\
@@ -269,4 +352,6 @@
 	HUB6_SERIAL_PORT_DFNS		\
 	MOMENCO_OCELOT_SERIAL_PORT_DEFNS\
 	AU1000_SERIAL_PORT_DEFNS	\
-	DDB5477_SERIAL_PORT_DEFNS
+        TXX927_SERIAL_PORT_DEFNS        \
+	DDB5477_SERIAL_PORT_DEFNS	\
+	VR4122_SERIAL_PORT_DEFNS

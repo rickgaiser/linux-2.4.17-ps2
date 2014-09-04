@@ -4,6 +4,9 @@
 
 #include <linux/fs.h>
 #include <linux/reiserfs_fs.h>
+#ifdef CONFIG_REISERFS_IMMUTABLE_HACK
+#include <linux/ext2_fs.h>
+#endif /* CONFIG_REISERFS_IMMUTABLE_HACK */
 #include <linux/sched.h>
 #include <asm/uaccess.h>
 #include <linux/smp_lock.h>
@@ -24,6 +27,50 @@ int reiserfs_ioctl (struct inode * inode, struct file * filp, unsigned int cmd,
 		if (arg)
 		    return reiserfs_unpack (inode, filp);
 			
+#ifdef CONFIG_REISERFS_IMMUTABLE_HACK
+	    case EXT2_IOC_GETFLAGS: {
+		unsigned int flags;
+		flags = 0;
+		if (reiserfs_suid_immutable(inode->i_sb) &&
+		    inode->i_uid == 0 &&
+		    (inode->i_flags & S_IMMUTABLE))
+			flags |= EXT2_IMMUTABLE_FL;
+		return put_user(flags, (int *) arg);
+	    }
+
+	    case EXT2_IOC_SETFLAGS: {
+		unsigned int flags;
+		struct iattr attr;
+		int error ;
+
+		if (get_user(flags, (int *) arg))
+			return -EFAULT;
+		if ((!(flags & EXT2_IMMUTABLE_FL) !=
+		     !(inode->i_flags & S_IMMUTABLE)) &&
+		    !capable(CAP_LINUX_IMMUTABLE))
+			return -EPERM;
+
+		if ((current->fsuid != inode->i_uid) && !capable(CAP_FOWNER))
+			return -EPERM;
+		if (IS_RDONLY(inode))
+			return -EROFS;
+		if (flags & EXT2_IMMUTABLE_FL) {
+			return -EPERM;
+		}
+
+		if (!reiserfs_suid_immutable(inode->i_sb) ||
+		    inode->i_uid != 0 || !(inode->i_mode & S_ISUID))
+			return 0;
+		attr.ia_valid = ATTR_MODE;
+		attr.ia_mode = (inode->i_mode & ~S_ISUID);
+		error = inode_change_ok(inode, &attr) ;
+		if (!error) {
+		    inode->i_flags &= ~S_IMMUTABLE;
+		    inode_setattr(inode, &attr) ;
+		}
+		return error;
+	    }
+#endif /* CONFIG_REISERFS_IMMUTABLE_HACK */
 	    default:
 		return -ENOTTY;
 	}

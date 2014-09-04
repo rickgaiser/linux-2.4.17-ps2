@@ -1,3 +1,5 @@
+/* $USAGI: ipv6.h,v 1.17 2001/12/23 05:02:14 yoshfuji Exp $ */
+
 /*
  *	Linux INET6 implementation
  *
@@ -89,13 +91,25 @@ struct frag_hdr {
 #include <net/sock.h>
 
 extern struct ipv6_mib		ipv6_statistics[NR_CPUS*2];
-#define IP6_INC_STATS(field)		SNMP_INC_STATS(ipv6_statistics, field)
-#define IP6_INC_STATS_BH(field)		SNMP_INC_STATS_BH(ipv6_statistics, field)
-#define IP6_INC_STATS_USER(field) 	SNMP_INC_STATS_USER(ipv6_statistics, field)
+#define IP6_INC_STATS(idev,field)	({if (idev) \
+						SNMP_INC_STATS(idev->stats.ipv6, field); \
+					  SNMP_INC_STATS(ipv6_statistics, field);})
+#define IP6_INC_STATS_BH(idev,field)	({if (idev) \
+						SNMP_INC_STATS(idev->stats.ipv6, field); \
+					  SNMP_INC_STATS_BH(ipv6_statistics, field);})
+#define IP6_INC_STATS_USER(idev,field) 	({if (idev) \
+						SNMP_INC_STATS(idev->stats.ipv6, field); \
+					SNMP_INC_STATS_USER(ipv6_statistics, field);})
 extern struct icmpv6_mib	icmpv6_statistics[NR_CPUS*2];
-#define ICMP6_INC_STATS(field)		SNMP_INC_STATS(icmpv6_statistics, field)
-#define ICMP6_INC_STATS_BH(field)	SNMP_INC_STATS_BH(icmpv6_statistics, field)
-#define ICMP6_INC_STATS_USER(field) 	SNMP_INC_STATS_USER(icmpv6_statistics, field)
+#define ICMP6_INC_STATS(idev,field)	({if (idev) \
+						SNMP_INC_STATS(idev->stats.icmpv6, field); \
+					SNMP_INC_STATS(icmpv6_statistics, field);})
+#define ICMP6_INC_STATS_BH(idev,field)	({if (idev) \
+						SNMP_INC_STATS(idev->stats.icmpv6, field); \
+					SNMP_INC_STATS_BH(icmpv6_statistics, field);})
+#define ICMP6_INC_STATS_USER(idev,field) ({if (idev) \
+						SNMP_INC_STATS(idev->stats.icmpv6, field); \
+					SNMP_INC_STATS_USER(icmpv6_statistics, field);})
 extern struct udp_mib		udp_stats_in6[NR_CPUS*2];
 #define UDP6_INC_STATS(field)		SNMP_INC_STATS(udp_stats_in6, field)
 #define UDP6_INC_STATS_BH(field)	SNMP_INC_STATS_BH(udp_stats_in6, field)
@@ -216,6 +230,53 @@ static inline int ipv6_addr_cmp(struct in6_addr *a1, struct in6_addr *a2)
 	return memcmp((void *) a1, (void *) a2, sizeof(struct in6_addr));
 }
 
+/* find 1st bit in difference between the 2 addrs */
+static inline int ipv6_addr_diff(const struct in6_addr *a1, const struct in6_addr *a2)
+{
+	/* find 1st bit in difference between the 2 addrs.
+
+           See comment in ipv6_addr_diff: bit may be an invalid value,
+           but if it is >= plen, the value is ignored in any case.
+         */
+
+	int i;
+	for (i = 0; i < 4; i++) {
+		u32 xb = a1->s6_addr32[i] ^ a2->s6_addr32[i];
+		if (xb) {
+			int j = 31;
+			xb = ntohl(xb);
+			while ((xb & (1 << j)) == 0)
+				j--;
+			return (i * 32 + 31 - j);
+		}
+	}
+	return 128;
+}
+
+/* compare ipv6 address prefix (0 vs !0) */
+static inline int ipv6_prefix_cmp(const struct in6_addr *a1, const struct in6_addr *a2, int plen)
+{
+	int w, b;
+
+	if (plen > 128)
+		plen = 128;
+	if (plen <= 0)
+		return 0;
+
+	w = plen >> 5;		/* num of whole u32 in prefix */
+	b = plen & 0x1f;	/* num of bits in incomplete u32 in prefix */
+
+	if (w) {
+		if (memcmp(a1, a2, w << 2))
+			return !0;
+	}
+	if (b) {
+		u32 mask = htonl(~0 << (32 - b));
+		return (a1->s6_addr32[w] ^ a2->s6_addr32[w]) & mask;
+	}
+	return 0;
+}
+
 static inline void ipv6_addr_copy(struct in6_addr *a1, struct in6_addr *a2)
 {
 	memcpy((void *) a1, (void *) a2, sizeof(struct in6_addr));
@@ -237,6 +298,26 @@ static inline int ipv6_addr_any(struct in6_addr *a)
 {
 	return ((a->s6_addr32[0] | a->s6_addr32[1] | 
 		 a->s6_addr32[2] | a->s6_addr32[3] ) == 0); 
+}
+
+static void inline ipv6_addr_prefix(struct in6_addr *prefix,
+				    const struct in6_addr *addr, int plen)
+{
+	int ncopy, nbits;
+
+	if (plen <= 0)
+		return;
+	if (plen > 128)
+		plen = 128;
+
+	ncopy = plen >> 3;
+	nbits = plen & 7;
+
+	memcpy(prefix, addr, ncopy);
+	if (ncopy < 16)
+		memset(&prefix->s6_addr[ncopy], 0, 16 - ncopy);
+	if (nbits)
+		prefix->s6_addr[ncopy] = addr->s6_addr[ncopy] & (0xff00 >> nbits);
 }
 
 /*
@@ -272,7 +353,7 @@ extern int			ip6_build_xmit(struct sock *sk,
 					       struct flowi *fl,
 					       unsigned length,
 					       struct ipv6_txoptions *opt,
-					       int hlimit, int flags);
+					       int hlimit, int tclass, int flags);
 
 /*
  *	skb processing functions
@@ -305,7 +386,6 @@ extern void			ipv6_push_frag_opts(struct sk_buff *skb,
 
 extern int			ipv6_skip_exthdr(struct sk_buff *, int start,
 					         u8 *nexthdrp, int len);
-
 extern int 			ipv6_ext_hdr(u8 nexthdr);
 
 extern struct ipv6_txoptions *	ipv6_invert_rthdr(struct sock *sk,
@@ -335,6 +415,9 @@ extern int 			ipv6_recv_error(struct sock *sk, struct msghdr *msg, int len);
 extern void			ipv6_icmp_error(struct sock *sk, struct sk_buff *skb, int err, u16 port,
 						u32 info, u8 *payload);
 extern void			ipv6_local_error(struct sock *sk, int err, struct flowi *fl, u32 info);
+
+/* for MIPL */
+extern struct net_proto_family inet6_family_ops;
 
 #endif /* __KERNEL__ */
 #endif /* _NET_IPV6_H */

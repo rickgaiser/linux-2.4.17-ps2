@@ -14,12 +14,10 @@ obj-y :=	open.o read_write.o devices.o file_table.o buffer.o \
 		super.o block_dev.o char_dev.o stat.o exec.o pipe.o namei.o \
 		fcntl.o ioctl.o readdir.o select.o fifo.o locks.o \
 		dcache.o inode.o attr.o bad_inode.o file.o iobuf.o dnotify.o \
-		filesystems.o namespace.o seq_file.o
+		filesystems.o namespace.o seq_file.o xattr.o quota.o
 
 ifeq ($(CONFIG_QUOTA),y)
 obj-y += dquot.o
-else
-obj-y += noquot.o
 endif
 
 subdir-$(CONFIG_PROC_FS)	+= proc
@@ -68,6 +66,24 @@ subdir-$(CONFIG_REISERFS_FS)	+= reiserfs
 subdir-$(CONFIG_DEVPTS_FS)	+= devpts
 subdir-$(CONFIG_SUN_OPENPROMFS)	+= openpromfs
 
+subdir-$(CONFIG_XFS_DMAPI)	+= xfs_dmapi
+subdir-$(CONFIG_XFS_FS)		+= xfs
+mod-subdirs			+= xfs
+# xfs_support is used by xfs and a couple of other SGI components.  Because CML1
+# does not correctly handle inter-menu dependencies, set CONFIG_XFS_SUPPORT
+# here.  CML2 is not a problem, thank goodness.  The support code can be linked
+# into vmlinux even if xfs is not selected or is a module so xfs_support needs
+# to be exposed at this level.  Keith Owens.
+ifneq ($(findstring y,$(CONFIG_XFS_FS) $(CONFIG_XSCSI) $(CONFIG_XVM)),)
+  CONFIG_XFS_SUPPORT := y
+else
+  ifneq ($(findstring m,$(CONFIG_XFS_FS) $(CONFIG_XSCSI) $(CONFIG_XVM)),)
+    CONFIG_XFS_SUPPORT := m
+  else
+    CONFIG_XFS_SUPPORT :=
+  endif
+endif
+subdir-$(CONFIG_XFS_SUPPORT)	+= xfs_support
 
 obj-$(CONFIG_BINFMT_AOUT)	+= binfmt_aout.o
 obj-$(CONFIG_BINFMT_EM86)	+= binfmt_em86.o

@@ -55,6 +55,7 @@
 #include <linux/sysctl.h>
 #endif
 #include <linux/kmod.h>
+#include <linux/security.h>
 
 #include <net/ip.h>
 #include <net/route.h>

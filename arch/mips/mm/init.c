@@ -44,7 +44,6 @@
 #include <asm/tlb.h>
 
 mmu_gather_t mmu_gathers[NR_CPUS];
-
 static unsigned long totalram_pages;
 
 extern void prom_free_prom_memory(void);
@@ -269,7 +268,7 @@ void free_initmem(void)
 void si_meminfo(struct sysinfo *val)
 {
 	val->totalram = totalram_pages;
-	val->sharedram = atomic_read(&shmem_nrpages);
+	val->sharedram = 0;
 	val->freeram = nr_free_pages();
 	val->bufferram = atomic_read(&buffermem_pages);
 	val->totalhigh = 0;

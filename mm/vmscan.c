@@ -158,6 +158,8 @@ static inline int swap_out_pmd(struct mm_struct * mm, struct vm_area_struct * vm
 	pte_t * pte;
 	unsigned long pmd_end;
 
+	DEFINE_LOCK_COUNT();
+
 	if (pmd_none(*dir))
 		return count;
 	if (pmd_bad(*dir)) {
@@ -182,6 +184,14 @@ static inline int swap_out_pmd(struct mm_struct * mm, struct vm_area_struct * vm
 					address += PAGE_SIZE;
 					break;
 				}
+				/* we reach this with a lock depth of 1 or 2 */
+#if 0
+				if (TEST_LOCK_COUNT(4)) {
+					if (conditional_schedule_needed())
+						return count;
+					RESET_LOCK_COUNT();
+				}
+#endif
 			}
 		}
 		address += PAGE_SIZE;
@@ -215,6 +225,9 @@ static inline int swap_out_pgd(struct mm_struct * mm, struct vm_area_struct * vm
 		count = swap_out_pmd(mm, vma, pmd, address, end, count, classzone);
 		if (!count)
 			break;
+		/* lock depth can be 1 or 2 */
+		if (conditional_schedule_needed())
+			return count;
 		address = (address + PMD_SIZE) & PMD_MASK;
 		pmd++;
 	} while (address && (address < end));
@@ -240,6 +253,9 @@ static inline int swap_out_vma(struct mm_struct * mm, struct vm_area_struct * vm
 		count = swap_out_pgd(mm, vma, pgdir, address, end, count, classzone);
 		if (!count)
 			break;
+		/* lock depth can be 1 or 2 */
+		if (conditional_schedule_needed())
+			return count;
 		address = (address + PGDIR_SIZE) & PGDIR_MASK;
 		pgdir++;
 	} while (address && (address < end));
@@ -262,6 +278,8 @@ static inline int swap_out_mm(struct mm_struct * mm, int count, int * mmcounter,
 	 * and ptes.
 	 */
 	spin_lock(&mm->page_table_lock);
+
+continue_scan:
 	address = mm->swap_address;
 	if (address == TASK_SIZE || swap_mm != mm) {
 		/* We raced: don't count this mm but try again */
@@ -278,6 +296,13 @@ static inline int swap_out_mm(struct mm_struct * mm, int count, int * mmcounter,
 			vma = vma->vm_next;
 			if (!vma)
 				break;
+			/* we reach this with a lock depth of 1 and 2 */
+#if 0
+			if (conditional_schedule_needed()) {
+				break_spin_lock(&mm->page_table_lock);
+				goto continue_scan;
+			}
+#endif
 			if (!count)
 				goto out_unlock;
 			address = vma->vm_start;
@@ -299,6 +324,7 @@ static int swap_out(unsigned int priority, unsigned int gfp_mask, zone_t * class
 
 	counter = mmlist_nr;
 	do {
+		/* lock depth can be 0 or 1 */
 		if (unlikely(current->need_resched)) {
 			__set_current_state(TASK_RUNNING);
 			schedule();
@@ -344,6 +370,7 @@ static int shrink_cache(int nr_pages, zone_t * classzone, unsigned int gfp_mask,
 	while (--max_scan >= 0 && (entry = inactive_list.prev) != &inactive_list) {
 		struct page * page;
 
+		/* lock depth is 1 or 2 */
 		if (unlikely(current->need_resched)) {
 			spin_unlock(&pagemap_lru_lock);
 			__set_current_state(TASK_RUNNING);
@@ -391,7 +418,7 @@ static int shrink_cache(int nr_pages, zone_t * classzone, unsigned int gfp_mask,
 			continue;
 		}
 
-		if (PageDirty(page) && is_page_cache_freeable(page) && page->mapping) {
+		if ((PageDirty(page) || DelallocPage(page)) && is_page_cache_freeable(page) && page->mapping) {
 			/*
 			 * It is not critical here to write it only if
 			 * the page is unmapped beause any direct writer
@@ -625,8 +652,11 @@ static int kswapd_balance_pgdat(pg_data_t * pgdat)
 
 	for (i = pgdat->nr_zones-1; i >= 0; i--) {
 		zone = pgdat->node_zones + i;
+		debug_lock_break(0);
+#ifndef CONFIG_PREEMPT
 		if (unlikely(current->need_resched))
 			schedule();
+#endif
 		if (!zone->need_balance)
 			continue;
 		if (!try_to_free_pages(zone, GFP_KSWAPD, 0)) {
@@ -750,6 +780,9 @@ int kswapd(void *unused)
 static int __init kswapd_init(void)
 {
 	printk("Starting kswapd\n");
+#ifndef CONFIG_EMBEDDED_OOM_KILLER
+	printk("Disabling the Out Of Memory Killer\n");
+#endif
 	swap_setup();
 	kernel_thread(kswapd, NULL, CLONE_FS | CLONE_FILES | CLONE_SIGNAL);
 	return 0;

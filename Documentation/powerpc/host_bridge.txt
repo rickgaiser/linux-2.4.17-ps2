@@ -1,0 +1,52 @@
+	Documentation for arch/ppc/kernel/*_common.c
+	============================================
+
+Author: Mark A. Greer (mgreer@mvista.com)
+Date:   3.5.2001
+
+Last Change: 3.5.2001
+
+To make board ports easier and less error prone, some common host bridge files
+have been developed.  So far, these files have been developed:
+	- pplus_common.c
+	- mpc10x_common.c
+
+pplus_common.c
+--------------
+
+The routines in this file are for the Motorola MCG PowerPlus architecture
+boards which have a Falcon/Raven or Hawk memory controller/host bridge.
+
+- 'pplus_init()' completely reconfigures the PCI and MPIC physical mappings
+  and maps the MPIC registers into virtual memory.
+- 'pplus_mpic_init()' simply maps the MPIC registers into virtual memory from
+  where they are currently mapped in the physical address space.
+- 'pplus_get_mem_size()' reads the memory controller's registers to determine
+  the amount of main memory in the system.  This assumes that the firmware has
+  correctly initialized the memory controller.
+
+For examples, look at arch/ppc/kernel/mcpn765_*.c and prpmc750_setup.c.
+
+
+mpc10x_common.c
+--------------
+
+The routines in this file are board using the Motorola SPS MPC106/107/8240
+host bridges (the MPC8240 is a 603e processor core with a MPC170-like host
+bridge).
+
+- 'mpc10x_bridge_init()' allows you to switch memory maps (e.g, switch from MAP
+  A to MAP B), automatically initializes many variables with the proper values,
+  moves the EUMB to a reasonable place in physical memory (assuming that
+  'ioremap_base' is correct), and maps the EPIC registers into virtual memory.
+- 'mpc10x_get_mem_size(()' reads the memory controller's registers to determine
+  the amount of main memory in the system.  This assumes that the firmware has
+  correctly initialized the memory controller.
+
+For examples, look at arch/ppc/kernel/sandpoint_*.c and menf1_*.c.
+
+
+Before calling any of the routines listed above, you must ensure that there is
+a 1-to-1 BAT mapping for the areas of physical memory that will be accessed.
+
+If you encounter problems, please email me at mgreer@mvista.com

@@ -44,9 +44,6 @@ static int stork_pcmcia_init(struct pcmcia_init *init)
         /* Enable CF bus: */
         storkSetLatchA(STORK_PCMCIA_PULL_UPS_POWER_ON);
 
-        /* All those are inputs */
-	GPDR &= ~(GPIO_STORK_PCMCIA_A_CARD_DETECT | GPIO_STORK_PCMCIA_B_CARD_DETECT | GPIO_STORK_PCMCIA_A_RDY| GPIO_STORK_PCMCIA_B_RDY);
-
 	/* Set transition detect */
 	set_GPIO_IRQ_edge( GPIO_STORK_PCMCIA_A_CARD_DETECT | GPIO_STORK_PCMCIA_B_CARD_DETECT, GPIO_BOTH_EDGES );
         set_GPIO_IRQ_edge( GPIO_STORK_PCMCIA_A_RDY| GPIO_STORK_PCMCIA_B_RDY, GPIO_FALLING_EDGE );

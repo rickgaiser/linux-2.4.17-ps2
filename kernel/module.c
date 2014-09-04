@@ -10,6 +10,7 @@
 #include <linux/slab.h>
 #include <linux/kmod.h>
 #include <linux/seq_file.h>
+#include <linux/security.h>
 
 /*
  * Originally by Anonymous (as far as I know...)
@@ -311,6 +312,11 @@ sys_create_module(const char *name_user, size_t size)
 		error = -EEXIST;
 		goto err1;
 	}
+
+	/* check that we have permission to do this */
+	if ((error = security_module_create(name, size)))
+		goto err1;
+
 	if ((mod = (struct module *)module_map(size)) == NULL) {
 		error = -ENOMEM;
 		goto err1;
@@ -498,6 +504,11 @@ sys_init_module(const char *name_user, struct module *mod_user)
 		goto err3;
 	}
 
+	/* check that we have permission to do this */
+	if ((error = security_module_initialize(mod)))
+		goto err3;
+	error = -EINVAL;
+
 	if (module_arch_init(mod))
 		goto err3;
 
@@ -618,6 +629,11 @@ sys_delete_module(const char *name_user)
 
 		spin_lock(&unload_lock);
 		if (!__MOD_IN_USE(mod)) {
+			/* check that we have permission to do this */
+			if ((error = security_module_delete(mod))) {
+				spin_unlock(&unload_lock);
+				goto out;
+			}
 			mod->flags |= MOD_DELETED;
 			spin_unlock(&unload_lock);
 			free_module(mod, 0);
@@ -646,6 +662,13 @@ restart:
 				spin_unlock(&unload_lock);
 				mod->flags &= ~MOD_VISITED;
 			} else {
+				/* check that we have permission to do this
+				 * an error is not propagated if perm fails
+				 */
+				if (security_module_delete(mod)) {
+					spin_unlock(&unload_lock);
+					continue;
+				}
 				mod->flags |= MOD_DELETED;
 				spin_unlock(&unload_lock);
 				free_module(mod, 1);

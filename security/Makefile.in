@@ -1,0 +1,15 @@
+# security.o has exportable symbols.
+expsyms(security.o)
+
+# Always build the framework
+select(security.o)
+select(dummy.o)
+
+# the pre-existing capabilities code.
+select(CONFIG_M CONFIG_SECURITY_CAPABILITIES capability.o)
+
+# OpenWall
+select(CONFIG_M CONFIG_SECURITY_OWLSM owlsm.o)
+
+# Linux Intrusion Detection System 
+link_subdirs(lids)

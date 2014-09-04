@@ -1,3 +1,4 @@
+
 /*
  * tkparse.c
  *
@@ -77,7 +78,7 @@ static void syntax_error( const char * msg )
  * Find index of a specyfic variable in the symbol table.
  * Create a new entry if it does not exist yet.
  */
-#define VARTABLE_SIZE 2048
+#define VARTABLE_SIZE 4096
 struct variable vartable[VARTABLE_SIZE];
 int max_varnum = 0;
 
@@ -89,7 +90,7 @@ int get_varnum( char * name )
 	if ( strcmp( vartable[i].name, name ) == 0 )
 	    return i;
     if (max_varnum > VARTABLE_SIZE-1)
-	syntax_error( "Too many variables defined." );
+       syntax_error( "Too many variables defined." ); 
     vartable[++max_varnum].name = malloc( strlen( name )+1 );
     strcpy( vartable[max_varnum].name, name );
     return max_varnum;

@@ -25,6 +25,7 @@
 #include <linux/proc_fs.h>
 #include <net/sock.h>
 #include <net/route.h>
+#include <linux/security.h>
 
 #include <linux/netfilter_ipv4/ip_queue.h>
 #include <linux/netfilter_ipv4/ip_tables.h>
@@ -516,7 +517,7 @@ static __inline__ void netlink_receive_user_skb(struct sk_buff *skb)
 		RCV_SKB_FAIL(-EINVAL);
 	if (type <= IPQM_BASE)
 		return;
-	if(!cap_raised(NETLINK_CB(skb).eff_cap, CAP_NET_ADMIN))
+	if (security_netlink_recv(skb))
 		RCV_SKB_FAIL(-EPERM);
 	if (nlq->peer.pid && !nlq->peer.died
 	    && (nlq->peer.pid != nlh->nlmsg_pid)) {

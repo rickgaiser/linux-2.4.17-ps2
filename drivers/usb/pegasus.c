@@ -48,6 +48,7 @@
 #include <linux/etherdevice.h>
 #include <linux/usb.h>
 #include <linux/module.h>
+#include <asm/unaligned.h>
 #include "pegasus.h"
 
 /*
@@ -540,9 +541,9 @@ static void read_bulk_callback( struct urb *urb )
 	if ( !count )
 		goto goon;
 
-	rx_status = le32_to_cpu(*(int *)(pegasus->rx_buff + count - 4));
-	if ( rx_status & 0x000e0000 ) {
-		dbg("%s: RX packet error %x", net->name, rx_status & 0xe0000);
+	rx_status = le32_to_cpu(get_unaligned((int *)(pegasus->rx_buff + count - 4)));
+	if ( rx_status & 0x001e0000 ) {
+		dbg("%s: RX packet error %x", net->name, rx_status & 0x1e0000);
 		pegasus->stats.rx_errors++;
 		if ( rx_status & 0x060000 )
 			pegasus->stats.rx_length_errors++;

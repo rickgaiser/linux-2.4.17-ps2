@@ -5,11 +5,15 @@
 
 /*
  * The default limit for the nr of threads is now in
- * /proc/sys/kernel/max-threads.
+ * /proc/sys/kernel/threads-max.
  */
  
 #ifdef CONFIG_SMP
+#ifdef __mips__
+#define NR_CPUS _MIPS_SZLONG
+#else
 #define NR_CPUS	32		/* Max processors that can be running in SMP */
+#endif
 #else
 #define NR_CPUS 1
 #endif

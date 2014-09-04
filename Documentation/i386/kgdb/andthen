@@ -1,0 +1,100 @@
+
+define	set_andthen
+	set var $thp=0
+	set var $thp=(struct kgdb_and_then_struct *)&kgdb_data[0]
+	set var $at_size = (sizeof kgdb_data)/(sizeof *$thp)
+	set var $at_oc=kgdb_and_then_count
+	set var $at_cc=$at_oc
+end
+
+define andthen_next
+	set var $at_cc=$arg0
+end
+
+define andthen
+	andthen_set_edge
+	if ($at_cc >= $at_oc)
+		printf "Outside window.  Window size is %d\n",($at_oc-$at_low)
+	else
+		printf "%d: ",$at_cc
+		output *($thp+($at_cc++ % $at_size ))
+		printf "\n"
+	end
+end
+define andthen_set_edge
+	set var $at_oc=kgdb_and_then_count
+	set var $at_low = $at_oc - $at_size
+	if ($at_low < 0 )
+		set var $at_low = 0
+	end
+	if (( $at_cc > $at_oc) || ($at_cc < $at_low))
+		printf "Count outside of window, setting count to "
+		if ($at_cc >= $at_oc)
+			set var $at_cc = $at_oc
+		else
+			set var $at_cc = $at_low
+		end
+		printf "%d\n",$at_cc
+	end
+end
+
+define beforethat
+	andthen_set_edge
+	if ($at_cc <= $at_low)
+		printf "Outside window.  Window size is %d\n",($at_oc-$at_low)
+	else
+		printf "%d: ",$at_cc-1
+		output *($thp+(--$at_cc % $at_size ))
+		printf "\n"
+	end
+end
+
+document andthen_next
+	andthen_next <count>
+	.	sets the number of the event to display next. If this event
+	.	is not in the event pool, either andthen or beforethat will
+	.	correct it to the nearest event pool edge.  The event pool
+	.	ends at the last event recorded and begins <number of events>
+	.	prior to that.  If beforethat is used next, it will display
+	.	event <count> -1.
+.
+	andthen commands are: set_andthen, andthen_next, andthen and beforethat
+end
+	
+			
+document andthen
+	andthen 
+.	displays the next event in the list.  <set_andthen> sets up to display
+.	the oldest saved event first. 
+.	<count> (optional) count of the event to display.
+.	note the number of events saved is specified at configure time.
+.	if events are saved between calls to andthen the index will change
+.	but the displayed event will be the next one (unless the event buffer
+.	is overrun).
+.
+.	andthen commands are: set_andthen, andthen_next, andthen and beforethat
+end
+
+document set_andthen
+	set_andthen
+.	sets up to use the <andthen> and <beforethat> commands. 
+.		if you have defined your own struct, use the above and
+.		then enter the following:
+.		p $thp=(struct kgdb_and_then_structX *)&kgdb_data[0]
+.		where <kgdb_and_then_structX> is the name of your structure.
+.
+.	andthen commands are: set_andthen, andthen_next, andthen and beforethat
+end
+
+document beforethat
+	beforethat 
+.	displays the next prior event in the list. <set_andthen> sets up to
+.	display the last occuring event first.
+.
+.	note the number of events saved is specified at configure time.
+.	if events are saved between calls to beforethat the index will change
+.	but the displayed event will be the next one (unless the event buffer
+.	is overrun).
+.
+.	andthen commands are: set_andthen, andthen_next, andthen and beforethat
+end

@@ -1,3 +1,5 @@
+/* $USAGI: ipip.h,v 1.3 2001/07/16 11:13:28 yoshfuji Exp $ */
+
 #ifndef __NET_IPIP_H
 #define __NET_IPIP_H 1
 
@@ -46,6 +48,9 @@ struct ip_tunnel
 
 
 extern int	ipip_init(void);
+#ifdef CONFIG_NET_IPIP_IPV6
+struct ip_tunnel *ipip_tunnel_lookup(u32 remote, u32 local);
+#endif
 extern int	ipgre_init(void);
 extern int	sit_init(void);
 extern void	sit_cleanup(void);

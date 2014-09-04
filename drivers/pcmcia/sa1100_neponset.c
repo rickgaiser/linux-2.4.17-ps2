@@ -13,6 +13,12 @@
 #include <asm/arch/pcmcia.h>
 #include <asm/arch/assabet.h>
 
+/*
+ * I'd really like to move the INTPOL stuff to arch/arm/mach-sa1100/sa1111.c
+ */
+#define SA1111_IRQMASK_LO(x)	(1 << (x - IRQ_SA1111_START))
+#define SA1111_IRQMASK_HI(x)	(1 << (x - IRQ_SA1111_START - 32))
+
 static int neponset_pcmcia_init(struct pcmcia_init *init){
   int return_val=0;
 
@@ -23,14 +29,14 @@ static int neponset_pcmcia_init(struct pcmcia_init *init){
   PA_DWR &= ~(GPIO_GPIO0 | GPIO_GPIO1 | GPIO_GPIO2 | GPIO_GPIO3);
   NCR_0 &= ~(NCR_A0VPP | NCR_A1VPP);
 
-  INTPOL1 |= 
-    (1 << (S0_READY_NINT - SA1111_IRQ(32))) |
-    (1 << (S1_READY_NINT - SA1111_IRQ(32))) |
-    (1 << (S0_CD_VALID - SA1111_IRQ(32))) |
-    (1 << (S1_CD_VALID - SA1111_IRQ(32))) |
-    (1 << (S0_BVD1_STSCHG - SA1111_IRQ(32))) |
-    (1 << (S1_BVD1_STSCHG - SA1111_IRQ(32)));
+  INTPOL1 |= SA1111_IRQMASK_HI(S0_READY_NINT) |
+	     SA1111_IRQMASK_HI(S1_READY_NINT) |
+	     SA1111_IRQMASK_HI(S0_CD_VALID) |
+	     SA1111_IRQMASK_HI(S1_CD_VALID) |
+	     SA1111_IRQMASK_HI(S0_BVD1_STSCHG) |
+	     SA1111_IRQMASK_HI(S1_BVD1_STSCHG);
 
+#warning what if a request_irq fails?
   return_val+=request_irq(S0_CD_VALID, init->handler, SA_INTERRUPT,
 			  "Neponset PCMCIA (0) CD", NULL);
   return_val+=request_irq(S1_CD_VALID, init->handler, SA_INTERRUPT,
@@ -50,11 +56,10 @@ static int neponset_pcmcia_shutdown(void){
   free_irq(S0_BVD1_STSCHG, NULL);
   free_irq(S1_BVD1_STSCHG, NULL);
 
-  INTPOL1 &= 
-    ~((1 << (S0_CD_VALID - SA1111_IRQ(32))) |
-      (1 << (S1_CD_VALID - SA1111_IRQ(32))) |
-      (1 << (S0_BVD1_STSCHG - SA1111_IRQ(32))) |
-      (1 << (S1_BVD1_STSCHG - SA1111_IRQ(32))));
+  INTPOL1 &= ~(SA1111_IRQMASK_HI(S0_CD_VALID) |
+	       SA1111_IRQMASK_HI(S1_CD_VALID) |
+	       SA1111_IRQMASK_HI(S0_BVD1_STSCHG) |
+	       SA1111_IRQMASK_HI(S1_BVD1_STSCHG));
 
   return 0;
 }

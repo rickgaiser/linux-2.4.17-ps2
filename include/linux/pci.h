@@ -378,6 +378,9 @@ struct pci_dev {
 
 	char		name[80];	/* device name */
 	char		slot_name[8];	/* slot name */
+#if	defined(__arm__)
+	u32		saved_state[16]; /* for saving the config space before suspend */
+#endif
 	int		active;		/* ISAPnP: device is active */
 	int		ro;		/* ISAPnP: read only */
 	unsigned short	regs;		/* ISAPnP: supported registers */
@@ -460,9 +463,17 @@ struct pci_ops {
 
 struct pbus_set_ranges_data
 {
+#if	!defined(__arm__)
 	int found_vga;
+#else
+	int found_vga:1;
+	int prefetch_valid:1;
+#endif
 	unsigned long io_start, io_end;
 	unsigned long mem_start, mem_end;
+#if	defined(__arm__)
+	unsigned long prefetch_start, prefetch_end;
+#endif
 };
 
 struct pci_device_id {
@@ -570,6 +581,10 @@ int pci_save_state(struct pci_dev *dev, u32 *buffer);
 int pci_restore_state(struct pci_dev *dev, u32 *buffer);
 int pci_set_power_state(struct pci_dev *dev, int state);
 int pci_enable_wake(struct pci_dev *dev, u32 state, int enable);
+#if	defined(__arm__)
+int pci_generic_suspend_save(struct pci_dev *pdev, u32 state);
+int pci_generic_resume_restore(struct pci_dev *pdev);
+#endif
 
 /* Helper functions for low-level code (drivers/pci/setup-[bus,res].c) */
 
@@ -595,6 +610,8 @@ void pci_announce_device_to_drivers(struct pci_dev *);
 unsigned int pci_do_scan_bus(struct pci_bus *bus);
 struct pci_bus * pci_add_new_bus(struct pci_bus *parent, struct pci_dev *dev, int busnr);
 
+#endif /* CONFIG_PCI */
+
 /* kmem_cache style wrapper around pci_alloc_consistent() */
 struct pci_pool *pci_pool_create (const char *name, struct pci_dev *dev,
 		size_t size, size_t align, size_t allocation, int flags);
@@ -602,8 +619,6 @@ void pci_pool_destroy (struct pci_pool *pool);
 
 void *pci_pool_alloc (struct pci_pool *pool, int flags, dma_addr_t *handle);
 void pci_pool_free (struct pci_pool *pool, void *vaddr, dma_addr_t addr);
-
-#endif /* CONFIG_PCI */
 
 /* Include architecture-dependent settings and functions */
 

@@ -27,10 +27,11 @@
 #include <asm/time.h>
 #include <asm/hardirq.h>
 #include <asm/div64.h>
+#include <asm/debug.h>
 
 /* This is for machines which generate the exact clock. */
 #define USECS_PER_JIFFY (1000000/HZ)
-#define USECS_PER_JIFFY_FRAC ((1000000ULL << 32) / HZ & 0xffffffff)
+#define USECS_PER_JIFFY_FRAC ((u32)((1000000ULL << 32) / HZ))
 
 /*
  * forward reference
@@ -255,8 +256,7 @@ unsigned long calibrate_div64_gettimeoffset(void)
 	        :"r" (timerhi),
 	         "m" (timerlo),
 	         "r" (tmp),
-	         "r" (USECS_PER_JIFFY)
-	        :"$1");
+	         "r" (USECS_PER_JIFFY));
 	        cached_quotient = quotient;
 	}
 
@@ -475,10 +475,10 @@ static int month_days[12] = {
 
 void to_tm(unsigned long tim, struct rtc_time * tm)
 {
-	long hms, day;
+	long hms, day, gday;
 	int i;
 
-	day = tim / SECDAY;
+	gday = day = tim / SECDAY;
 	hms = tim % SECDAY;
 
 	/* Hours, minutes, seconds are easy */
@@ -497,7 +497,7 @@ void to_tm(unsigned long tim, struct rtc_time * tm)
 	for (i = 1; day >= days_in_month(i); i++)
 	day -= days_in_month(i);
 	days_in_month(FEBRUARY) = 28;
-	tm->tm_mon = i;
+	tm->tm_mon = i-1;	/* tm_mon starts from 0 to 11 */
 
 	/* Days are what is left over (+1) from all that. */
 	tm->tm_mday = day + 1;
@@ -505,5 +505,50 @@ void to_tm(unsigned long tim, struct rtc_time * tm)
 	/*
 	 * Determine the day of week
 	 */
-	tm->tm_wday = (day + 3) % 7;
+	tm->tm_wday = (gday + 4) % 7; /* 1970/1/1 was Thursday */
+}
+
+/*
+ * calibrate the mips_counter_frequency
+ */
+#define		CALIBRATION_CYCLES		20
+void calibrate_mips_counter(void)
+{
+	volatile unsigned long ticks;
+	volatile unsigned long countStart, countEnd;
+
+	if (mips_counter_frequency) {
+		/* it is already specified by the board */
+		printk("MIPS CPU counter frequency is fixed at %d Hz\n",
+			mips_counter_frequency);
+		return;
+	}
+
+	if ((mips_cpu.options & MIPS_CPU_COUNTER) == 0) {
+		/* we don't have cpu counter */
+		return;
+	}
+
+	printk("calibrating MIPS CPU counter frequency ...");
+
+	/* wait for the change of jiffies */
+	ticks = jiffies;
+	while (ticks == jiffies);
+
+	/* read cpu counter */
+	countStart = read_32bit_cp0_register(CP0_COUNT);
+
+	/* loop for another n jiffies */
+	ticks += CALIBRATION_CYCLES + 1;
+	while (ticks != jiffies);
+
+	/* read counter again */
+	countEnd = read_32bit_cp0_register(CP0_COUNT);
+
+	/* assuming HZ is 10's multiple */
+	db_assert((HZ % CALIBRATION_CYCLES) == 0);
+
+	mips_counter_frequency = 
+		(countEnd - countStart) * (HZ / CALIBRATION_CYCLES);
+	printk(" %d Hz\n", mips_counter_frequency);
 }

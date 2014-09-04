@@ -38,7 +38,8 @@
 		nop
 1:
 		move	k0,sp
-		subu	sp,k1,GDB_FR_SIZE
+		subu	sp,k1,GDB_FR_SIZE*2	/* first block is for callstack 
+						   setup as in "call func()" */
 		sw	k0,GDB_FR_REG29(sp)
 		sw	v0,GDB_FR_REG2(sp)
 
@@ -145,9 +146,9 @@
  * FPU control registers
  */
 
-		mfc1	v0,CP1_STATUS
+		cfc1	v0,CP1_STATUS
 		sw	v0,GDB_FR_FSR(sp)
-		mfc1	v0,CP1_REVISION
+		cfc1	v0,CP1_REVISION
 		sw	v0,GDB_FR_FIR(sp)
 
 /*
@@ -304,7 +305,8 @@
 		lw	v1,GDB_FR_REG3(sp)
 		lw	v0,GDB_FR_REG2(sp)
 		lw	$1,GDB_FR_REG1(sp)
-#ifdef CONFIG_CPU_R3000
+		TAS_EXCEPTION_EPILOGUE
+#if defined(CONFIG_CPU_R3000) || defined(CONFIG_CPU_TX39XX) || defined(CONFIG_CPU_LX45XXX)
 		lw	k0, GDB_FR_EPC(sp)
 		lw	sp, GDB_FR_REG29(sp)		/* Deallocate stack */
 		jr	k0
@@ -325,6 +327,9 @@ LEAF(kgdb_read_byte)
 		.set noreorder
 		.set nomacro
 4:		lb	t0, (a0)
+#if defined(CONFIG_CPU_R3000) || defined(CONFIG_CPU_TX39XX) || defined(CONFIG_CPU_LX45XXX)
+		nop
+#endif
 		.set pop
 		sb	t0, (a1)
 		li	v0, 0

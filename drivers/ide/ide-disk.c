@@ -475,6 +475,7 @@ static int idedisk_open (struct inode *inode, struct file *filp, ide_drive_t *dr
 		if (drive->doorlocking && ide_wait_cmd(drive, WIN_DOORLOCK, 0, 0, 0, NULL))
 			drive->doorlocking = 0;
 	}
+	drive->part_usage[MINOR(inode->i_rdev) & PARTN_MASK]++;
 	return 0;
 }
 
@@ -485,6 +486,7 @@ static void idedisk_release (struct inode *inode, struct file *filp, ide_drive_t
 		if (drive->doorlocking && ide_wait_cmd(drive, WIN_DOORUNLOCK, 0, 0, 0, NULL))
 			drive->doorlocking = 0;
 	}
+	drive->part_usage[MINOR(inode->i_rdev) & PARTN_MASK]--;
 	MOD_DEC_USE_COUNT;
 }
 

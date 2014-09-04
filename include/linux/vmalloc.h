@@ -26,6 +26,7 @@ extern void vmfree_area_pages(unsigned long address, unsigned long size);
 extern int vmalloc_area_pages(unsigned long address, unsigned long size,
                               int gfp_mask, pgprot_t prot);
 
+void * remap_page_array(struct page **, int, int);
 /*
  *	Allocate any pages
  */

@@ -5,12 +5,15 @@ mainmenu_option next_comment
 comment 'File systems'
 
 bool 'Quota support' CONFIG_QUOTA
+bool 'POSIX Access Control List support' CONFIG_FS_POSIX_ACL
 tristate 'Kernel automounter support' CONFIG_AUTOFS_FS
 tristate 'Kernel automounter version 4 support (also supports v3)' CONFIG_AUTOFS4_FS
 
 dep_tristate 'Reiserfs support' CONFIG_REISERFS_FS $CONFIG_EXPERIMENTAL
 dep_mbool '  Have reiserfs do extra internal checking' CONFIG_REISERFS_CHECK $CONFIG_REISERFS_FS $CONFIG_EXPERIMENTAL
 dep_mbool '  Stats in /proc/fs/reiserfs' CONFIG_REISERFS_PROC_INFO $CONFIG_REISERFS_FS $CONFIG_EXPERIMENTAL
+dep_mbool '  Enable ReiserFS immutable hack' CONFIG_REISERFS_IMMUTABLE_HACK $CONFIG_REISERFS_FS $CONFIG_EXPERIMENTAL
+dep_bool '   Enable ReiserFS immutable hack debugging' CONFIG_REISERFS_IMMUTABLE_HACK_DEBUG CONFIG_REISERFS_IMMUTABLE_HACK 
 
 dep_tristate 'ADFS file system support' CONFIG_ADFS_FS $CONFIG_EXPERIMENTAL
 dep_mbool '  ADFS write support (DANGEROUS)' CONFIG_ADFS_FS_RW $CONFIG_ADFS_FS $CONFIG_EXPERIMENTAL
@@ -42,6 +45,7 @@ fi
 dep_tristate 'Journalling Flash File System v2 (JFFS2) support' CONFIG_JFFS2_FS $CONFIG_MTD
 if [ "$CONFIG_JFFS2_FS" = "y" -o "$CONFIG_JFFS2_FS" = "m" ] ; then
    int 'JFFS2 debugging verbosity (0 = quiet, 2 = noisy)' CONFIG_JFFS2_FS_DEBUG 0
+   bool 'JFFS2 support for NAND chips' CONFIG_JFFS2_FS_NAND
 fi
 tristate 'Compressed ROM file system support' CONFIG_CRAMFS
 bool 'Virtual memory file system support (former shm fs)' CONFIG_TMPFS
@@ -85,6 +89,24 @@ dep_mbool '  UDF write support (DANGEROUS)' CONFIG_UDF_RW $CONFIG_UDF_FS $CONFIG
 
 tristate 'UFS file system support (read only)' CONFIG_UFS_FS
 dep_mbool '  UFS file system write support (DANGEROUS)' CONFIG_UFS_FS_WRITE $CONFIG_UFS_FS $CONFIG_EXPERIMENTAL
+
+tristate 'SGI XFS filesystem support' CONFIG_XFS_FS
+dep_mbool    '  Enable XFS Realtime support' CONFIG_XFS_RT $CONFIG_XFS_FS
+dep_mbool    '  Enable XFS Quota' CONFIG_XFS_QUOTA $CONFIG_XFS_FS
+if [ "$CONFIG_XFS_FS" != "n" ]; then
+    # Current DMAPI code has calls from XFS to DMAPI. This requires that
+    # DMAPI be built in if selected and XFS is built in. Valid combinations
+    #   XFS=n, DMAPI=n
+    #   XFS=y, DMAPI=[yn]
+    #   XFS=m, DMAPI=[mn]
+    dep_tristate '  Enable XFS DMAPI' CONFIG_XFS_DMAPI $CONFIG_XFS_FS
+    if [ "$CONFIG_XFS_DMAPI" != "n" ]; then
+       if [ "$CONFIG_XFS_FS" = "y" ]; then
+          define_tristate CONFIG_XFS_DMAPI y
+       fi
+       define_bool CONFIG_HAVE_XFS_DMAPI y
+    fi
+fi
 
 if [ "$CONFIG_NET" = "y" ]; then
 

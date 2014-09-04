@@ -56,7 +56,7 @@ LEAF(resume)
 	nor	a3, $0, a3
 	and	a2, a3
 	or	a2, t1
-	mtc0	a2, CP0_STATUS
+	MTC0_asm(a2, CP0_STATUS)
 	.set	noreorder
 	jr	ra
 	 move	v0, a0
@@ -74,7 +74,7 @@ LEAF(lazy_fpu_switch)
 	mfc0	t0, CP0_STATUS			# enable cp1
 	li	t3, 0x20000000
 	or	t0, t3
-	mtc0	t0, CP0_STATUS
+	MTC0_asm(t0, CP0_STATUS)
 
 	.set	noreorder
 	beqz	a0, 2f				# Save floating point state
@@ -120,7 +120,7 @@ LEAF(init_fpu)
 	mfc0	t0, CP0_STATUS
 	li	t1, 0x20000000
 	or	t0, t1
-	mtc0	t0, CP0_STATUS
+	MTC0_asm(t0, CP0_STATUS)
 
 	li	t1, FPU_DEFAULT
 	ctc1	t1, fcr31

@@ -29,6 +29,9 @@
 #include <linux/completion.h>
 #include <linux/prefetch.h>
 #include <linux/compiler.h>
+#include <linux/security.h>
+
+#include <linux/trace.h>
 
 #include <asm/uaccess.h>
 #include <asm/mmu_context.h>
@@ -92,6 +95,95 @@ struct task_struct * init_tasks[NR_CPUS] = {&init_task, };
 spinlock_t runqueue_lock __cacheline_aligned = SPIN_LOCK_UNLOCKED;  /* inner */
 rwlock_t tasklist_lock __cacheline_aligned = RW_LOCK_UNLOCKED;	/* outer */
 
+/* Stop all tasks running with the given mm, except for the calling task.  */
+
+int stop_all_threads(struct mm_struct *mm)
+{
+	struct task_struct * p;
+	int                all_stopped = 0;
+
+	read_lock(&tasklist_lock);
+	for_each_task(p) {
+		if (p->mm == mm && p != current && p->state != TASK_STOPPED) {
+			send_sig (SIGSTOP, p, 1);
+		}
+	}
+
+	/* Now wait for every task to cease running.  */
+	/* Beware: this loop might not terminate in the face of a malicious
+	   program sending SIGCONT to threads.  But it is still killable, and
+	   only moderately disruptive (because of the tasklist_lock).  */
+	for (;;) {
+		all_stopped = 1;
+		for_each_task(p) {
+			if (p->mm == mm && p != current && p->state != TASK_STOPPED) {
+				all_stopped = 0;
+				break;
+			}
+		}
+		if (all_stopped)
+			break;
+		read_unlock(&tasklist_lock);
+		schedule_timeout(1);
+		read_lock(&tasklist_lock);
+	}
+
+#ifdef CONFIG_SMP
+	/* Make sure they've all gotten off their CPUs.  */
+	for (;;) {
+		all_stopped = 1;
+		for_each_task (p) {
+			if (p->mm == mm && p != current) {
+				task_lock(p);
+				if (p->state != TASK_STOPPED) {
+					task_unlock(p);
+					read_unlock(&tasklist_lock);
+					return -1;
+				}
+				if (!task_has_cpu(p)) {
+					task_unlock(p);
+					continue;
+				}
+				task_unlock(p);
+				all_stopped = 0;
+				break;
+			}
+		}
+		if (all_stopped)
+			break;
+		read_unlock(&tasklist_lock);
+		do {
+			if (p->state != TASK_STOPPED)
+				return -1;
+			barrier();
+			cpu_relax();
+		} while (task_has_cpu(p));
+		read_lock(&tasklist_lock);
+	}
+#endif
+	read_unlock(&tasklist_lock);
+	return 0;
+}
+
+/* Restart all the tasks with the given mm.  Hope none of them were in state
+   TASK_STOPPED for some other reason...  */
+void start_all_threads(struct mm_struct *mm)
+{
+	struct task_struct * p;
+
+	read_lock(&tasklist_lock);
+	for_each_task(p) {
+		if (p->mm == mm && p != current) {
+			send_sig (SIGCONT, p, 1);
+		}
+	}
+	read_unlock(&tasklist_lock);
+}
+
+#ifdef CONFIG_RTSCHED
+extern struct task_struct *child_reaper;
+#include "rtsched.h"
+#else
 static LIST_HEAD(runqueue_head);
 
 /*
@@ -353,6 +445,8 @@ static inline int try_to_wake_up(struct task_struct * p, int synchronous)
 	unsigned long flags;
 	int success = 0;
 
+	TRACE_PROCESS(TRACE_EV_PROCESS_WAKEUP, p->pid, p->state);
+
 	/*
 	 * We want the common case fall through straight, thus the goto.
 	 */
@@ -373,11 +467,13 @@ inline int wake_up_process(struct task_struct * p)
 {
 	return try_to_wake_up(p, 0);
 }
+#endif /* ifdef CONFIG_RTSCHED */
 
 static void process_timeout(unsigned long __data)
 {
 	struct task_struct * p = (struct task_struct *) __data;
 
+	TRACE_TIMER(TRACE_EV_TIMER_EXPIRED, 0, 0, 0);
 	wake_up_process(p);
 }
 
@@ -442,6 +538,8 @@ signed long schedule_timeout(signed long timeout)
 		}
 	}
 
+	TRACE_TIMER(TRACE_EV_TIMER_SETTIMEOUT, 0, timeout, 0);
+
 	expire = timeout + jiffies;
 
 	init_timer(&timer);
@@ -458,7 +556,7 @@ signed long schedule_timeout(signed long timeout)
  out:
 	return timeout < 0 ? 0 : timeout;
 }
-
+#ifndef CONFIG_RTSCHED
 /*
  * schedule_tail() is getting called from the fork return path. This
  * cleans up all remaining scheduler things, without impacting the
@@ -491,7 +589,7 @@ static inline void __schedule_tail(struct task_struct *prev)
 	task_lock(prev);
 	task_release_cpu(prev);
 	mb();
-	if (prev->state == TASK_RUNNING)
+	if (task_on_runqueue(prev))
 		goto needs_resched;
 
 out_unlock:
@@ -521,7 +619,7 @@ needs_resched:
 			goto out_unlock;
 
 		spin_lock_irqsave(&runqueue_lock, flags);
-		if ((prev->state == TASK_RUNNING) && !task_has_cpu(prev))
+		if (task_on_runqueue(prev) && !task_has_cpu(prev))
 			reschedule_idle(prev);
 		spin_unlock_irqrestore(&runqueue_lock, flags);
 		goto out_unlock;
@@ -534,6 +632,7 @@ needs_resched:
 asmlinkage void schedule_tail(struct task_struct *prev)
 {
 	__schedule_tail(prev);
+	preempt_enable();
 }
 
 /*
@@ -555,6 +654,8 @@ asmlinkage void schedule(void)
 
 
 	spin_lock_prefetch(&runqueue_lock);
+
+	preempt_disable(); 
 
 	if (!current->active_mm) BUG();
 need_resched_back:
@@ -583,6 +684,9 @@ need_resched_back:
 			move_last_runqueue(prev);
 		}
 
+#ifdef CONFIG_PREEMPT
+	if (preempt_is_disabled() & PREEMPT_ACTIVE) goto treat_like_run;
+#endif
 	switch (prev->state) {
 		case TASK_INTERRUPTIBLE:
 			if (signal_pending(prev)) {
@@ -593,6 +697,9 @@ need_resched_back:
 			del_from_runqueue(prev);
 		case TASK_RUNNING:;
 	}
+#ifdef CONFIG_PREEMPT
+	treat_like_run:
+#endif
 	prev->need_resched = 0;
 
 	/*
@@ -690,6 +797,8 @@ repeat_schedule:
 		}
 	}
 
+	TRACE_SCHEDCHANGE(prev->pid, next->pid, prev->state);
+
 	/*
 	 * This just switches the register state and the
 	 * stack.
@@ -701,8 +810,10 @@ same_process:
 	reacquire_kernel_lock(current);
 	if (current->need_resched)
 		goto need_resched_back;
+	preempt_enable_no_resched();
 	return;
 }
+#endif /* ifndef CONFIG_RTSCHED */
 
 /*
  * The core wakeup function.  Non-exclusive wakeups (nr_exclusive == 0) just wake everything
@@ -863,6 +974,7 @@ void scheduling_functions_end_here(void) { }
 asmlinkage long sys_nice(int increment)
 {
 	long newprio;
+	int retval;
 
 	/*
 	 *	Setpriority might change our priority at the same moment.
@@ -883,6 +995,10 @@ asmlinkage long sys_nice(int increment)
 		newprio = -20;
 	if (newprio > 19)
 		newprio = 19;
+
+	if ((retval = security_task_setnice(current, newprio)))
+		return retval;
+	
 	current->nice = newprio;
 	return 0;
 }
@@ -897,7 +1013,7 @@ static inline struct task_struct *find_process_by_pid(pid_t pid)
 		tsk = find_task_by_pid(pid);
 	return tsk;
 }
-
+#ifndef CONFIG_RTSCHED
 static int setscheduler(pid_t pid, int policy, 
 			struct sched_param *param)
 {
@@ -952,6 +1068,9 @@ static int setscheduler(pid_t pid, int policy,
 	    !capable(CAP_SYS_NICE))
 		goto out_unlock;
 
+	if ((retval = security_task_setscheduler(p, policy, &lp)))
+		goto out_unlock;
+
 	retval = 0;
 	p->policy = policy;
 	p->rt_priority = lp.sched_priority;
@@ -967,6 +1086,7 @@ out_unlock:
 out_nounlock:
 	return retval;
 }
+#endif /* ifndef CONFIG_RTSCHED */
 
 asmlinkage long sys_sched_setscheduler(pid_t pid, int policy, 
 				      struct sched_param *param)
@@ -978,6 +1098,21 @@ asmlinkage long sys_sched_setparam(pid_t pid, struct sched_param *param)
 {
 	return setscheduler(pid, -1, param);
 }
+
+#ifdef CONFIG_PREEMPT
+asmlinkage void preempt_schedule(void)
+{
+	while (current->need_resched) {
+		preempt_lock_start(2);
+		current->preempt_count += PREEMPT_ACTIVE + 1;
+		barrier();
+		schedule();
+		current->preempt_count -= PREEMPT_ACTIVE + 1;
+		barrier();
+		preempt_lock_stop();
+	}
+}
+#endif /* CONFIG_PREEMPT */
 
 asmlinkage long sys_sched_getscheduler(pid_t pid)
 {
@@ -991,8 +1126,10 @@ asmlinkage long sys_sched_getscheduler(pid_t pid)
 	retval = -ESRCH;
 	read_lock(&tasklist_lock);
 	p = find_process_by_pid(pid);
-	if (p)
-		retval = p->policy & ~SCHED_YIELD;
+	if (p) {
+		if (!(retval = security_task_getscheduler(p)))
+			retval = p->policy & ~SCHED_YIELD;
+	}
 	read_unlock(&tasklist_lock);
 
 out_nounlock:
@@ -1014,6 +1151,10 @@ asmlinkage long sys_sched_getparam(pid_t pid, struct sched_param *param)
 	retval = -ESRCH;
 	if (!p)
 		goto out_unlock;
+
+	if ((retval = security_task_getscheduler(p)))
+		goto out_unlock;
+
 	lp.sched_priority = p->rt_priority;
 	read_unlock(&tasklist_lock);
 
@@ -1030,6 +1171,7 @@ out_unlock:
 	return retval;
 }
 
+#ifndef CONFIG_RTSCHED
 asmlinkage long sys_sched_yield(void)
 {
 	/*
@@ -1070,7 +1212,7 @@ asmlinkage long sys_sched_yield(void)
 	}
 	return 0;
 }
-
+#endif /* ifndef CONFIG_RTSCHED */
 asmlinkage long sys_sched_get_priority_max(int policy)
 {
 	int ret = -EINVAL;
@@ -1078,7 +1220,7 @@ asmlinkage long sys_sched_get_priority_max(int policy)
 	switch (policy) {
 	case SCHED_FIFO:
 	case SCHED_RR:
-		ret = 99;
+		ret = MAX_PRI;
 		break;
 	case SCHED_OTHER:
 		ret = 0;
@@ -1114,13 +1256,19 @@ asmlinkage long sys_sched_rr_get_interval(pid_t pid, struct timespec *interval)
 	retval = -ESRCH;
 	read_lock(&tasklist_lock);
 	p = find_process_by_pid(pid);
-	if (p)
-		jiffies_to_timespec(p->policy & SCHED_FIFO ? 0 : NICE_TO_TICKS(p->nice),
-				    &t);
+	if (!p)
+		goto out_unlock;
+
+	if ((retval = security_task_getscheduler(p)))
+		goto out_unlock;
+
+	jiffies_to_timespec(p->policy & SCHED_FIFO ? 0 : NICE_TO_TICKS(p->nice), &t);
 	read_unlock(&tasklist_lock);
-	if (p)
-		retval = copy_to_user(interval, &t, sizeof(t)) ? -EFAULT : 0;
+	retval = copy_to_user(interval, &t, sizeof(t)) ? -EFAULT : 0;
 out_nounlock:
+	return retval;
+out_unlock:
+	read_unlock(&tasklist_lock);
 	return retval;
 }
 
@@ -1297,6 +1445,7 @@ void daemonize(void)
 	atomic_inc(&current->files->count);
 }
 
+#ifndef CONFIG_RTSCHED
 extern unsigned long wait_init_idle;
 
 void __init init_idle(void)
@@ -1312,6 +1461,12 @@ void __init init_idle(void)
 	sched_data->curr = current;
 	sched_data->last_schedule = get_cycles();
 	clear_bit(current->processor, &wait_init_idle);
+
+#ifdef CONFIG_PREEMPT
+	if (current->processor) {
+		current->preempt_count = 0;
+	}
+#endif
 }
 
 extern void init_timervecs (void);
@@ -1342,3 +1497,4 @@ void __init sched_init(void)
 	atomic_inc(&init_mm.mm_count);
 	enter_lazy_tlb(&init_mm, current, cpu);
 }
+#endif /* ifndef CONFIG_RTSCHED */

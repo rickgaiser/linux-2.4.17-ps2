@@ -1,0 +1,122 @@
+csum_partial.o: csum_partial.S \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/asm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/regdef.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/cpu/r5900.h)
+csum_partial_copy.o: csum_partial_copy.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/net/checksum.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h
+dump_tlb.o: dump_tlb.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bootinfo.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/cachectl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/cpu.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/mipsregs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/page.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/pgtable.h
+floppy-no.o: floppy-no.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/floppy.h
+floppy-std.o: floppy-std.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/delay.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/linkage.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bootinfo.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/cachectl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/dma.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/floppy.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/keyboard.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/irq.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/mc146818rtc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/pgtable.h
+ide-no.o: ide-no.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hdreg.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ide.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/hdreg.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ptrace.h
+ide-std.o: ide-std.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ide.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hdreg.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/ptrace.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/hdreg.h
+kbd-no.o: kbd-no.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/keyboard.h
+kbd-std.o: kbd-std.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ioport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pc_keyb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/keyboard.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mips/ite8172.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/mips/snsc/mpu210.h)
+memcpy.o: memcpy.S \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/asm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/offset.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/regdef.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/cpu/r5900.h)
+memset.o: memset.S \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/asm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/offset.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/regdef.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/cpu/r5900.h)
+r3k_dump_tlb.o: r3k_dump_tlb.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bootinfo.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/cachectl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/cpu.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/mipsregs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/page.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/pgtable.h
+r5900_memcpy.o: r5900_memcpy.S \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/asm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/offset.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/regdef.h
+rtc-no.o: rtc-no.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mc146818rtc.h
+rtc-std.o: rtc-std.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/mc146818rtc.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/io.h
+strlen_user.o: strlen_user.S \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/asm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/offset.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/regdef.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/sgidefs.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/cpu/r5900.h)
+strncpy_user.o: strncpy_user.S \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/asm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/offset.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/regdef.h
+strnlen_user.o: strnlen_user.S \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/asm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/offset.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/regdef.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/sgidefs.h
+tinycon.o: tinycon.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/tty.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/bootinfo.h
+watch.o: watch.S \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/asm.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/mipsregs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/regdef.h

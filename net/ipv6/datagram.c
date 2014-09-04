@@ -1,3 +1,5 @@
+/* $USAGI: datagram.c,v 1.9 2001/10/25 05:17:28 yoshfuji Exp $ */
+
 /*
  *	common UDP/RAW code
  *	Linux INET6 implementation 
@@ -78,7 +80,7 @@ void ipv6_local_error(struct sock *sk, int err, struct flowi *fl, u32 info)
 
 	iph = (struct ipv6hdr*)skb_put(skb, sizeof(struct ipv6hdr));
 	skb->nh.ipv6h = iph;
-	memcpy(&iph->daddr, fl->fl6_dst, 16);
+	ipv6_addr_copy(&iph->daddr, fl->fl6_dst);
 
 	serr = SKB_EXT_ERR(skb);
 	serr->ee.ee_errno = err;
@@ -138,7 +140,8 @@ int ipv6_recv_error(struct sock *sk, struct msghdr *msg, int len)
 		sin->sin6_port = serr->port; 
 		sin->sin6_scope_id = 0;
 		if (serr->ee.ee_origin == SO_EE_ORIGIN_ICMP6) {
-			memcpy(&sin->sin6_addr, skb->nh.raw + serr->addr_offset, 16);
+			ipv6_addr_copy(&sin->sin6_addr, 
+				       (struct in6_addr *)(skb->nh.raw + serr->addr_offset));
 			if (sk->net_pinfo.af_inet6.sndflow)
 				sin->sin6_flowinfo = *(u32*)(skb->nh.raw + serr->addr_offset - 24) & IPV6_FLOWINFO_MASK;
 			if (ipv6_addr_type(&sin->sin6_addr) & IPV6_ADDR_LINKLOCAL) {
@@ -158,8 +161,9 @@ int ipv6_recv_error(struct sock *sk, struct msghdr *msg, int len)
 	if (serr->ee.ee_origin != SO_EE_ORIGIN_LOCAL) {
 		sin->sin6_family = AF_INET6;
 		sin->sin6_flowinfo = 0;
+		sin->sin6_scope_id = 0;
 		if (serr->ee.ee_origin == SO_EE_ORIGIN_ICMP6) {
-			memcpy(&sin->sin6_addr, &skb->nh.ipv6h->saddr, 16);
+			ipv6_addr_copy(&sin->sin6_addr, &skb->nh.ipv6h->saddr);
 			if (sk->net_pinfo.af_inet6.rxopt.all)
 				datagram_recv_ctl(sk, msg, skb);
 			if (ipv6_addr_type(&sin->sin6_addr) & IPV6_ADDR_LINKLOCAL) {
@@ -243,12 +247,19 @@ int datagram_recv_ctl(struct sock *sk, struct msghdr *msg, struct sk_buff *skb)
 		u8 *ptr = skb->nh.raw + opt->dst1;
 		put_cmsg(msg, SOL_IPV6, IPV6_DSTOPTS, (ptr[1]+1)<<3, ptr);
 	}
+
+	if (np->recvopt.tclass) {
+		struct ipv6hdr *ipv6h = skb->nh.ipv6h;
+		int tclass = ((ipv6h->tclass1 << 4) | (ipv6h->tclass2_flow[0] >> 4)) & 0xff;
+		put_cmsg(msg, SOL_IPV6, IPV6_TCLASS, sizeof(tclass), &tclass);
+	}
+
 	return 0;
 }
 
 int datagram_send_ctl(struct msghdr *msg, struct flowi *fl,
 		      struct ipv6_txoptions *opt,
-		      int *hlimit)
+		      int *hlimit, int *tclass)
 {
 	struct in6_pktinfo *src_info;
 	struct cmsghdr *cmsg;
@@ -424,6 +435,14 @@ int datagram_send_ctl(struct msghdr *msg, struct flowi *fl,
 			}
 
 			*hlimit = *(int *)CMSG_DATA(cmsg);
+			break;
+
+		case IPV6_TCLASS:
+			if (cmsg->cmsg_len != CMSG_LEN(sizeof(int))) {
+				err = -EINVAL;
+				goto exit_f;
+			}
+			*tclass = *(int *)CMSG_DATA(cmsg);
 			break;
 
 		default:

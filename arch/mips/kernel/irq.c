@@ -8,17 +8,22 @@
  * Copyright (C) 1992 Linus Torvalds
  * Copyright (C) 1994 - 2000 Ralf Baechle
  */
+#include <linux/sched.h>
 #include <linux/kernel.h>
 #include <linux/irq.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/kernel_stat.h>
+#include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/mm.h>
 #include <linux/random.h>
-#include <linux/sched.h>
+#include <linux/spinlock.h>
+#include <linux/ptrace.h>
+
 
 #include <asm/system.h>
+#include <asm/debug.h>
 
 /*
  * Controller mappings for all interrupt sources:
@@ -63,7 +68,7 @@ struct hw_interrupt_type no_irq_type = {
 	end_none
 };
 
-volatile unsigned long irq_err_count, spurious_count;
+volatile unsigned long irq_err_count;
 
 /*
  * Generic, controller-independent functions:
@@ -227,6 +232,11 @@ void enable_irq(unsigned int irq)
  * SMP cross-CPU interrupts have their own specific
  * handlers).
  */
+#ifdef CONFIG_PREEMPT_TIMES
+extern void latency_cause(int,int);
+#else
+#define latency_cause(a, b)
+#endif
 asmlinkage unsigned int do_IRQ(int irq, struct pt_regs *regs)
 {
 	/* 
@@ -243,10 +253,22 @@ asmlinkage unsigned int do_IRQ(int irq, struct pt_regs *regs)
 	irq_desc_t *desc = irq_desc + irq;
 	struct irqaction * action;
 	unsigned int status;
+#ifdef CONFIG_ILATENCY
+	{
+		extern void interrupt_overhead_start(void);
+
+		interrupt_overhead_start();
+	}
+#endif /* CONFIG_ILATENCY */    
+
+	preempt_disable();
+
+	preempt_lock_start(-99);
 
 	kstat.irqs[cpu][irq]++;
 	spin_lock(&desc->lock);
 	desc->handler->ack(irq);
+	latency_cause(-99,~irq);
 	/*
 	   REPLAY is when Linux resends an IRQ that was dropped earlier
 	   WAITING is used by probe to mark irqs that are being tested
@@ -285,6 +307,13 @@ asmlinkage unsigned int do_IRQ(int irq, struct pt_regs *regs)
 	 * useful for irq hardware that does not mask cleanly in an
 	 * SMP environment.
 	 */
+#ifdef CONFIG_ILATENCY
+         {
+	        extern void interrupt_overhead_stop(void);
+
+		interrupt_overhead_stop();
+	}
+#endif /* CONFIG_ILATENCY */    
 	for (;;) {
 		spin_unlock(&desc->lock);
 		handle_IRQ_event(irq, regs, action);
@@ -303,8 +332,34 @@ out:
 	desc->handler->end(irq);
 	spin_unlock(&desc->lock);
 
+	preempt_lock_stop();
+
 	if (softirq_pending(cpu))
 		do_softirq();
+
+#if defined(CONFIG_PREEMPT)
+	while (--current->preempt_count == 0) {
+		db_assert(intr_off());
+		db_assert(!in_interrupt());
+
+		if (current->need_resched == 0) {
+			break;
+		}
+
+		current->preempt_count ++;
+		sti();
+		if (user_mode(regs)) {
+			schedule();
+		} else {
+			preempt_schedule();
+		}
+		cli();
+	}
+#endif
+
+#ifdef CONFIG_ILATENCY
+	intr_ret_from_exception();
+#endif
 	return 1;
 }
 
@@ -705,3 +760,8 @@ void __init init_generic_irq(void)
 		irq_desc[i].handler = &no_irq_type;
 	}
 }
+
+EXPORT_SYMBOL(disable_irq_nosync);
+EXPORT_SYMBOL(disable_irq);
+EXPORT_SYMBOL(enable_irq);
+EXPORT_SYMBOL(probe_irq_mask);

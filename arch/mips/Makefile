@@ -22,7 +22,9 @@ tool-prefix	= mips-linux-
 endif
 
 ifdef CONFIG_CROSSCOMPILE
-CROSS_COMPILE  = $(tool-prefix)
+  ifndef CROSS_COMPILE
+    CROSS_COMPILE  = $(tool-prefix)
+  endif
 endif
 
 #
@@ -50,6 +52,12 @@ endif
 ifdef CONFIG_CPU_R3000
 GCCFLAGS	+= -mcpu=r3000 -mips1
 endif
+ifdef CONFIG_CPU_TX39XX
+GCCFLAGS	+= -mcpu=r3000 -mips1
+endif
+ifdef CONFIG_MIPS_LXPB20K
+GCCFLAGS	+= -mips1 
+endif
 ifdef CONFIG_CPU_R6000
 GCCFLAGS	+= -mcpu=r6000 -mips2 -Wa,--trap
 endif
@@ -57,9 +65,12 @@ ifdef CONFIG_CPU_R4300
 GCCFLAGS	+= -mcpu=r4300 -mips2 -Wa,--trap
 endif
 ifdef CONFIG_CPU_VR41XX
-GCCFLAGS	+= -mcpu=r4600 -mips2 -Wa,--trap
+GCCFLAGS	+= -mips2 -Wa,-m4100,--trap
 endif
 ifdef CONFIG_CPU_R4X00
+GCCFLAGS	+= -mcpu=r4600 -mips2 -Wa,--trap
+endif
+ifdef CONFIG_CPU_TX49XX
 GCCFLAGS	+= -mcpu=r4600 -mips2 -Wa,--trap
 endif
 ifdef CONFIG_CPU_MIPS32
@@ -68,11 +79,20 @@ endif
 ifdef CONFIG_CPU_MIPS64
 GCCFLAGS	+= -mcpu=r4600 -mips2 -Wa,--trap
 endif
+ifdef CONFIG_CPU_RC32300
+GCCFLAGS	+= -mcpu=r4600 -mips2 -Wa,--trap
+endif
 ifdef CONFIG_CPU_R5000
 GCCFLAGS	+= -mcpu=r5000 -mips2 -Wa,--trap
 endif
 ifdef CONFIG_CPU_R5432
 GCCFLAGS        += -mcpu=r5000 -mips2 -Wa,--trap
+endif
+ifdef CONFIG_CPU_R5500
+GCCFLAGS        += -mcpu=r5000 -mips2 -Wa,--trap
+endif
+ifdef CONFIG_CPU_R5900
+GCCFLAGS	+= -mcpu=r5900 -mips2
 endif
 ifdef CONFIG_CPU_NEVADA
 # Cannot use -mmad with currently recommended tools
@@ -83,7 +103,21 @@ GCCFLAGS	+= -mcpu=r5000 -mips2 -Wa,--trap
 endif
 ifdef CONFIG_CPU_SB1
 GCCFLAGS	+= -mcpu=sb1 -mips2 -Wa,--trap
+ifdef CONFIG_SB1_PASS_1_WORKAROUNDS
+MODFLAGS       += -msb1-pass1-workarounds
 endif
+endif
+
+# 
+# ramdisk/initrd support
+# You need a compressed ramdisk image, named ramdisk.gz in
+# arch/mips/ramdisk
+#
+ifdef CONFIG_BLK_DEV_INITRD 
+CORE_FILES      += arch/mips/ramdisk/ramdisk.o
+SUBDIRS		+= arch/mips/ramdisk
+endif
+
 
 GCCFLAGS	+= -pipe
 
@@ -92,10 +126,23 @@ AFLAGS		+= $(GCCFLAGS)
 ASFLAGS		+= $(GCCFLAGS)
 
 #
-# We unconditionally build the math emulator
+# math emulator
 #
+ifdef CONFIG_MATH_EMULATION
 CORE_FILES	+=arch/mips/math-emu/fpu_emulator.o
 SUBDIRS		+=arch/mips/math-emu
+endif
+
+#
+# ramdisk/initrd support
+# You need a compressed ramdisk image, named ramdisk.gz in
+# arch/mips/ramdisk
+#
+ifdef CONFIG_EMBEDDED_RAMDISK
+CORE_FILES	+= arch/mips/ramdisk/ramdisk.o
+SUBDIRS		+= arch/mips/ramdisk
+endif
+
 
 #
 # Board-dependent options and extra files
@@ -138,6 +185,12 @@ LIBS          += arch/mips/arc/arclib.a
 LOADADDR      += 0x80080000
 endif
 
+ifdef CONFIG_COBALT_MICRO_SERVER
+SUBDIRS       += arch/mips/cobalt
+CORE_FILES    += arch/mips/cobalt/cobalt.o
+LOADADDR      += 0x80080000
+endif
+
 ifdef CONFIG_SNI_RM200_PCI
 CORE_FILES    += arch/mips/sni/sni.o
 SUBDIRS       += arch/mips/sni arch/mips/arc
@@ -146,9 +199,9 @@ LOADADDR      += 0x80080000
 endif
 
 ifdef CONFIG_SGI_IP22
-CORE_FILES    += arch/mips/sgi/kernel/ip22-kern.o
+CORE_FILES    += arch/mips/sgi-ip22/ip22-kern.o
 LIBS          += arch/mips/arc/arclib.a
-SUBDIRS       += arch/mips/sgi/kernel arch/mips/arc
+SUBDIRS       += arch/mips/sgi-ip22 arch/mips/arc
 #
 # Set LOADADDR to >= 0x88069000 if you want to leave space for symmon,
 # 0x88002000 for production kernels.  Note that the value must be
@@ -180,8 +233,9 @@ endif
 # NEC DDB Vrc-5476
 #
 ifdef CONFIG_DDB5476
-SUBDIRS       += arch/mips/ddb5476
-LIBS          += arch/mips/ddb5476/ddb5476.a
+SUBDIRS       += arch/mips/ddb5xxx/common arch/mips/ddb5xxx/ddb5476
+LIBS          += arch/mips/ddb5xxx/common/ddb5xxx.o \
+		 arch/mips/ddb5xxx/ddb5476/ddb5476.o
 LOADADDR      += 0x80080000
 endif
 
@@ -193,7 +247,36 @@ ifdef CONFIG_DDB5477
 SUBDIRS       += arch/mips/ddb5xxx/common arch/mips/ddb5xxx/ddb5477
 LIBS          += arch/mips/ddb5xxx/common/ddb5xxx.o \
                  arch/mips/ddb5xxx/ddb5477/ddb5477.o
-LOADADDR      += 0x80080000
+LOADADDR      += 0x80100000
+endif
+
+#
+# NEC Osprey (vr4181) board
+#
+ifdef CONFIG_NEC_OSPREY
+SUBDIRS       += arch/mips/vr4181/common arch/mips/vr4181/osprey
+LIBS          += arch/mips/vr4181/common/vr4181.o \
+                 arch/mips/vr4181/osprey/osprey.o
+LOADADDR      += 0x80002000
+endif
+
+#
+# NEC Eagle (vr4122) board
+#
+ifdef CONFIG_NEC_EAGLE
+SUBDIRS       += arch/mips/vr4122/common arch/mips/vr4122/eagle
+LIBS          += arch/mips/vr4122/common/vr4122.o \
+                 arch/mips/vr4122/eagle/eagle.o	 
+LOADADDR      += 0x80004000
+endif
+
+#
+# NEC Korva (vr4120a) board
+#
+ifdef CONFIG_NEC_KORVA
+SUBDIRS       += arch/mips/korva
+LIBS          += arch/mips/korva/korva.a
+LOADADDR      += 0x80002000
 endif
 
 #
@@ -225,6 +308,12 @@ SUBDIRS       += arch/mips/gt64120/common arch/mips/gt64120/momenco_ocelot
 LOADADDR      += 0x80100000
 endif
 
+ifdef CONFIG_MIPS_LXPB20K
+CORE_FILES    += arch/mips/lx/lx4189.o
+SUBDIRS       += arch/mips/lx
+LOADADDR      += 0x80100000
+endif # CONFIG_MIPS_LXPB20K
+
 #
 # Philips Nino
 #
@@ -253,13 +342,135 @@ LOADADDR      += 0x80100000
 endif
 
 #
-# Au1000 eval board
+# Sony NSC MPU-210 board
+#
+ifdef CONFIG_MIPS_SNSC_MPU210
+LIBS          += arch/mips/ite-boards/snsc_mpu210/snsc_mpu210.o arch/mips/ite-boards/generic/it8172.o
+SUBDIRS       += arch/mips/ite-boards/generic arch/mips/ite-boards/snsc_mpu210
+LOADADDR      += 0x80100000
+endif
+
+#
+# Au1000 eval boards
 #
 ifdef CONFIG_MIPS_PB1000
-LIBS          += arch/mips/au1000/pb1000/pb1000.o arch/mips/au1000/common/au1000.o
+LIBS          += arch/mips/au1000/pb1000/pb1000.o \
+                 arch/mips/au1000/common/au1000.o
 SUBDIRS       += arch/mips/au1000/pb1000 arch/mips/au1000/common
 LOADADDR      += 0x80100000
 endif
+
+ifdef CONFIG_MIPS_PB1500
+LIBS          += arch/mips/au1000/pb1500/pb1500.o \
+                 arch/mips/au1000/common/au1000.o
+SUBDIRS       += arch/mips/au1000/pb1500 arch/mips/au1000/common
+LOADADDR      += 0x80100000
+endif
+
+#
+# Sony NSC MPU-200 board
+#
+ifdef CONFIG_SNSC_MPU200
+LIBS          += arch/mips/au1000/snsc_mpu200/snsc_mpu200.o \
+		 arch/mips/au1000/common/au1000.o
+SUBDIRS       += arch/mips/au1000/snsc_mpu200 arch/mips/au1000/common
+LOADADDR      += 0x80100000
+endif
+
+#
+# IDT 79S334 evaluation board.
+#
+ifdef CONFIG_IDT_79S334
+LIBS          += arch/mips/rc32300/79S334/idt-79S334.o \
+                 arch/mips/rc32300/common/rc32300.o
+SUBDIRS       += arch/mips/rc32300/79S334 arch/mips/rc32300/common
+LOADADDR      += 0x80200000
+endif    
+
+#
+# IDT 79EB355 evaluation board.
+#
+ifdef CONFIG_IDT_79EB355
+LIBS          += arch/mips/rc32300/79EB355/idt-79EB355.o
+                 arch/mips/rc32300/common/rc32300.o
+SUBDIRS       += arch/mips/rc32300/79EB355 arch/mips/rc32300/common
+LOADADDR      += 0x80200000
+endif
+
+#
+# Sibyte SB1250 SOC
+#
+ifdef CONFIG_SIBYTE_SB1250
+# This is a LIB so that it links at the end, and initcalls are later
+# the sequence; but it is built as an object so that modules don't get
+# removed (as happens, even if they have __initcall/module_init)
+LIBS          += arch/mips/sibyte/sb1250/sb1250.o
+SUBDIRS       += arch/mips/sibyte/sb1250 
+endif
+
+#
+# Sibyte SWARM board
+#
+ifdef CONFIG_SB1_CACHE_ERROR
+LIBS          += arch/mips/sibyte/sb1/sb1kern.a
+SUBDIRS       += arch/mips/sibyte/sb1
+endif
+
+ifdef CONFIG_SIBYTE_SWARM
+LIBS          += arch/mips/sibyte/swarm/sbswarm.a
+SUBDIRS       += arch/mips/sibyte/swarm
+LOADADDR      += 0x80100000
+endif
+
+#
+# HP LaserJet
+#
+ifdef CONFIG_HP_LASERJET
+SUBDIRS       += arch/mips/hp-lj
+LIBS          += arch/mips/hp-lj/hp-lj.o
+LOADADDR      := 0x80030000
+endif
+
+#
+# Sony PlayStation 2
+#
+ifdef CONFIG_PS2
+CORE_FILES    += arch/mips/ps2/ps2.o
+SUBDIRS       += arch/mips/ps2
+LOADADDR      += 0x80010000
+endif
+
+# 
+# Vadem Clio-1000 (aka Sharp Mobilon Tripad PV-6000)
+#
+ifdef CONFIG_VADEM_CLIO_1000
+SUBDIRS       += arch/mips/vr41xx/common \
+		 arch/mips/vr4111/common \
+		 arch/mips/vr4111/clio-1000
+LIBS          += arch/mips/vr41xx/common/vr41xx.o \
+		 arch/mips/vr4111/common/vr4111.o \
+                 arch/mips/vr4111/clio-1000/clio-1000.o
+LOADADDR      += 0x80001000
+endif
+
+# 
+# NEC MobilePro 780 PDA (vr4121)
+#
+ifdef CONFIG_NEC_MOBILEPRO_780
+SUBDIRS       += arch/mips/vr41xx/common \
+		 arch/mips/vr4111/common \
+		 arch/mips/vr4111/mobilepro
+LIBS          += arch/mips/vr41xx/common/vr41xx.o \
+		 arch/mips/vr4111/common/vr4111.o \
+                 arch/mips/vr4111/mobilepro/mobilepro.o
+LOADADDR      += 0x80001000
+endif
+
+ifdef CONFIG_TOSHIBA_JMR3927
+CORE_FILES    += arch/mips/jmr3927/rbhma3100/jmr3927.o arch/mips/jmr3927/common/tx3927.o
+SUBDIRS       += arch/mips/jmr3927/rbhma3100  arch/mips/jmr3927/common
+LOADADDR      += 0x80050000 
+endif                                                        
 
 #
 # Choosing incompatible machines durings configuration will result in
@@ -295,15 +506,26 @@ gboot: vmlinux
 endif
 
 MAKEBOOT = $(MAKE) -C arch/$(ARCH)/boot
+MAKEZBOOT = $(MAKE) -C arch/$(ARCH)/zboot
+
+BOOT_TARGETS = zImage
+$(BOOT_TARGETS):  vmlinux
+	@$(MAKEZBOOT) $@
 
 vmlinux.ecoff: vmlinux
 	@$(MAKEBOOT) $@
+
+vmlinux.chksum: vmlinux
+	cksum vmlinux | awk '{printf "0x%08x\n", $$1}' | xxd -r > chksum.tmp
+	cat vmlinux chksum.tmp > $@
+	rm chksum.tmp
 
 archclean:
 	@$(MAKEBOOT) clean
 	rm -f arch/$(ARCH)/ld.script
 	$(MAKE) -C arch/$(ARCH)/tools clean
 	$(MAKE) -C arch/mips/baget clean
+	$(MAKE) -C arch/mips/zboot clean
 
 archmrproper:
 	@$(MAKEBOOT) mrproper

@@ -44,6 +44,9 @@
 #include <linux/iobuf.h>
 #include <linux/highmem.h>
 #include <linux/pagemap.h>
+#include <linux/security.h>
+
+#include <linux/trace.h>
 
 #include <asm/pgalloc.h>
 #include <asm/uaccess.h>
@@ -177,7 +180,7 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
 	pgd_t * src_pgd, * dst_pgd;
 	unsigned long address = vma->vm_start;
 	unsigned long end = vma->vm_end;
-	unsigned long cow = (vma->vm_flags & (VM_SHARED | VM_WRITE)) == VM_WRITE;
+	unsigned long cow = (vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
 
 	src_pgd = pgd_offset(src, address)-1;
 	dst_pgd = pgd_offset(dst, address)-1;
@@ -245,7 +248,7 @@ skip_copy_pte_range:		address = (address + PMD_SIZE) & PMD_MASK;
 					goto cont_copy_pte_range;
 
 				/* If it's a COW mapping, write protect it both in the parent and the child */
-				if (cow) {
+				if (cow && pte_write(pte)) {
 					ptep_set_wrprotect(src_pte);
 					pte = *src_pte;
 				}
@@ -355,7 +358,8 @@ static inline int zap_pmd_range(mmu_gather_t *tlb, pgd_t * dir, unsigned long ad
 /*
  * remove user pages in a given range.
  */
-void zap_page_range(struct mm_struct *mm, unsigned long address, unsigned long size)
+void do_zap_page_range(struct mm_struct *mm, unsigned long address,
+			      unsigned long size)
 {
 	mmu_gather_t *tlb;
 	pgd_t * dir;
@@ -442,24 +446,35 @@ static inline struct page * get_page_map(struct page *page)
 	return page;
 }
 
+/*
+ * Please read Documentation/cachetlb.txt before using this function,
+ * accessing foreign memory spaces can cause cache coherency problems.
+ *
+ * Accessing a VM_IO area is even more dangerous, therefore the function
+ * fails if pages is != NULL and a VM_IO area is found.
+ */
 int get_user_pages(struct task_struct *tsk, struct mm_struct *mm, unsigned long start,
 		int len, int write, int force, struct page **pages, struct vm_area_struct **vmas)
 {
-	int i = 0;
+	int i;
+	unsigned int flags;
+
+	/* 
+	 * Require read or write permissions.
+	 * If 'force' is set, we only require the "MAY" flags.
+	 */
+	flags = write ? (VM_WRITE | VM_MAYWRITE) : (VM_READ | VM_MAYREAD);
+	flags &= force ? (VM_MAYREAD | VM_MAYWRITE) : (VM_READ | VM_WRITE);
+	i = 0;
 
 	do {
 		struct vm_area_struct *	vma;
 
 		vma = find_extend_vma(mm, start);
 
-		if ( !vma ||
-		    (!force &&
-		     	((write && (!(vma->vm_flags & VM_WRITE))) ||
-		    	 (!write && (!(vma->vm_flags & VM_READ))) ) )) {
-			if (i) return i;
-			return -EFAULT;
-		}
-
+		if ( !vma || !(flags & vma->vm_flags) )
+			return i ? : -EFAULT;
+ 
 		spin_lock(&mm->page_table_lock);
 		do {
 			struct page *map;
@@ -483,6 +498,8 @@ int get_user_pages(struct task_struct *tsk, struct mm_struct *mm, unsigned long 
 			}
 			if (pages) {
 				pages[i] = get_page_map(map);
+				if (!pages[i])
+					goto bad_page;
 				/* FIXME: call the correct function,
 				 * depending on the type of the found page
 				 */
@@ -497,7 +514,18 @@ int get_user_pages(struct task_struct *tsk, struct mm_struct *mm, unsigned long 
 		} while(len && start < vma->vm_end);
 		spin_unlock(&mm->page_table_lock);
 	} while(len);
+out:
 	return i;
+bad_page:
+	/*
+	 * We found an invalid page in the VMA.  Release all we have
+	 * so far and fail.
+	 */
+	spin_unlock(&mm->page_table_lock);
+	while (i--)
+		page_cache_release(pages[i]);
+	i = -EFAULT;
+	goto out;
 }
 
 /*
@@ -609,6 +637,20 @@ void unmap_kiobuf (struct kiobuf *iobuf)
 	iobuf->locked = 0;
 }
 
+void zap_page_range(struct mm_struct *mm, unsigned long address,
+		    unsigned long size, int actions)
+{
+	while (size) {
+		unsigned long chunk = size;
+		
+		if (actions & ZPR_PARTITION && chunk > ZPR_MAX_BYTES)
+			chunk = ZPR_MAX_BYTES;
+		do_zap_page_range(mm, address, chunk);
+
+		address += chunk;
+		size -= chunk;
+	}
+}
 
 /*
  * Lock down all of the pages of a kiovec for IO.
@@ -718,10 +760,14 @@ int unlock_kiovec(int nr, struct kiobuf *iovec[])
 	return 0;
 }
 
-static inline void zeromap_pte_range(pte_t * pte, unsigned long address,
-                                     unsigned long size, pgprot_t prot)
+static inline void zeromap_pte_range(struct mm_struct *mm, pte_t * pte,
+				     unsigned long address, unsigned long size,
+				     pgprot_t prot)
 {
 	unsigned long end;
+
+	debug_lock_break(1);
+	break_spin_lock(&mm->page_table_lock);
 
 	address &= ~PMD_MASK;
 	end = address + size;
@@ -750,7 +796,7 @@ static inline int zeromap_pmd_range(struct mm_struct *mm, pmd_t * pmd, unsigned 
 		pte_t * pte = pte_alloc(mm, pmd, address);
 		if (!pte)
 			return -ENOMEM;
-		zeromap_pte_range(pte, address, end - address, prot);
+		zeromap_pte_range(mm, pte, address, end - address, prot);
 		address = (address + PMD_SIZE) & PMD_MASK;
 		pmd++;
 	} while (address && (address < end));
@@ -891,7 +937,10 @@ static inline void break_cow(struct vm_area_struct * vma, struct page * new_page
 		pte_t *page_table)
 {
 	flush_page_to_ram(new_page);
+#ifndef CONFIG_SUPERH
+	/* Not needed for VIPT cache (need better API for caches) */
 	flush_cache_page(vma, address);
+#endif
 	establish_pte(vma, address, page_table, pte_mkwrite(pte_mkdirty(mk_pte(new_page, vma->vm_page_prot))));
 }
 
@@ -928,7 +977,10 @@ static int do_wp_page(struct mm_struct *mm, struct vm_area_struct * vma,
 		int reuse = can_share_swap_page(old_page);
 		unlock_page(old_page);
 		if (reuse) {
+#ifndef CONFIG_SUPERH
+			/* Not needed for VIPT cache */
 			flush_cache_page(vma, address);
+#endif
 			establish_pte(vma, address, page_table, pte_mkyoung(pte_mkdirty(pte_mkwrite(pte))));
 			spin_unlock(&mm->page_table_lock);
 			return 1;	/* Minor fault */
@@ -984,7 +1036,7 @@ static void vmtruncate_list(struct vm_area_struct *mpnt, unsigned long pgoff)
 
 		/* mapping wholly truncated? */
 		if (mpnt->vm_pgoff >= pgoff) {
-			zap_page_range(mm, start, len);
+			zap_page_range(mm, start, len, ZPR_NORMAL);
 			continue;
 		}
 
@@ -997,7 +1049,7 @@ static void vmtruncate_list(struct vm_area_struct *mpnt, unsigned long pgoff)
 		/* Ok, partially affected.. */
 		start += diff << PAGE_SHIFT;
 		len = (len - diff) << PAGE_SHIFT;
-		zap_page_range(mm, start, len);
+		zap_page_range(mm, start, len, ZPR_NORMAL);
 	} while ((mpnt = mpnt->vm_next_share) != NULL);
 }
 
@@ -1096,6 +1148,7 @@ static int do_swap_page(struct mm_struct * mm,
 	spin_unlock(&mm->page_table_lock);
 	page = lookup_swap_cache(entry);
 	if (!page) {
+	        TRACE_MEMORY(TRACE_EV_MEMORY_SWAP_IN, address);
 		swapin_readahead(entry);
 		page = read_swap_cache_async(entry);
 		if (!page) {

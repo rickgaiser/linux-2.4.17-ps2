@@ -1,0 +1,16 @@
+#
+# Configuration of the library
+#
+# This doesn't have any choices for the user to make, but is included
+# last in all the architecture config files because some decisions
+# need to be made here about how to include library elements.
+#
+
+if [ "$CONFIG_PPP_DEFLATE" = "y" -o \
+	"$CONFIG_FBCON_WALLPAPER" = "y" ]; then
+   define_tristate CONFIG_ZLIB y
+else
+   if [ "$CONFIG_PPP_DEFLATE" = "m" ]; then
+      define_tristate CONFIG_ZLIB m
+   fi
+fi

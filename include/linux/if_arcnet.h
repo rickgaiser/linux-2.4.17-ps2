@@ -1,3 +1,5 @@
+/* $USAGI: if_arcnet.h,v 1.3 2001/01/06 01:10:15 yoshfuji Exp $ */
+
 /*
  * INET         An implementation of the TCP/IP protocol suite for the LINUX
  *              operating system.  INET is implemented using the  BSD Socket
@@ -24,6 +26,7 @@
  */
 
 /* RFC1201 Protocol ID's */
+#define ARC_P_IPV6		196	/* 0xC4: RFC2497 */
 #define ARC_P_IP		212	/* 0xD4 */
 #define ARC_P_ARP		213	/* 0xD5 */
 #define ARC_P_RARP		214	/* 0xD6 */
@@ -44,6 +47,9 @@
 #define ARC_P_POWERLAN_BEACON2	243	/* 0xF3 */
 #define ARC_P_LANSOFT		251	/* 0xFB - what is this? */
 #define ARC_P_ATALK		0xDD
+
+/* Hardware address length */
+#define ARCNET_ALEN	1
 
 /*
  * The RFC1201-specific components of an arcnet packet header.

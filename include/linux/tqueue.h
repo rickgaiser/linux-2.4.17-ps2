@@ -94,6 +94,22 @@ extern task_queue tq_timer, tq_immediate, tq_disk;
 extern spinlock_t tqueue_lock;
 
 /*
+ * Call all "bottom halfs" on a given list.
+ */
+
+extern void __run_task_queue(task_queue *list);
+
+static inline void run_task_queue(task_queue *list)
+{
+	if (TQ_ACTIVE(*list))
+		__run_task_queue(list);
+}
+
+#endif /* _LINUX_TQUEUE_H */
+
+#if !defined(_LINUX_TQUEUE_H_INLINES) && defined(_TASK_STRUCT_DEFINED)
+#define _LINUX_TQUEUE_H_INLINES
+/*
  * Queue a task on a tq.  Return non-zero if it was successfully
  * added.
  */
@@ -109,17 +125,4 @@ static inline int queue_task(struct tq_struct *bh_pointer, task_queue *bh_list)
 	}
 	return ret;
 }
-
-/*
- * Call all "bottom halfs" on a given list.
- */
-
-extern void __run_task_queue(task_queue *list);
-
-static inline void run_task_queue(task_queue *list)
-{
-	if (TQ_ACTIVE(*list))
-		__run_task_queue(list);
-}
-
-#endif /* _LINUX_TQUEUE_H */
+#endif

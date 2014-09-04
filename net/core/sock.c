@@ -1,3 +1,5 @@
+/* $USAGI: sock.c,v 1.10 2001/12/22 18:37:41 yoshfuji Exp $ */
+
 /*
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
@@ -206,6 +208,11 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
 		case SO_REUSEADDR:
 			sk->reuse = valbool;
 			break;
+#ifdef SO_REUSEPORT
+		case SO_REUSEPORT:
+			sk->reuseport = valbool;
+			break;
+#endif
 		case SO_TYPE:
 		case SO_ERROR:
 			ret = -ENOPROTOOPT;
@@ -457,6 +464,12 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
 		case SO_REUSEADDR:
 			v.val = sk->reuse;
 			break;
+
+#ifdef SO_REUSEPORT
+		case SO_REUSEPORT:
+			v.val = sk->reuseport;
+			break;
+#endif
 
 		case SO_KEEPALIVE:
 			v.val = sk->keepopen;

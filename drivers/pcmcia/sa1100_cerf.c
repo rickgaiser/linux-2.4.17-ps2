@@ -16,9 +16,6 @@
 static int cerf_pcmcia_init(struct pcmcia_init *init){
   int irq, res;
 
-  GPDR &= ~(GPIO_CF_CD | GPIO_CF_BVD2 | GPIO_CF_BVD1 | GPIO_CF_IRQ);
-  GPDR |= (GPIO_CF_RESET);
-
   set_GPIO_IRQ_edge( GPIO_CF_CD|GPIO_CF_BVD2|GPIO_CF_BVD1, GPIO_BOTH_EDGES );
   set_GPIO_IRQ_edge( GPIO_CF_IRQ, GPIO_FALLING_EDGE );
 
@@ -35,7 +32,7 @@ static int cerf_pcmcia_init(struct pcmcia_init *init){
   return 2;
 
 irq_err:
-  printk( KERN_ERR "%s: Request for IRQ %lu failed\n", __FUNCTION__, irq );
+  printk(KERN_ERR "%s: Request for IRQ %u failed\n", __FUNCTION__, irq);
   return -1;
 }
 
@@ -119,8 +116,7 @@ static int cerf_pcmcia_configure_socket(const struct pcmcia_configure
   case 50:
   case 33:
 #ifdef CONFIG_SA1100_CERF_CPLD
-     GPDR |= GPIO_PWR_SHUTDOWN;
-     GPCR |= GPIO_PWR_SHUTDOWN;
+     GPCR = GPIO_PWR_SHUTDOWN;
 #endif
      break;
 
@@ -134,15 +130,13 @@ static int cerf_pcmcia_configure_socket(const struct pcmcia_configure
   if(configure->reset)
   {
 #ifdef CONFIG_SA1100_CERF_CPLD
-    GPDR |= GPIO_CF_RESET;
-    GPSR |= GPIO_CF_RESET;
+    GPSR = GPIO_CF_RESET;
 #endif
   }
   else
   {
 #ifdef CONFIG_SA1100_CERF_CPLD
-    GPDR |= GPIO_CF_RESET;
-    GPCR |= GPIO_CF_RESET;
+    GPCR = GPIO_CF_RESET;
 #endif
   }
 

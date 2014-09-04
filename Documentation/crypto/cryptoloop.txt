@@ -1,0 +1,103 @@
+cryptoloop - a generic cryptographic loop device filter
+=======================================================
+
+In order to make use of this filter, you'll have to patch your loop
+driver in order to fix the IV calculation, which broke in the 2.4.x
+kernels.
+(loop patches may be found at
+<http://www.kernel.org/pub/linux/kernel/crypto/> or
+<http://www.kernel.org/pub/linux/kernel/people/hvr/>)
+
+Quickstart
+~~~~~~~~~~
+
+(if you have old encrypted volumes, please read the section about
+conversion below)
+
+you need a kernel compiled with 
+ *) loop device driver
+ *) cryptographic support
+ *) generic crypto loop filter
+ *) one or more ciphers you want to use for encryption
+either as module or statically (if you build them as module, don't
+forget to insmod them!)
+
+you also need a util-linux patched package (see
+<http://www.kernel.org/pub/linux/kernel/people/hvr/> for some recent
+patches)
+
+read on at
+<http://encryptionhowto.sourceforge.net/>
+
+Some words about IV calculation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are some problems with the IV calculation up to recent 2.4.x
+linux kernels. It's been calculated more or less by 
+
+IV = rel_sector / (blocksize >> 9) + (lo_offset / blocksize)
+
+The first problem which arises, is that data transfers are not always
+guaranteed to have a size of an integral multiple of the blocksize;
+This is a problem, because of CBC mode's property of needing the
+complete ciphertext block, i.e. you can't cipher or decipher only the
+2nd half of a block if you don't know the first half of it!
+
+Another problem which may be experienced is, when the soft blocksize
+changes, i.e. due to different medias, as CDROM block devices and
+alike, or when the filesystem layer sets the blocksize to some other
+size.
+
+But there's hope, as all transfer sizes are usually (except for the
+last block on file backed loop devices sometimes...) an integral
+multiple of 512 byte units (which is linux' atomic sector size);
+
+So the solution is to stick to a portable, uniform 512 byte based IV
+metric! Alas this can't be accomplished without modifying the loop
+driver, as the more granular IV metric can't be calculated from the
+current dynamic IV metric.
+
+This change also renders most previously used encrypted volumes
+unreadable, which need to be converted to the new IV metric.
+
+converting from older IV metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The recommended procedure is as follow, in case you don't want to
+backup your old data in a conventional manner, and then restore it to
+a freshly created encrypted volume with the new IV-metric.
+
+The more valuable your data is, the more important it is, that you try
+the following procedure with some dummy data, before risking your real
+data! Cause if something goes wrong you'll have to keep both pieces...
+
+1) decrypt from within your old kernel version
+
+ 1.1) setup your encrypted loop device, and mount it (this is also
+ important for making sure, the filesystem layer sets the soft block
+ size accordingly!)
+
+ 1.2) unmount the filesystem (but leave the loop device setted up)
+
+ 1.3) dd if=/dev/loop0 of=/dev/<underlying blockdev/file> make sure
+ the process does not get interrupted, otherwise you will have a hard
+ time, reconstructing your data, since you are decrypting the data
+ back to the same area where the ciphertext was.
+
+3) make sure the block/file contains the properly deciphered content!!
+
+2) boot the new kernel featuring the 512byte based IV
+ follow the instructions for 'encrypting unencrypted volumes' below
+
+Encrypting unencrypted volumes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+just as simple as that (please test this before trying on important data)
+
+ 1) set up a new encrypted loop device over the still unencrypted data
+ 2) dd if=/dev/<underlying blockdev/file> of=/dev/loop0
+
+
+
+[...more to follow...]
+--

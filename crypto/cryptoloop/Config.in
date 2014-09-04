@@ -1,0 +1,7 @@
+#
+#
+#
+
+dep_tristate 'generic loop cryptographic filter (EXPERIMENTAL)' CONFIG_CRYPTOLOOP $CONFIG_CRYPTO $CONFIG_BLK_DEV_LOOP
+
+#dep_mbool ' use 512-blocks for IV calculation' CONFIG_CRYPTOLOOP_512IV $CONFIG_CRYPTOLOOP

@@ -14,8 +14,10 @@
 #include <asm/io.h>
 
 #ifndef RTC_PORT
-#if defined(CONFIG_MIPS_ITE8172) || defined(CONFIG_MIPS_IVR)
+#if defined(CONFIG_MIPS_ITE8172) || defined(CONFIG_MIPS_IVR) || defined(CONFIG_MIPS_SNSC_MPU210)
 #define RTC_PORT(x)	(0x14014800 + (x))
+#elif defined(CONFIG_MIPS_PB1500)
+#define RTC_PORT(x)	(0xAC000000 + (x))
 #else
 #define RTC_PORT(x)	(0x70 + (x))
 #endif
@@ -49,9 +51,11 @@ extern struct rtc_ops *rtc_ops;
 
 #ifdef CONFIG_DECSTATION
 #define RTC_IRQ 0
-#elif defined(CONFIG_MIPS_ITE8172) || defined(CONFIG_MIPS_IVR)
+#elif defined(CONFIG_MIPS_ITE8172) || defined(CONFIG_MIPS_IVR) || defined(CONFIG_MIPS_SNSC_MPU210)
 #include <asm/it8172/it8172_int.h>
 #define RTC_IRQ	IT8172_RTC_IRQ
+#elif defined(CONFIG_MIPS_PB1500)
+#undef RTC_IRQ
 #else
 #define RTC_IRQ	8
 #endif

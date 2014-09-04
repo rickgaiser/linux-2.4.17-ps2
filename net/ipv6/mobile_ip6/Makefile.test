@@ -1,0 +1,66 @@
+#
+#      Makefile to build MIPL mobile IPv6 module
+#
+#      $Id: Makefile.test,v 1.2.4.1 2002/05/28 14:42:11 nakamura Exp $
+#
+#      This program is free software; you can redistribute it and/or
+#      modify it under the terms of the GNU General Public License
+#      as published by the Free Software Foundation; either version
+#      2 of the License, or (at your option) any later version.
+#
+
+## DON'T CHANGE!! ##
+CC	= gcc
+LD      = ld
+INCLUDE = /usr/src/linux/include
+CCFLAGS	= -D__KERNEL__ -I$(INCLUDE) -Wall -Wstrict-prototypes -Wno-trigraphs \
+	  -O2 -fomit-frame-pointer -fno-strict-aliasing -fno-common -pipe \
+	  -mpreferred-stack-boundary=2 -DMODULE -DMODVERSIONS \
+	  -include $(INCLUDE)/linux/modversions.h
+LDFLAGS = -m elf_i386 -r
+RELEASE = "`/bin/uname -r`"
+DEPS    = Makefile.dep
+## END ##
+
+EXTRA	=
+MOD     = mobile_ip6.o
+
+OFILES  = mipv6.o tunnel.o ha.o mn.o dstopts.o procrcv.o util.o \
+	  mempool.o hashlist.o mdetect.o bul.o bcache.o debug.o \
+	  sendopts.o stats.o access.o sysctl.o router.o ah.o sadb.o \
+          ah_algo.o dhaad.o halist.o ioctl.o multiaccess_ctl.o auth_subopt.o
+
+CFILES  = mipv6.c tunnel.c ha.c mn.c dstopts.c procrcv.c util.c \
+          mempool.c hashlist.c mdetect.c bul.c bcache.c debug.c \
+          sendopts.c stats.c access.c sysctl.c router.c ah.c sadb.c \
+          ah_algo.c dhaad.c halist.c ioctl.c multiaccess_ctl.c auth_subopt.c
+
+
+$(MOD) : dep $(OFILES)
+	$(LD) $(LDFLAGS) -o $(MOD) $(OFILES)
+
+dep :
+	@if [ ! -e $(DEPS) ] ; then \
+	 echo -n "Resolving dependencies..." ; \
+	 $(CC) -I$(INCLUDE) -D__KERNEL__ -MM $(CFILES) > $(DEPS) ; \
+	 echo "done."; \
+	 fi
+
+$(OFILES) : %.o : %.c
+	$(CC) $(CCFLAGS) $(EXTRA) -c $<
+
+-include $(DEPS)
+
+install :
+	cp -f $(MOD) /lib/modules/$(RELEASE)/kernel/net/ipv6/mobile_ip6
+
+clean :
+	rm -f $(MOD) $(OFILES) $(DEPS) *~
+
+
+
+
+
+
+
+

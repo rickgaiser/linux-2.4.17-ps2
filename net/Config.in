@@ -1,3 +1,4 @@
+# $USAGI: Config.in,v 1.17 2002/02/27 12:12:57 yoshfuji Exp $
 #
 # Network configuration
 #
@@ -15,10 +16,20 @@ if [ "$CONFIG_NETFILTER" = "y" ]; then
    bool '  Network packet filtering debugging' CONFIG_NETFILTER_DEBUG
 fi
 bool 'Socket Filtering'  CONFIG_FILTER
+bool 'Address Resolution / Neighbour Discovery Debugging' CONFIG_NET_NEIGH_DEBUG
+bool 'Moderate SO_REUSEADDR bahavior' CONFIG_NET_MODERATE_REUSE
 tristate 'Unix domain sockets' CONFIG_UNIX
 bool 'TCP/IP networking' CONFIG_INET
 if [ "$CONFIG_INET" = "y" ]; then
    source net/ipv4/Config.in
+   if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+      if [ "$CONFIG_CRYPTO" = "y" ]; then
+         bool '   The IPsec protocol (EXPERIMENTAL)' CONFIG_IPSEC
+         if [ "$CONFIG_IPSEC" != "n" ]; then
+            source net/key/Config.in
+         fi
+      fi
+   fi
    if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
 #   IPv6 as module will cause a CRASH if you try to unload it
       tristate '  The IPv6 protocol (EXPERIMENTAL)' CONFIG_IPV6
@@ -37,6 +48,9 @@ if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
 	 bool '  Classical IP over ATM' CONFIG_ATM_CLIP
 	 if [ "$CONFIG_ATM_CLIP" = "y" ]; then
 	    bool '    Do NOT send ICMP if no neighbour' CONFIG_ATM_CLIP_NO_ICMP
+	 fi
+	 if [ "$CONFIG_IPV6" != "n" ]; then
+	    bool '  IPv6 Enhance for ATM' CONFIG_ATM_IPV6
 	 fi
       fi
       tristate '  LAN Emulation (LANE) support' CONFIG_ATM_LANE

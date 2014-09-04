@@ -21,5 +21,7 @@
 #define MIPS_FIXADE                7	/* control address error fixing  */
 #define MIPS_RDNVRAM              10	/* read NVRAM */
 #define MIPS_ATOMIC_SET		2001	/* atomically set variable       */
+#define MIPS_ATOMIC_COMPARE_AND_SWAP \
+				2002	/* atomically compare and swap   */
 
 #endif /* __ASM_MIPS_SYSMIPS_H */

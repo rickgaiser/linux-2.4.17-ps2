@@ -245,6 +245,10 @@ extern void agp_backend_release(void);
  * 
  */
 
+#ifdef CONFIG_FB_I810
+extern int i810fb_agp_init(void);
+#endif
+
 typedef struct {
 	void       (*free_memory)(agp_memory *);
 	agp_memory *(*allocate_memory)(size_t, u32);

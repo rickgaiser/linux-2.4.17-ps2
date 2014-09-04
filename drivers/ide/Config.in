@@ -68,7 +68,7 @@ if [ "$CONFIG_BLK_DEV_IDE" != "n" ]; then
 	       dep_mbool '    Intel PIIXn chipsets support' CONFIG_BLK_DEV_PIIX $CONFIG_BLK_DEV_IDEDMA_PCI
 	       dep_mbool '      PIIXn Tuning support' CONFIG_PIIX_TUNING $CONFIG_BLK_DEV_PIIX $CONFIG_IDEDMA_PCI_AUTO
 	    fi
-	    if [ "$CONFIG_MIPS_ITE8172" = "y" -o "$CONFIG_MIPS_IVR" = "y" ]; then
+	    if [ "$CONFIG_MIPS_ITE8172" = "y" -o "$CONFIG_MIPS_IVR" = "y" -o "$CONFIG_MIPS_SNSC_MPU210" = "y" ]; then
 	       dep_mbool '    IT8172 IDE support' CONFIG_BLK_DEV_IT8172 $CONFIG_BLK_DEV_IDEDMA_PCI
 	       dep_mbool '      IT8172 IDE Tuning support' CONFIG_IT8172_TUNING $CONFIG_BLK_DEV_IT8172 $CONFIG_IDEDMA_PCI_AUTO
 	    fi
@@ -101,6 +101,11 @@ if [ "$CONFIG_BLK_DEV_IDE" != "n" ]; then
 	   define_bool CONFIG_BLK_DEV_IDEPCI $CONFIG_BLK_DEV_IDEDMA_PMAC
 	 fi
       fi
+
+      if [ "$CONFIG_REDWOOD_4" = "y" ] ; then
+	 bool '  STB3xxx IDE support ' CONFIG_BLK_DEV_REDWOOD_IDE
+      fi
+
       if [ "$CONFIG_ARCH_ACORN" = "y" ]; then
 	 dep_bool '    ICS IDE interface support' CONFIG_BLK_DEV_IDE_ICSIDE $CONFIG_ARCH_ACORN
 	 dep_bool '      ICS DMA support' CONFIG_BLK_DEV_IDEDMA_ICS $CONFIG_BLK_DEV_IDE_ICSIDE
@@ -121,11 +126,22 @@ if [ "$CONFIG_BLK_DEV_IDE" != "n" ]; then
       if [ "$CONFIG_MAC" = "y" ]; then
 	 dep_bool '  Macintosh Quadra/Powerbook IDE interface support' CONFIG_BLK_DEV_MAC_IDE $CONFIG_MAC
       fi
+      if [ "$CONFIG_CPCI405" = "y" ]; then
+	 dep_bool '  CPCI-405 IDE interface support' CONFIG_BLK_DEV_CPCI405_IDE $CONFIG_CPCI405
+      fi
       if [ "$CONFIG_Q40" = "y" ]; then
 	 dep_bool '  Q40/Q60 IDE interface support' CONFIG_BLK_DEV_Q40IDE $CONFIG_Q40
       fi
       if [ "$CONFIG_8xx" = "y" ]; then
          dep_bool '  MPC8xx IDE support' CONFIG_BLK_DEV_MPC8xx_IDE $CONFIG_8xx
+      fi
+      if [ "$CONFIG_PS2" = "y" ]; then
+         dep_bool '  PlayStation 2 IDE support' CONFIG_BLK_DEV_PS2_IDE $CONFIG_PS2
+         dep_bool '    PlayStation 2 IDE DMA support' CONFIG_BLK_DEV_PS2_IDEDMA CONFIG_BLK_DEV_PS2_IDE
+         define_bool CONFIG_BLK_DEV_IDEDMA $CONFIG_BLK_DEV_PS2_IDEDMA
+	 if [ "$CONFIG_T10000" = "y" ]; then
+            dep_bool '    DTL-T10000 AIF IDE support' CONFIG_T10000_AIFHDD $CONFIG_T10000
+	 fi
       fi
 
       if [ "$CONFIG_BLK_DEV_MPC8xx_IDE" = "y" ]; then
@@ -168,7 +184,9 @@ if [ "$CONFIG_BLK_DEV_IDEDMA_PCI" = "y" -o \
    bool '  IGNORE word93 Validation BITS' CONFIG_IDEDMA_IVB
 fi
 
-if [ "$CONFIG_BLK_DEV_TIVO" = "y" ]; then
+if [ "$CONFIG_BLK_DEV_TIVO" = "y"  -o \
+     "$CONFIG_BLK_DEV_REDWOOD_IDE" = "y" -o \
+     "$CONFIG_BLK_DEV_PS2_IDE" = "y" ]; then
   define_bool CONFIG_DMA_NONPCI y
 else
   define_bool CONFIG_DMA_NONPCI n
@@ -193,7 +211,9 @@ if [ "$CONFIG_IDE_CHIPSETS" = "y" -o \
      "$CONFIG_BLK_DEV_SLC90E66" = "y" -o \
      "$CONFIG_BLK_DEV_SL82C105" = "y" -o \
      "$CONFIG_BLK_DEV_VIA82CXXX" = "y" -o \
-     "$CONFIG_BLK_DEV_MPC8xx_IDE" = "y" ]; then
+     "$CONFIG_STB03xxx" = "y" -o \
+     "$CONFIG_BLK_DEV_MPC8xx_IDE" = "y" -o \
+     "$CONFIG_BLK_DEV_PS2_IDE" = "y" ]; then
    define_bool CONFIG_BLK_DEV_IDE_MODES y
 else
    define_bool CONFIG_BLK_DEV_IDE_MODES n

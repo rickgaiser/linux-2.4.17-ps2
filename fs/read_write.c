@@ -11,6 +11,9 @@
 #include <linux/uio.h>
 #include <linux/smp_lock.h>
 #include <linux/dnotify.h>
+#include <linux/security.h>
+
+#include <linux/trace.h>
 
 #include <asm/uaccess.h>
 
@@ -99,6 +102,12 @@ asmlinkage off_t sys_lseek(unsigned int fd, off_t offset, unsigned int origin)
 	file = fget(fd);
 	if (!file)
 		goto bad;
+
+	if ((retval = security_file_llseek(file))) {
+		fput(file);
+		goto bad;
+	}
+
 	retval = -EINVAL;
 	if (origin <= 2) {
 		loff_t res = llseek(file, offset, origin);
@@ -106,6 +115,10 @@ asmlinkage off_t sys_lseek(unsigned int fd, off_t offset, unsigned int origin)
 		if (res != (loff_t)retval)
 			retval = -EOVERFLOW;	/* LFS: should only happen on 32 bit platforms */
 	}
+	TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_SEEK,
+			  fd,
+			  offset,
+			  NULL);
 	fput(file);
 bad:
 	return retval;
@@ -124,12 +137,21 @@ asmlinkage long sys_llseek(unsigned int fd, unsigned long offset_high,
 	file = fget(fd);
 	if (!file)
 		goto bad;
+
+	if ((retval = security_file_llseek(file)))
+		goto out_putf;
+
 	retval = -EINVAL;
 	if (origin > 2)
 		goto out_putf;
 
 	offset = llseek(file, ((loff_t) offset_high << 32) | offset_low,
 			origin);
+
+	TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_SEEK,
+			  fd,
+			  offset,
+			  NULL);
 
 	retval = (int)offset;
 	if (offset >= 0) {
@@ -158,13 +180,19 @@ asmlinkage ssize_t sys_read(unsigned int fd, char * buf, size_t count)
 			if (!ret) {
 				ssize_t (*read)(struct file *, char *, size_t, loff_t *);
 				ret = -EINVAL;
-				if (file->f_op && (read = file->f_op->read) != NULL)
-					ret = read(file, buf, count, &file->f_pos);
+				if (file->f_op && (read = file->f_op->read) != NULL) {
+					if (!(ret = security_file_permission (file, MAY_READ))) {
+				 		TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_READ,
+							  fd,
+							  count,
+							  NULL); 
+						ret = read(file, buf, count, &file->f_pos);
+					}
+				}
 			}
 		}
 		if (ret > 0)
-			inode_dir_notify(file->f_dentry->d_parent->d_inode,
-				DN_ACCESS);
+			dnotify_parent(file->f_dentry, DN_ACCESS);
 		fput(file);
 	}
 	return ret;
@@ -185,13 +213,19 @@ asmlinkage ssize_t sys_write(unsigned int fd, const char * buf, size_t count)
 			if (!ret) {
 				ssize_t (*write)(struct file *, const char *, size_t, loff_t *);
 				ret = -EINVAL;
-				if (file->f_op && (write = file->f_op->write) != NULL)
-					ret = write(file, buf, count, &file->f_pos);
+				if (file->f_op && (write = file->f_op->write) != NULL) {
+					if (!(ret = security_file_permission (file, MAY_WRITE))) {
+				        	TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_WRITE,
+							  fd, 
+							  count,
+							  NULL);
+						ret = write(file, buf, count, &file->f_pos);
+					}
+				}
 			}
 		}
 		if (ret > 0)
-			inode_dir_notify(file->f_dentry->d_parent->d_inode,
-				DN_MODIFY);
+			dnotify_parent(file->f_dentry, DN_MODIFY);
 		fput(file);
 	}
 	return ret;
@@ -295,7 +329,7 @@ out:
 out_nofree:
 	/* VERIFY_WRITE actually means a read, as we write to user space */
 	if ((ret + (type == VERIFY_WRITE)) > 0)
-		inode_dir_notify(file->f_dentry->d_parent->d_inode,
+		dnotify_parent(file->f_dentry,
 			(type == VERIFY_WRITE) ? DN_MODIFY : DN_ACCESS);
 	return ret;
 }
@@ -311,9 +345,15 @@ asmlinkage ssize_t sys_readv(unsigned long fd, const struct iovec * vector,
 	file = fget(fd);
 	if (!file)
 		goto bad_file;
+	TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_READ,
+			  fd,
+			  count,
+			  NULL);
 	if (file->f_op && (file->f_mode & FMODE_READ) &&
-	    (file->f_op->readv || file->f_op->read))
-		ret = do_readv_writev(VERIFY_WRITE, file, vector, count);
+	    (file->f_op->readv || file->f_op->read)) {
+		if (!(ret = security_file_permission (file, MAY_READ)))
+			ret = do_readv_writev(VERIFY_WRITE, file, vector, count);
+	}
 	fput(file);
 
 bad_file:
@@ -331,9 +371,15 @@ asmlinkage ssize_t sys_writev(unsigned long fd, const struct iovec * vector,
 	file = fget(fd);
 	if (!file)
 		goto bad_file;
+	TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_WRITE,
+			  fd,
+			  count,
+			  NULL);
 	if (file->f_op && (file->f_mode & FMODE_WRITE) &&
-	    (file->f_op->writev || file->f_op->write))
-		ret = do_readv_writev(VERIFY_READ, file, vector, count);
+	    (file->f_op->writev || file->f_op->write)) {
+		if (!(ret = security_file_permission (file, MAY_WRITE)))
+			ret = do_readv_writev(VERIFY_READ, file, vector, count);
+	}
 	fput(file);
 
 bad_file:
@@ -366,9 +412,18 @@ asmlinkage ssize_t sys_pread(unsigned int fd, char * buf,
 		goto out;
 	if (pos < 0)
 		goto out;
+
+	if ((ret = security_file_permission (file, MAY_READ)))
+		goto out;
+
+	TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_READ,
+			  fd,
+			  count,
+			  NULL);
+
 	ret = read(file, buf, count, &pos);
 	if (ret > 0)
-		inode_dir_notify(file->f_dentry->d_parent->d_inode, DN_ACCESS);
+		dnotify_parent(file->f_dentry, DN_ACCESS);
 out:
 	fput(file);
 bad_file:
@@ -398,9 +453,17 @@ asmlinkage ssize_t sys_pwrite(unsigned int fd, const char * buf,
 	if (pos < 0)
 		goto out;
 
+	if ((ret = security_file_permission (file, MAY_WRITE)))
+		goto out;
+
+	TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_WRITE,
+			  fd,
+			  count,
+			  NULL);
+
 	ret = write(file, buf, count, &pos);
 	if (ret > 0)
-		inode_dir_notify(file->f_dentry->d_parent->d_inode, DN_MODIFY);
+		dnotify_parent(file->f_dentry, DN_MODIFY);
 out:
 	fput(file);
 bad_file:

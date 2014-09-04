@@ -11,11 +11,10 @@
 
 #include <asm/bootinfo.h>
 #include <asm/cachectl.h>
+#include <asm/cpu.h>
 #include <asm/mipsregs.h>
 #include <asm/page.h>
 #include <asm/pgtable.h>
-
-#define mips_tlb_entries 48
 
 void
 dump_tlb(int first, int last)
@@ -77,7 +76,7 @@ dump_tlb(int first, int last)
 void
 dump_tlb_all(void)
 {
-	dump_tlb(0, mips_tlb_entries - 1);
+	dump_tlb(0, mips_cpu.tlbsize - 1);
 }
 
 void
@@ -125,7 +124,7 @@ dump_tlb_addr(unsigned long addr)
 void
 dump_tlb_nonwired(void)
 {
-	dump_tlb(read_32bit_cp0_register(CP0_WIRED), mips_tlb_entries - 1);
+	dump_tlb(read_32bit_cp0_register(CP0_WIRED), mips_cpu.tlbsize - 1);
 }
 
 void
@@ -198,11 +197,9 @@ dump16(unsigned long *p)
 {
 	int i;
 
-	for(i=0;i<8;i++)
-	{
-		printk("*%08lx == %08lx, ",
-		       (unsigned long)p, (unsigned long)*p++);
-		printk("*%08lx == %08lx\n",
-		       (unsigned long)p, (unsigned long)*p++);
+	for (i=0;i<8;i++) {
+		printk("*%08lx == %08lx, ", (unsigned long)p, p[0]);
+		printk("*%08lx == %08lx\n", (unsigned long)p, p[1]);
+		p += 2;
 	}
 }

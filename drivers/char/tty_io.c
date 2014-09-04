@@ -90,6 +90,10 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/smp_lock.h>
+#include <linux/security.h>
+#if defined(CONFIG_SH_KGDB_CONSOLE)
+#include <asm/kgdb.h>
+#endif
 
 #include <asm/uaccess.h>
 #include <asm/system.h>
@@ -154,12 +158,14 @@ extern void con3215_init(void);
 extern void tty3215_init(void);
 extern void tub3270_con_init(void);
 extern void tub3270_init(void);
-extern void rs285_console_init(void);
-extern void sa1100_rs_console_init(void);
+extern void uart_console_init(void);
 extern void sgi_serial_console_init(void);
 extern void sci_console_init(void);
 extern void tx3912_console_init(void);
 extern void tx3912_rs_init(void);
+extern void txx927_console_init(void);
+extern void sb1250_serial_console_init(void);
+extern void sicc_console_init(void);
 
 #ifndef MIN
 #define MIN(a,b)	((a) < (b) ? (a) : (b))
@@ -722,6 +728,7 @@ static inline ssize_t do_tty_write(
 			ret = -ERESTARTSYS;
 			if (signal_pending(current))
 				break;
+			debug_lock_break(551);
 			if (current->need_resched)
 				schedule();
 		}
@@ -1464,6 +1471,8 @@ static int tty_fasync(int fd, struct file * filp, int on)
 		if (!waitqueue_active(&tty->read_wait))
 			tty->minimum_to_wake = 1;
 		if (filp->f_owner.pid == 0) {
+			if ((retval = security_file_set_fowner(filp)))
+				return retval;
 			filp->f_owner.pid = (-tty->pgrp) ? : current->pid;
 			filp->f_owner.uid = current->uid;
 			filp->f_owner.euid = current->euid;
@@ -2186,12 +2195,24 @@ void __init console_init(void)
 #ifdef CONFIG_VT
 	con_init();
 #endif
+#if defined(CONFIG_SH_KGDB_CONSOLE)
+	kgdb_console_init();
+#endif
 #ifdef CONFIG_AU1000_SERIAL_CONSOLE
 	au1000_serial_console_init();
 #endif
+#ifdef CONFIG_SERIAL_SICC_CONSOLE
+	sicc_console_init();
+#endif
+
 #ifdef CONFIG_SERIAL_CONSOLE
 #if (defined(CONFIG_8xx) || defined(CONFIG_8260))
 	console_8xx_init();
+#elif defined(CONFIG_MAC_SERIAL) && defined(CONFIG_SERIAL)
+	if (_machine == _MACH_Pmac)
+ 		mac_scc_console_init();
+	else
+		serial_console_init();
 #elif defined(CONFIG_MAC_SERIAL)
  	mac_scc_console_init();
 #elif defined(CONFIG_PARISC)
@@ -2224,20 +2245,20 @@ void __init console_init(void)
 #ifdef CONFIG_STDIO_CONSOLE
 	stdio_console_init();
 #endif
-#ifdef CONFIG_SERIAL_21285_CONSOLE
-	rs285_console_init();
-#endif
-#ifdef CONFIG_SERIAL_SA1100_CONSOLE
-	sa1100_rs_console_init();
+#ifdef CONFIG_SERIAL_CORE_CONSOLE
+	uart_console_init();
 #endif
 #ifdef CONFIG_ARC_CONSOLE
 	arc_console_init();
 #endif
-#ifdef CONFIG_SERIAL_AMBA_CONSOLE
-	ambauart_console_init();
-#endif
 #ifdef CONFIG_SERIAL_TX3912_CONSOLE
 	tx3912_console_init();
+#endif
+#ifdef CONFIG_TXX927_SERIAL_CONSOLE
+	txx927_console_init();
+#endif
+#ifdef CONFIG_SIBYTE_SB1250_DUART_CONSOLE
+	sb1250_serial_console_init();
 #endif
 }
 

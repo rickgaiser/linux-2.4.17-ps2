@@ -30,10 +30,6 @@ static int yopy_pcmcia_init(struct pcmcia_init *init)
 	pcmcia_power(0);
 	pcmcia_reset(1);
 
-	/* All those are inputs */
-	GPDR &= ~(GPIO_CF_CD | GPIO_CF_BVD2 | GPIO_CF_BVD1 | GPIO_CF_IREQ);
-	GAFR &= ~(GPIO_CF_CD | GPIO_CF_BVD2 | GPIO_CF_BVD1 | GPIO_CF_IREQ);
-
 	/* Set transition detect */
 	set_GPIO_IRQ_edge( GPIO_CF_CD|GPIO_CF_BVD2|GPIO_CF_BVD1,
 			   GPIO_BOTH_EDGES );

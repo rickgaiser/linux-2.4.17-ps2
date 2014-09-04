@@ -33,15 +33,43 @@
 #include "sun.h"
 #include "ibm.h"
 #include "ultrix.h"
+#include "ps2.h"
 
 extern int *blk_size[];
 
 int warn_no_part = 1; /*This is ugly: should make genhd removable media aware*/
 
 static int (*check_part[])(struct gendisk *hd, struct block_device *bdev, unsigned long first_sect, int first_minor) = {
-#ifdef CONFIG_ACORN_PARTITION
-	acorn_partition,
+	/*
+	 * Probe partition formats with tables at disk address 0
+	 * that also have an ADFS boot block at 0xdc0.
+	 */
+#ifdef CONFIG_PS2_PARTITION
+	ps2_partition,
 #endif
+
+#ifdef CONFIG_ACORN_PARTITION_ICS
+	adfspart_check_ICS,
+#endif
+#ifdef CONFIG_ACORN_PARTITION_POWERTEC
+	adfspart_check_POWERTEC,
+#endif
+#ifdef CONFIG_ACORN_PARTITION_EESOX
+	adfspart_check_EESOX,
+#endif
+
+	/*
+	 * Now move on to formats that only have partition info at
+	 * disk address 0xdc0.  These should come before MSDOS
+	 * partition tables.
+	 */
+#ifdef CONFIG_ACORN_PARTITION_CUMANA
+	adfspart_check_CUMANA,
+#endif
+#ifdef CONFIG_ACORN_PARTITION_ADFS
+	adfspart_check_ADFS,
+#endif
+
 #ifdef CONFIG_LDM_PARTITION
 	ldm_partition,		/* this must come before msdos */
 #endif
@@ -75,6 +103,18 @@ static int (*check_part[])(struct gendisk *hd, struct block_device *bdev, unsign
 	NULL
 };
 
+static char *raid_name (struct gendisk *hd, unsigned int unit, unsigned int part,
+			int major_base, char *buf)
+{
+	int ctlr = hd->major - major_base;
+	if (part == 0)
+		sprintf(buf, "%s/c%dd%d", hd->major_name, ctlr, unit);
+	else
+		sprintf(buf, "%s/c%dd%dp%d", hd->major_name, ctlr, unit,
+			part);
+	return buf;
+}
+
 /*
  *	This is ucking fugly but its probably the best thing for 2.4.x
  *	Take it as a clear reminder than we should put the device name
@@ -96,10 +136,11 @@ EXPORT_SYMBOL(genhd_dasd_name);
 char *disk_name (struct gendisk *hd, int minor, char *buf)
 {
 	const char *maj = hd->major_name;
-	unsigned int unit = (minor >> hd->minor_shift);
-	unsigned int part = (minor & ((1 << hd->minor_shift) -1 ));
+	unsigned int unit = minor >> hd->minor_shift;
+	unsigned int part = minor & (( 1 << hd->minor_shift) - 1);
+	char *p;
 
-	if ((unit < hd->nr_real) && hd->part[minor].de) {
+	if (unit < hd->nr_real && hd->part[minor].de) {
 		int pos;
 
 		pos = devfs_generate_path (hd->part[minor].de, buf, 64);
@@ -145,51 +186,32 @@ char *disk_name (struct gendisk *hd, int minor, char *buf)
 	}
 	if (hd->major >= SCSI_DISK1_MAJOR && hd->major <= SCSI_DISK7_MAJOR) {
 		unit = unit + (hd->major - SCSI_DISK1_MAJOR + 1) * 16;
-		if (unit+'a' > 'z') {
-			unit -= 26;
-			sprintf(buf, "sd%c%c", 'a' + unit / 26, 'a' + unit % 26);
-			if (part)
-				sprintf(buf + 4, "%d", part);
-			return buf;
-		}
 	}
 	if (hd->major >= COMPAQ_SMART2_MAJOR && hd->major <= COMPAQ_SMART2_MAJOR+7) {
-		int ctlr = hd->major - COMPAQ_SMART2_MAJOR;
- 		if (part == 0)
- 			sprintf(buf, "%s/c%dd%d", maj, ctlr, unit);
- 		else
- 			sprintf(buf, "%s/c%dd%dp%d", maj, ctlr, unit, part);
- 		return buf;
- 	}
+		return raid_name(hd, unit, part, COMPAQ_SMART2_MAJOR, buf);
+	}
 	if (hd->major >= COMPAQ_CISS_MAJOR && hd->major <= COMPAQ_CISS_MAJOR+7) {
-                int ctlr = hd->major - COMPAQ_CISS_MAJOR;
-                if (part == 0)
-                        sprintf(buf, "%s/c%dd%d", maj, ctlr, unit);
-                else
-                        sprintf(buf, "%s/c%dd%dp%d", maj, ctlr, unit, part);
-                return buf;
+		return raid_name(hd, unit, part, COMPAQ_CISS_MAJOR, buf);
 	}
 	if (hd->major >= DAC960_MAJOR && hd->major <= DAC960_MAJOR+7) {
-		int ctlr = hd->major - DAC960_MAJOR;
+		return raid_name(hd, unit, part, DAC960_MAJOR, buf);
+	}
+	if (hd->major == ATARAID_MAJOR) {
+ 		int disk = minor >> hd->minor_shift;
+ 		int part = minor & (( 1 << hd->minor_shift) - 1);
  		if (part == 0)
- 			sprintf(buf, "%s/c%dd%d", maj, ctlr, unit);
+ 			sprintf(buf, "%s/d%d", maj, disk);
  		else
- 			sprintf(buf, "%s/c%dd%dp%d", maj, ctlr, unit, part);
+ 			sprintf(buf, "%s/d%dp%d", maj, disk, part);
  		return buf;
  	}
-	if (hd->major == ATARAID_MAJOR) {
-		int disk = minor >> hd->minor_shift;
-		int part = minor & (( 1 << hd->minor_shift) - 1);
-		if (part == 0)
-			sprintf(buf, "%s/d%d", maj, disk);
-		else
-			sprintf(buf, "%s/d%dp%d", maj, disk, part);
-		return buf;
-	}
-	if (part)
-		sprintf(buf, "%s%c%d", maj, unit+'a', part);
+	p = buf;
+	if (unit <= 26)
+		p += sprintf(buf, "%s%c", maj, 'a' + unit);
 	else
-		sprintf(buf, "%s%c", maj, unit+'a');
+		p += sprintf(buf, "%s%c%c", maj, 'a' + unit / 26, 'a' + unit % 26);
+	if (part)
+		sprintf(p, "%d", part);
 	return buf;
 }
 
@@ -199,7 +221,7 @@ char *disk_name (struct gendisk *hd, int minor, char *buf)
 void add_gd_partition(struct gendisk *hd, int minor, int start, int size)
 {
 #ifndef CONFIG_DEVFS_FS
-	char buf[40];
+	char buf[MAX_DISKNAME_LEN];
 #endif
 
 	hd->part[minor].start_sect = start;
@@ -221,7 +243,7 @@ static void check_partition(struct gendisk *hd, kdev_t dev, int first_part_minor
 	static int first_time = 1;
 	unsigned long first_sector;
 	struct block_device *bdev;
-	char buf[64];
+	char buf[MAX_DISKNAME_LEN];
 	int i;
 
 	if (first_time)

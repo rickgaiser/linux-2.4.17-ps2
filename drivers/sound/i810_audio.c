@@ -1275,6 +1275,9 @@ static ssize_t i810_read(struct file *file, char *buffer, size_t count, loff_t *
 			dmabuf->count = dmabuf->dmasize;
 		}
 		cnt = dmabuf->count - dmabuf->fragsize;
+		if (cnt < 0) {
+			cnt = 0;
+		}
 		// this is to make the copy_to_user simpler below
 		if(cnt > (dmabuf->dmasize - swptr))
 			cnt = dmabuf->dmasize - swptr;
@@ -1558,6 +1561,7 @@ static int i810_mmap(struct file *file, struct vm_area_struct *vma)
 	if (remap_page_range(vma->vm_start, virt_to_phys(dmabuf->rawbuf),
 			     size, vma->vm_page_prot))
 		goto out;
+	vma->vm_flags &= ~VM_IO;
 	dmabuf->mapped = 1;
 	if(vma->vm_flags & VM_WRITE)
 		dmabuf->count = dmabuf->dmasize;

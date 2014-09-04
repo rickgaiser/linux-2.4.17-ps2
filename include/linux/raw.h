@@ -5,7 +5,7 @@
 
 #define RAW_SETBIND	_IO( 0xac, 0 )
 #define RAW_GETBIND	_IO( 0xac, 1 )
-
+#define RAW_UNSETBIND   _IO( 0xac, 255)
 struct raw_config_request 
 {
 	int	raw_minor;

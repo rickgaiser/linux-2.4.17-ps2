@@ -64,7 +64,6 @@ __initcall(raw_init);
 /* 
  * Open/close code for raw IO.
  */
-
 int raw_open(struct inode *inode, struct file *filp)
 {
 	int minor;
@@ -177,7 +176,7 @@ int raw_ctl_ioctl(struct inode *inode,
 	switch (command) {
 	case RAW_SETBIND:
 	case RAW_GETBIND:
-
+        case RAW_UNSETBIND:
 		/* First, find out which raw minor we want */
 
 		err = copy_from_user(&rq, (void *) arg, sizeof(rq));
@@ -190,7 +189,7 @@ int raw_ctl_ioctl(struct inode *inode,
 			break;
 		}
 
-		if (command == RAW_SETBIND) {
+		if (command == RAW_SETBIND || command == RAW_UNSETBIND) {
 			/*
 			 * This is like making block devices, so demand the
 			 * same capability
@@ -223,13 +222,18 @@ int raw_ctl_ioctl(struct inode *inode,
 			}
 			if (raw_devices[minor].binding)
 				bdput(raw_devices[minor].binding);
-			raw_devices[minor].binding = 
-				bdget(kdev_t_to_nr(MKDEV(rq.block_major, rq.block_minor)));
+                        if ( command == RAW_SETBIND) {
+                                raw_devices[minor].binding = 
+                                        bdget(kdev_t_to_nr(MKDEV(rq.block_major, rq.block_minor)));
+                        } else {
+                                raw_devices[minor].binding = 0;
+                        }
 			up(&raw_devices[minor].mutex);
 		} else {
 			struct block_device *bdev;
 			kdev_t dev;
-
+                        
+			down(&raw_devices[minor].mutex);
 			bdev = raw_devices[minor].binding;
 			if (bdev) {
 				dev = to_kdev_t(bdev->bd_dev);
@@ -238,6 +242,7 @@ int raw_ctl_ioctl(struct inode *inode,
 			} else {
 				rq.block_major = rq.block_minor = 0;
 			}
+			up(&raw_devices[minor].mutex);
 			err = copy_to_user((void *) arg, &rq, sizeof(rq));
 		}
 		break;

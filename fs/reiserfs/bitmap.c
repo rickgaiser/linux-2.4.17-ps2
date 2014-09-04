@@ -410,19 +410,23 @@ free_and_return:
 	amount_needed++ ;
 	continue ;
     }
-       
 
-    reiserfs_prepare_for_journal(s, SB_AP_BITMAP(s)[i], 1) ;
+   RFALSE( is_reusable (s, search_start, 0) == 0,
+           "vs-4140: bad block number found");
 
-    RFALSE( buffer_locked (SB_AP_BITMAP (s)[i]) || 
-	    is_reusable (s, search_start, 0) == 0,
-	    "vs-4140: bitmap block is locked or bad block number found");
+   reiserfs_prepare_for_journal(s, SB_AP_BITMAP(s)[i], 1) ;
 
     /* if this bit was already set, we've scheduled, and someone else
     ** has allocated it.  loop around and try again
     */
     if (reiserfs_test_and_set_le_bit (j, SB_AP_BITMAP (s)[i]->b_data)) {
 	reiserfs_restore_prepared_buffer(s, SB_AP_BITMAP(s)[i]) ;
+	/* if this block has been allocated while we slept, it is
+	** impossible to find any more contiguous blocks for ourselves.
+	** If we are doing preallocation, give up now and return.
+	*/
+	if (for_prealloc)
+	    goto free_and_return;
 	amount_needed++ ;
 	continue ;
     }    

@@ -1,0 +1,14 @@
+shell echo -e "\003" >/dev/ttyS0
+set remotebaud 38400
+target remote /dev/ttyS0
+define si
+stepi
+printf "EAX=%08x EBX=%08x ECX=%08x EDX=%08x\n", $eax, $ebx, $ecx, $edx
+printf "ESI=%08x EDI=%08x EBP=%08x ESP=%08x\n", $esi, $edi, $ebp, $esp
+x/i $eip
+end
+define ni
+nexti
+printf "EAX=%08x EBX=%08x ECX=%08x EDX=%08x\n", $eax, $ebx, $ecx, $edx
+printf "ESI=%08x EDI=%08x EBP=%08x ESP=%08x\n", $esi, $edi, $ebp, $esp
+x/i $eip

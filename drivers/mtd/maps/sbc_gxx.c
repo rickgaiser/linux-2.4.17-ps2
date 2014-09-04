@@ -17,7 +17,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 
-   $Id: sbc_gxx.c,v 1.19 2001/10/02 15:05:14 dwmw2 Exp $
+   $Id: sbc_gxx.c,v 1.20 2002/02/13 15:30:20 dwmw2 Exp $
 
 The SBC-MediaGX / SBC-GXx has up to 16 MiB of 
 Intel StrataFlash (28F320/28F640) in x8 mode.  
@@ -221,7 +221,7 @@ static struct map_info sbc_gxx_map = {
 /* MTD device for all of the flash. */
 static struct mtd_info *all_mtd;
 
-static void __exit cleanup_sbc_gxx(void)
+static void cleanup_sbc_gxx(void)
 {
 	if( all_mtd ) {
 		del_mtd_partitions( all_mtd );

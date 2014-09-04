@@ -25,3 +25,6 @@ tristate '  Sanyo CDR-H94A CDROM support' CONFIG_SJCD
 tristate '  ISP16/MAD16/Mozart soft configurable cdrom interface support' CONFIG_ISP16_CDI
 tristate '  Sony CDU31A/CDU33A CDROM support' CONFIG_CDU31A
 tristate '  Sony CDU535 CDROM support' CONFIG_CDU535
+if [ "$CONFIG_SH_DREAMCAST" = "y" ]; then
+   tristate '  SEGA Dreamcast GD-ROM device CD-R support' CONFIG_SEGA_GDROM
+fi

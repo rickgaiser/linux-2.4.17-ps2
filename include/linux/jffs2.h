@@ -1,44 +1,20 @@
 /*
  * JFFS2 -- Journalling Flash File System, Version 2.
  *
- * Copyright (C) 2001 Red Hat, Inc.
+ * Copyright (C) 2001, 2002 Red Hat, Inc.
  *
  * Created by David Woodhouse <dwmw2@cambridge.redhat.com>
  *
- * The original JFFS, from which the design for JFFS2 was derived,
- * was designed and implemented by Axis Communications AB.
+ * For licensing information, see the file 'LICENCE' in the 
+ * jffs2 directory.
  *
- * The contents of this file are subject to the Red Hat eCos Public
- * License Version 1.1 (the "Licence"); you may not use this file
- * except in compliance with the Licence.  You may obtain a copy of
- * the Licence at http://www.redhat.com/
- *
- * Software distributed under the Licence is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
- * See the Licence for the specific language governing rights and
- * limitations under the Licence.
- *
- * The Original Code is JFFS2 - Journalling Flash File System, version 2
- *
- * Alternatively, the contents of this file may be used under the
- * terms of the GNU General Public License version 2 (the "GPL"), in
- * which case the provisions of the GPL are applicable instead of the
- * above.  If you wish to allow the use of your version of this file
- * only under the terms of the GPL and not to allow others to use your
- * version of this file under the RHEPL, indicate your decision by
- * deleting the provisions above and replace them with the notice and
- * other provisions required by the GPL.  If you do not delete the
- * provisions above, a recipient may use your version of this file
- * under either the RHEPL or the GPL.
- *
- * $Id: jffs2.h,v 1.18 2001/03/25 22:36:12 dwmw2 Exp $
+ * $Id: jffs2.h,v 1.25 2002/08/20 21:37:27 dwmw2 Exp $
  *
  */
 
 #ifndef __LINUX_JFFS2_H__
 #define __LINUX_JFFS2_H__
 
-#include <asm/types.h>
 #define JFFS2_SUPER_MAGIC 0x72b6
 
 /* Values we may expect to find in the 'magic' field */
@@ -78,16 +54,12 @@
 #define JFFS2_NODETYPE_DIRENT (JFFS2_FEATURE_INCOMPAT | JFFS2_NODE_ACCURATE | 1)
 #define JFFS2_NODETYPE_INODE (JFFS2_FEATURE_INCOMPAT | JFFS2_NODE_ACCURATE | 2)
 #define JFFS2_NODETYPE_CLEANMARKER (JFFS2_FEATURE_RWCOMPAT_DELETE | JFFS2_NODE_ACCURATE | 3)
+#define JFFS2_NODETYPE_PADDING (JFFS2_FEATURE_RWCOMPAT_DELETE | JFFS2_NODE_ACCURATE | 4)
 
 // Maybe later...
 //#define JFFS2_NODETYPE_CHECKPOINT (JFFS2_FEATURE_RWCOMPAT_DELETE | JFFS2_NODE_ACCURATE | 3)
 //#define JFFS2_NODETYPE_OPTIONS (JFFS2_FEATURE_RWCOMPAT_COPY | JFFS2_NODE_ACCURATE | 4)
 
-/* Same as the non_ECC versions, but with extra space for real 
- * ECC instead of just the checksum. For use on NAND flash 
- */
-//#define JFFS2_NODETYPE_DIRENT_ECC (JFFS2_FEATURE_INCOMPAT | JFFS2_NODE_ACCURATE | 5)
-//#define JFFS2_NODETYPE_INODE_ECC (JFFS2_FEATURE_INCOMPAT | JFFS2_NODE_ACCURATE | 6)
 
 #define JFFS2_INO_FLAG_PREREAD	  1	/* Do read_inode() for this one at 
 					   mount time, don't wait for it to 
@@ -96,32 +68,67 @@
 					   compression type */
 
 
+/* These can go once we've made sure we've caught all uses without
+   byteswapping */
+
+typedef struct {
+	uint32_t v32;
+} __attribute__((packed))  jint32_t;
+
+typedef struct {
+	uint16_t v16;
+} __attribute__((packed)) jint16_t;
+
+#define JFFS2_NATIVE_ENDIAN
+
+#if defined(JFFS2_NATIVE_ENDIAN)
+#define cpu_to_je16(x) ((jint16_t){x})
+#define cpu_to_je32(x) ((jint32_t){x})
+
+#define je16_to_cpu(x) ((x).v16)
+#define je32_to_cpu(x) ((x).v32)
+#elif defined(JFFS2_BIG_ENDIAN)
+#define cpu_to_je16(x) ((jint16_t){cpu_to_be16(x)})
+#define cpu_to_je32(x) ((jint32_t){cpu_to_be32(x)})
+
+#define je16_to_cpu(x) (be16_to_cpu(x.v16))
+#define je32_to_cpu(x) (be32_to_cpu(x.v32))
+#elif defined(JFFS2_LITTLE_ENDIAN)
+#define cpu_to_je16(x) ((jint16_t){cpu_to_le16(x)})
+#define cpu_to_je32(x) ((jint32_t){cpu_to_le32(x)})
+
+#define je16_to_cpu(x) (le16_to_cpu(x.v16))
+#define je32_to_cpu(x) (le32_to_cpu(x.v32))
+#else 
+#error wibble
+#endif
+
 struct jffs2_unknown_node
 {
 	/* All start like this */
-	__u16 magic;
-	__u16 nodetype;
-	__u32 totlen; /* So we can skip over nodes we don't grok */
-	__u32 hdr_crc;
-};
+	jint16_t magic;
+	jint16_t nodetype;
+	jint32_t totlen; /* So we can skip over nodes we don't grok */
+	jint32_t hdr_crc;
+} __attribute__((packed));
 
 struct jffs2_raw_dirent
 {
-	__u16 magic;
-	__u16 nodetype;	/* == JFFS_NODETYPE_DIRENT */
-	__u32 totlen;
-	__u32 hdr_crc;
-	__u32 pino;
-	__u32 version;
-	__u32 ino; /* == zero for unlink */
-	__u32 mctime;
-	__u8 nsize;
-	__u8 type;
-	__u8 unused[2];
-	__u32 node_crc;
-	__u32 name_crc;
-	__u8 name[0];
-};
+	jint16_t magic;
+	jint16_t nodetype;	/* == JFFS_NODETYPE_DIRENT */
+	jint32_t totlen;
+	jint32_t hdr_crc;
+	jint32_t pino;
+	jint32_t version;
+	jint32_t ino; /* == zero for unlink */
+	jint32_t mctime;
+	uint8_t nsize;
+	uint8_t type;
+	uint8_t unused[2];
+	jint32_t node_crc;
+	jint32_t name_crc;
+	uint8_t name[0];
+} __attribute__((packed));
 
 /* The JFFS2 raw inode structure: Used for storage on physical media.  */
 /* The uid, gid, atime, mtime and ctime members could be longer, but 
@@ -131,29 +138,29 @@ struct jffs2_raw_dirent
 */
 struct jffs2_raw_inode
 {
-	__u16 magic;      /* A constant magic number.  */
-	__u16 nodetype;   /* == JFFS_NODETYPE_INODE */
-	__u32 totlen;     /* Total length of this node (inc data, etc.) */
-	__u32 hdr_crc;
-	__u32 ino;        /* Inode number.  */
-	__u32 version;    /* Version number.  */
-	__u32 mode;       /* The file's type or mode.  */
-	__u16 uid;        /* The file's owner.  */
-	__u16 gid;        /* The file's group.  */
-	__u32 isize;      /* Total resultant size of this inode (used for truncations)  */
-	__u32 atime;      /* Last access time.  */
-	__u32 mtime;      /* Last modification time.  */
-	__u32 ctime;      /* Change time.  */
-	__u32 offset;     /* Where to begin to write.  */
-	__u32 csize;      /* (Compressed) data size */
-	__u32 dsize;	  /* Size of the node's data. (after decompression) */
-	__u8 compr;       /* Compression algorithm used */
-	__u8 usercompr;	  /* Compression algorithm requested by the user */
-	__u16 flags;	  /* See JFFS2_INO_FLAG_* */
-	__u32 data_crc;   /* CRC for the (compressed) data.  */
-	__u32 node_crc;   /* CRC for the raw inode (excluding data)  */
-//	__u8 data[dsize];
-};
+	jint16_t magic;      /* A constant magic number.  */
+	jint16_t nodetype;   /* == JFFS_NODETYPE_INODE */
+	jint32_t totlen;     /* Total length of this node (inc data, etc.) */
+	jint32_t hdr_crc;
+	jint32_t ino;        /* Inode number.  */
+	jint32_t version;    /* Version number.  */
+	jint32_t mode;       /* The file's type or mode.  */
+	jint16_t uid;        /* The file's owner.  */
+	jint16_t gid;        /* The file's group.  */
+	jint32_t isize;      /* Total resultant size of this inode (used for truncations)  */
+	jint32_t atime;      /* Last access time.  */
+	jint32_t mtime;      /* Last modification time.  */
+	jint32_t ctime;      /* Change time.  */
+	jint32_t offset;     /* Where to begin to write.  */
+	jint32_t csize;      /* (Compressed) data size */
+	jint32_t dsize;	     /* Size of the node's data. (after decompression) */
+	uint8_t compr;       /* Compression algorithm used */
+	uint8_t usercompr;   /* Compression algorithm requested by the user */
+	jint16_t flags;	     /* See JFFS2_INO_FLAG_* */
+	jint32_t data_crc;   /* CRC for the (compressed) data.  */
+	jint32_t node_crc;   /* CRC for the raw inode (excluding data)  */
+//	uint8_t data[dsize];
+} __attribute__((packed));
 
 union jffs2_node_union {
 	struct jffs2_raw_inode i;

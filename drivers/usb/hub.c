@@ -497,7 +497,7 @@ static void usb_hub_disconnect(struct usb_device *dev)
 }
 
 #define HUB_RESET_TRIES		5
-#define HUB_PROBE_TRIES		2
+#define HUB_PROBE_TRIES		10
 #define HUB_SHORT_RESET_TIME	10
 #define HUB_LONG_RESET_TIME	200
 #define HUB_RESET_TIMEOUT	500
@@ -600,6 +600,7 @@ static void usb_hub_port_connect_change(struct usb_device *hub, int port,
 	unsigned int delay = HUB_SHORT_RESET_TIME;
 	int i;
 	char *portstr, *tempstr;
+        int devnum;
 
 	portstatus = le16_to_cpu(portsts->wPortStatus);
 	portchange = le16_to_cpu(portsts->wPortChange);
@@ -610,6 +611,7 @@ static void usb_hub_port_connect_change(struct usb_device *hub, int port,
 	usb_clear_port_feature(hub, port + 1, USB_PORT_FEAT_C_CONNECTION);
 
 	/* Disconnect any existing devices under this port */
+	down(&hub->bus->dev_tree_sem);
 	if (hub->children[port])
 		usb_disconnect(&hub->children[port]);
 
@@ -618,8 +620,10 @@ static void usb_hub_port_connect_change(struct usb_device *hub, int port,
 		if (portstatus & USB_PORT_STAT_ENABLE)
 			usb_hub_port_disable(hub, port);
 
+		up(&hub->bus->dev_tree_sem);
 		return;
 	}
+	up(&hub->bus->dev_tree_sem);
 
 	/* Some low speed devices have problems with the quick delay, so */
 	/*  be a bit pessimistic with those devices. RHbug #23670 */
@@ -629,6 +633,7 @@ static void usb_hub_port_connect_change(struct usb_device *hub, int port,
 	}
 
 	down(&usb_address0_sem);
+	down(&hub->bus->dev_tree_sem);
 
 	tempstr = kmalloc(1024, GFP_KERNEL);
 	portstr = kmalloc(1024, GFP_KERNEL);
@@ -680,7 +685,7 @@ static void usb_hub_port_connect_change(struct usb_device *hub, int port,
 		} else
 			info("USB new device connect on bus%d, assigned device number %d",
 				dev->bus->busnum, dev->devnum);
-
+                devnum = dev->devnum;
 		/* Run it through the hoops (find a driver, etc) */
 		if (!usb_new_device(dev))
 			goto done;
@@ -691,10 +696,12 @@ static void usb_hub_port_connect_change(struct usb_device *hub, int port,
 		/* Switch to a long reset time */
 		delay = HUB_LONG_RESET_TIME;
 	}
+        err("failed adding a new device.  Address=%d",devnum);
 
 	hub->children[port] = NULL;
 	usb_hub_port_disable(hub, port);
 done:
+	up(&hub->bus->dev_tree_sem);
 	up(&usb_address0_sem);
 	if (portstr)
 		kfree(portstr);

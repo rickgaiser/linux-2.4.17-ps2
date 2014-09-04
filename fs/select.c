@@ -20,6 +20,8 @@
 #include <linux/personality.h> /* for STICKY_TIMEOUTS */
 #include <linux/file.h>
 
+#include <linux/trace.h>
+
 #include <asm/uaccess.h>
 
 #define ROUND_UP(x,y) (((x)+(y)-1)/(y))
@@ -193,6 +195,10 @@ int do_select(int n, fd_set_bits *fds, long *timeout)
 			file = fget(i);
 			mask = POLLNVAL;
 			if (file) {
+				TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_SELECT,
+						  i /*  The fd*/,
+						  __timeout,
+						  NULL);
 				mask = DEFAULT_POLLMASK;
 				if (file->f_op && file->f_op->poll)
 					mask = file->f_op->poll(file, wait);
@@ -367,6 +373,10 @@ static void do_pollfd(unsigned int num, struct pollfd * fdpage,
 			struct file * file = fget(fd);
 			mask = POLLNVAL;
 			if (file != NULL) {
+			        TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_POLL,
+						  fd,
+						  0,
+						  NULL);
 				mask = DEFAULT_POLLMASK;
 				if (file->f_op && file->f_op->poll)
 					mask = file->f_op->poll(file, *pwait);

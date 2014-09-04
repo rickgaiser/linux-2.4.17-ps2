@@ -1,7 +1,7 @@
 /*
  * tcp_diag.c	Module for monitoring TCP sockets.
  *
- * Version:	$Id: tcp_diag.c,v 1.2 2001/11/05 09:42:22 davem Exp $
+ * Version:	$Id: tcp_diag.c,v 1.1 2001/12/18 23:32:53 trini Exp $
  *
  * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
  *

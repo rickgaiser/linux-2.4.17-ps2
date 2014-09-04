@@ -2341,6 +2341,7 @@ static int usb_audio_mmap(struct file *file, struct vm_area_struct *vma)
 	if (vma->vm_pgoff != 0)
 		goto out;
 
+	vma->vm_flags &= ~VM_IO;
 	ret = dmabuf_mmap(db,  vma->vm_start, vma->vm_end - vma->vm_start, vma->vm_page_prot);
 out:
 	unlock_kernel();

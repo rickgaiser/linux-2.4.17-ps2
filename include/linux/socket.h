@@ -1,3 +1,5 @@
+/* $USAGI: socket.h,v 1.5 2001/12/22 18:37:37 yoshfuji Exp $ */
+
 #ifndef _LINUX_SOCKET_H
 #define _LINUX_SOCKET_H
 
@@ -22,6 +24,24 @@ struct sockaddr {
 struct linger {
 	int		l_onoff;	/* Linger active		*/
 	int		l_linger;	/* How long to linger for	*/
+};
+
+/*
+ * Desired design of maximum size and alignment
+ */
+#define _SS_MAXSIZE    128			/* Implementation specific max size */
+#define _SS_ALIGNSIZE  (sizeof (int64_t))	/* Implementation specific desired alignment */
+/* 
+ * Definitions used for sockaddr_storage structure paddings design.
+ */
+#define _SS_PAD1SIZE   (_SS_ALIGNSIZE - sizeof (sa_family_t))
+#define _SS_PAD2SIZE   (_SS_MAXSIZE - (sizeof (sa_family_t)+ _SS_PAD1SIZE + _SS_ALIGNSIZE))
+
+struct sockaddr_storage {
+	sa_family_t  ss_family; 
+	char      __ss_pad1[_SS_PAD1SIZE];
+	int64_t   __ss_align; 
+	char      __ss_pad2[_SS_PAD2SIZE];
 };
 
 /*

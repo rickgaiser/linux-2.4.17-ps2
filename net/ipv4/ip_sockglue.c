@@ -1,3 +1,5 @@
+/* $USAGI: ip_sockglue.c,v 1.10 2001/11/06 14:46:56 yoshfuji Exp $ */
+
 /*
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
@@ -406,6 +408,12 @@ int ip_setsockopt(struct sock *sk, int level, int optname, char *optval, int opt
 	}
 
 	/* If optlen==0, it is equivalent to val == 0 */
+
+	if (level != SOL_IP)
+		return -ENOPROTOOPT;
+
+	if (optlen < 0)
+		return -EINVAL;
 
 #ifdef CONFIG_IP_MROUTE
 	if (optname >= MRT_BASE && optname <= (MRT_BASE + 10))

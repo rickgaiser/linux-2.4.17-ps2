@@ -1,3 +1,4 @@
+# $USAGI: Makefile,v 1.11 2002/02/27 12:12:57 yoshfuji Exp $
 #
 # Makefile for the linux networking.
 #
@@ -18,12 +19,18 @@ subdir-$(CONFIG_NET)		+= 802 sched netlink
 subdir-$(CONFIG_INET)		+= ipv4
 subdir-$(CONFIG_NETFILTER)	+= ipv4/netfilter
 subdir-$(CONFIG_UNIX)		+= unix
+subdir-$(CONFIG_IPSEC)          += key
 subdir-$(CONFIG_IPV6)		+= ipv6
 
 ifneq ($(CONFIG_IPV6),n)
 ifneq ($(CONFIG_IPV6),)
 subdir-$(CONFIG_NETFILTER)	+= ipv6/netfilter
+subdir-$(CONFIG_IPV6_MOBILITY)	+= ipv6/mobile_ip6
 endif
+endif
+
+ifeq ($(CONFIG_IPV6),y)
+subdir-$(CONFIG_IPV6_IPV6_TUNNEL)              += ipv6
 endif
 
 subdir-$(CONFIG_KHTTPD)		+= khttpd

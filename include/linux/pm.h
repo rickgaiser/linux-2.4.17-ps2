@@ -46,6 +46,10 @@ enum
 	/* base station management */
 	PM_EJECT,
 	PM_LOCK,
+
+#ifdef CONFIG_SNSC
+	PM_QUERY_NAME,
+#endif
 };
 
 typedef int pm_request_t;
@@ -109,11 +113,31 @@ struct pm_dev
 	struct list_head entry;
 };
 
+#if	defined(CONFIG_ARCH_SA1100)
+/* 
+ * Current state
+ */
+
+enum
+{
+	PM_STATE_NORMAL = 0,
+	PM_STATE_REQUESTING_SUSPEND,  /* informing each registered handler of PM_SUSPEND */
+	PM_STATE_SUSPENDING,          /* actively shutting down */
+	PM_STATE_RESUMING
+};
+#endif
+
 #ifdef CONFIG_PM
 
 extern int pm_active;
+#if	defined(CONFIG_ARCH_SA1100)
+extern int pm_current_state;
+#endif
 
 #define PM_IS_ACTIVE() (pm_active != 0)
+#if	defined(CONFIG_ARCH_SA1100)
+#define PM_STATE()     (pm_current_state)
+#endif
 
 /*
  * Register a device with power management
@@ -153,6 +177,9 @@ static inline void pm_dev_idle(struct pm_dev *dev) {}
 #else /* CONFIG_PM */
 
 #define PM_IS_ACTIVE() 0
+#if	defined(CONFIG_ARCH_SA1100)
+#define PM_STATE()     0
+#endif
 
 static inline struct pm_dev *pm_register(pm_dev_t type,
 					 unsigned long id,
@@ -187,6 +214,10 @@ static inline void pm_dev_idle(struct pm_dev *dev) {}
 
 extern void (*pm_idle)(void);
 extern void (*pm_power_off)(void);
+
+#ifdef CONFIG_SNSC
+extern struct semaphore pm_devs_lock;
+#endif
 
 #endif /* __KERNEL__ */
 

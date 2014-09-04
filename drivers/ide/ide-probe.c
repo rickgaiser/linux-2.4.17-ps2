@@ -51,6 +51,7 @@
 #include <asm/irq.h>
 #include <asm/uaccess.h>
 #include <asm/io.h>
+#include <asm/semaphore.h>
 
 static inline void do_identify (ide_drive_t *drive, byte cmd)
 {
@@ -527,7 +528,11 @@ static void probe_hwif (ide_hwif_t *hwif)
 	 * Second drive should only exist if first drive was found,
 	 * but a lot of cdrom drives are configured as single slaves.
 	 */
+#ifdef CONFIG_PS2
+	for (unit = 0; unit < 1; ++unit) {
+#else
 	for (unit = 0; unit < MAX_DRIVES; ++unit) {
+#endif
 		ide_drive_t *drive = &hwif->drives[unit];
 		(void) probe_for_drive (drive);
 		if (drive->present && !hwif->present) {
@@ -764,6 +769,8 @@ static void init_gendisk (ide_hwif_t *hwif)
 	bs        = kmalloc (minors*sizeof(int), GFP_KERNEL);
 	max_sect  = kmalloc (minors*sizeof(int), GFP_KERNEL);
 	max_ra    = kmalloc (minors*sizeof(int), GFP_KERNEL);
+	gd->part_sem = kmalloc(sizeof(struct semaphore), GFP_KERNEL);
+	init_MUTEX(gd->part_sem);
 
 	memset(gd->part, 0, minors * sizeof(struct hd_struct));
 

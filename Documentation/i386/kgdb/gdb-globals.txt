@@ -1,0 +1,71 @@
+Sender: akale@veritas.com
+Date: Fri, 23 Jun 2000 19:26:35 +0530
+From: "Amit S. Kale" <akale@veritas.com>
+Organization: Veritas Software (India)
+To: Dave Grothe <dave@gcom.com>, linux-kernel@vger.rutgers.edu
+CC: David Milburn <dmilburn@wirespeed.com>,
+        "Edouard G. Parmelan" <Edouard.Parmelan@quadratec.fr>,
+        ezannoni@cygnus.com, Keith Owens <kaos@ocs.com.au>
+Subject: Re: Module debugging using kgdb
+
+Dave Grothe wrote:
+> 
+> Amit:
+> 
+> There is a 2.4.0 version of kgdb on our ftp site:
+> ftp://ftp.gcom.com/pub/linux/src/kgdb.  I mirrored your version of gdb
+> and loadmodule.sh there.
+> 
+> Have a look at the README file and see if I go it right.  If not, send
+> me some corrections and I will update it.
+> 
+> Does your version of gdb solve the global variable problem?
+
+Yes. 
+Thanks to Elena Zanoni, gdb (developement version) can now calculate 
+correctly addresses  of dynamically loaded object files. I have not been 
+following gdb developement for sometime and am not sure when symbol
+address calculation fix is going to appear in a gdb stable version.
+
+Elena, any idea when the fix will make it to a prebuilt gdb from a
+redhat release?
+
+For the time being I have built a gdb developement version. It can be
+used for module debugging with loadmodule.sh script.
+
+The problem with calculating of module addresses with previous versions
+of gdb was as follows:
+gdb did not use base address of a section while calculating address of
+a symbol in the section in an object file loaded via 'add-symbol-file'. 
+It used address of .text segment instead. Due to this addresses of
+symbols in .data, .bss etc. (e.g. global variables) were calculated incorrectly.
+
+Above mentioned fix allow gdb to use base address of a segment while
+calculating address of a symbol in it. It adds a parameter '-s' to
+'add-symbol-file' command for specifying base address of a segment.
+
+loadmodule.sh script works as follows.
+
+1. Copy a module file to target machine.
+2. Load the module on the target machine using insmod with -m parameter.
+insmod produces a module load map which contains base addresses of all
+sections in the module and addresses of symbols in the module file.
+3. Find all sections and their base addresses in the module from 
+the module map.
+4. Generate a script that loads the module file. The script uses
+'add-symbol-file' and specifies address of text segment followed by
+addresses of all segments in the module.
+
+Here is an example gdb script produced by loadmodule.sh script.
+
+add-symbol-file foo 0xd082c060 -s .text.lock 0xd08cbfb5 
+-s .fixup 0xd08cfbdf -s .rodata 0xd08cfde0 -s __ex_table 0xd08e3b38 
+-s .data 0xd08e3d00 -s .bss 0xd08ec8c0 -s __ksymtab 0xd08ee838
+
+With this command gdb can calculate addresses of symbols in ANY segment
+in a module file.
+
+Regards.
+-- 
+Amit Kale
+Veritas Software ( http://www.veritas.com )

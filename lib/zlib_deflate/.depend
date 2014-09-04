@@ -1,0 +1,11 @@
+deflate.o: deflate.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/zutil.h \
+   defutil.h
+deflate_syms.o: deflate_syms.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/zlib_jffs2.h
+deftree.o: deftree.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/zutil.h \
+   defutil.h

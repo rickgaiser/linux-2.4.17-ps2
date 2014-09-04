@@ -2,6 +2,7 @@
 #define __LINUX_SPINLOCK_H
 
 #include <linux/config.h>
+#include <linux/compiler.h>
 
 /*
  * These are the generic versions of the spinlocks and read-write
@@ -45,8 +46,10 @@
 
 #if (DEBUG_SPINLOCKS < 1)
 
+#ifndef CONFIG_PREEMPT
 #define atomic_dec_and_lock(atomic,lock) atomic_dec_and_test(atomic)
 #define ATOMIC_DEC_AND_LOCK
+#endif
 
 /*
  * Your basic spinlocks, allowing only a single CPU anywhere
@@ -62,11 +65,11 @@
 #endif
 
 #define spin_lock_init(lock)	do { } while(0)
-#define spin_lock(lock)		(void)(lock) /* Not "unused variable". */
+#define _raw_spin_lock(lock)	(void)(lock) /* Not "unused variable". */
 #define spin_is_locked(lock)	(0)
-#define spin_trylock(lock)	({1; })
+#define _raw_spin_trylock(lock)	({1; })
 #define spin_unlock_wait(lock)	do { } while(0)
-#define spin_unlock(lock)	do { } while(0)
+#define _raw_spin_unlock(lock)	do { } while(0)
 
 #elif (DEBUG_SPINLOCKS < 2)
 
@@ -125,12 +128,101 @@ typedef struct {
 #endif
 
 #define rwlock_init(lock)	do { } while(0)
-#define read_lock(lock)		(void)(lock) /* Not "unused variable". */
-#define read_unlock(lock)	do { } while(0)
-#define write_lock(lock)	(void)(lock) /* Not "unused variable". */
-#define write_unlock(lock)	do { } while(0)
+#define _raw_read_lock(lock)	(void)(lock) /* Not "unused variable". */
+#define _raw_read_unlock(lock)	do { } while(0)
+#define _raw_write_lock(lock)	(void)(lock) /* Not "unused variable". */
+#define _raw_write_unlock(lock)	do { } while(0)
 
 #endif /* !SMP */
+
+#ifdef CONFIG_PREEMPT
+
+#ifdef CONFIG_PREEMPT_TIMES
+extern void latency_start(const char *fname,unsigned lineno,int cause);
+extern void latency_check(const char *fname,unsigned lineno, int cause);
+extern void latency_end(const char *fname,unsigned lineno);
+#define preempt_lock_start(c) \
+do { \
+	if (preempt_is_disabled() == 1) \
+		latency_start(__BASE_FILE__, __LINE__, c); \
+} while (0)
+#define preempt_lock_stop() \
+do { \
+	if (preempt_is_disabled() == 1) \
+		latency_end(__BASE_FILE__, __LINE__); \
+} while (0)
+#else
+#define preempt_lock_start(c)	do {} while (0)
+#define preempt_lock_stop()	do {} while (0)
+#endif /* CONFIG_PREEMPT_TIMES */
+
+#define preempt_is_disabled() (current->preempt_count)
+#define preempt_prefetch(a) prefetchw(a)
+
+#define preempt_disable() \
+do { \
+	++current->preempt_count; \
+	barrier(); \
+	preempt_lock_start(1); \
+} while (0)
+
+#define preempt_enable_no_resched() \
+do { \
+	preempt_lock_stop(); \
+	--current->preempt_count; \
+	barrier(); \
+} while (0)
+
+#define preempt_enable() \
+do { \
+	preempt_lock_stop(); \
+	--current->preempt_count; \
+	barrier(); \
+	if (unlikely((current->preempt_count == 0) && current->need_resched)) \
+		preempt_schedule(); \
+} while (0)
+
+#define spin_lock(lock)	\
+do { \
+	preempt_disable(); \
+	_raw_spin_lock(lock); \
+} while(0)
+#define spin_trylock(lock)	({preempt_disable(); _raw_spin_trylock(lock) ? \
+					1 : ({preempt_enable(); 0;});})
+#define spin_unlock(lock) \
+do { \
+	_raw_spin_unlock(lock); \
+	preempt_enable(); \
+} while (0)
+
+#define read_lock(lock)		({preempt_disable(); _raw_read_lock(lock);})
+#define read_unlock(lock)	({_raw_read_unlock(lock); preempt_enable();})
+#define write_lock(lock)	({preempt_disable(); _raw_write_lock(lock);})
+#define write_unlock(lock)	({_raw_write_unlock(lock); preempt_enable();})
+#define write_trylock(lock)	({preempt_disable(); _raw_write_trylock(lock) ? \
+					1 : ({preempt_enable(); 0;});})
+
+#else
+
+#define preempt_is_disabled() do { } while (0)
+#define preempt_disable()    do { } while (0)
+#define preempt_enable_no_resched()
+#define preempt_enable()     do { } while (0)
+#define preempt_prefetch(a)
+
+#define spin_lock(lock)		_raw_spin_lock(lock)
+#define spin_trylock(lock)	_raw_spin_trylock(lock)
+#define spin_unlock(lock)	_raw_spin_unlock(lock)
+
+#define read_lock(lock)		_raw_read_lock(lock)
+#define read_unlock(lock)	_raw_read_unlock(lock)
+#define write_lock(lock)	_raw_write_lock(lock)
+#define write_unlock(lock)	_raw_write_unlock(lock)
+#define write_trylock(lock)	_raw_write_trylock(lock)
+
+#define preempt_lock_start(c)	do {} while (0)
+#define preempt_lock_stop()	do {} while (0)
+#endif
 
 /* "lock on reference count zero" */
 #ifndef ATOMIC_DEC_AND_LOCK

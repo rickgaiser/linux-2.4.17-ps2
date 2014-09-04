@@ -1,0 +1,8 @@
+#
+#
+#
+
+if [ "$CONFIG_DIGESTS" != "n" ]; then
+	dep_tristate ' MD5 digest (EXPERIMENTAL)' CONFIG_DIGEST_MD5 $CONFIG_DIGESTS
+	dep_tristate ' SHA1 digest (EXPERIMENTAL)' CONFIG_DIGEST_SHA1 $CONFIG_DIGESTS
+fi

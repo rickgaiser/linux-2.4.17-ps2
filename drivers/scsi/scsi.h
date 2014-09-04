@@ -617,7 +617,7 @@ struct scsi_device {
 	unsigned remap:1;	/* support remapping  */
 	unsigned starved:1;	/* unable to process commands because
 				   host busy */
-
+	unsigned device_attach_finished:1; /* Avoid race condition */
 	// Flag to allow revalidate to succeed in sd_open
 	int allow_revalidate;
 };

@@ -119,6 +119,9 @@ int reiserfs_resize (struct super_block * s, unsigned long block_count_new)
 		mark_buffer_uptodate(bitmap[i], 1);
 		ll_rw_block(WRITE, 1, bitmap + i);
 		wait_on_buffer(bitmap[i]);
+                if(bitmap[i]->b_dev)
+                  flush_hardwarebuf(bitmap[i]->b_dev);
+
 	    }	
 	    /* free old bitmap blocks array */
 	    reiserfs_kfree(SB_AP_BITMAP(s), 

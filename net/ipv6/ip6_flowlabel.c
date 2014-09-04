@@ -1,3 +1,5 @@
+/* $USAGI: ip6_flowlabel.c,v 1.4 2000/12/29 07:06:58 yoshfuji Exp $ */
+
 /*
  *	ip6_flowlabel.c		IPv6 flowlabel manager.
  *
@@ -12,6 +14,7 @@
 #include <linux/config.h>
 #include <linux/errno.h>
 #include <linux/types.h>
+#include <linux/random.h>
 #include <linux/socket.h>
 #include <linux/net.h>
 #include <linux/netdevice.h>
@@ -155,7 +158,8 @@ static int fl_intern(struct ip6_flowlabel *fl, __u32 label)
 	write_lock_bh(&ip6_fl_lock);
 	if (label == 0) {
 		for (;;) {
-			fl->label = htonl(net_random())&IPV6_FLOWLABEL_MASK;
+			get_random_bytes(&fl->label, sizeof(fl->label));
+			fl->label &= IPV6_FLOWLABEL_MASK;
 			if (fl->label) {
 				struct ip6_flowlabel *lfl;
 				lfl = __fl_lookup(fl->label);
@@ -306,7 +310,7 @@ fl_create(struct in6_flowlabel_req *freq, char *optval, int optlen, int *err_p)
 		msg.msg_control = (void*)(fl->opt+1);
 		flowi.oif = 0;
 
-		err = datagram_send_ctl(&msg, &flowi, fl->opt, &junk);
+		err = datagram_send_ctl(&msg, &flowi, fl->opt, &junk, &junk);
 		if (err)
 			goto done;
 		err = -EINVAL;

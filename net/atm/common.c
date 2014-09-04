@@ -1,3 +1,4 @@
+/* $USAGI: common.c,v 1.4 2001/11/23 17:51:05 yoshfuji Exp $ */
 /* net/atm/common.c - ATM sockets (common part for PVC and SVC) */
 
 /* Written 1995-2000 by Werner Almesberger, EPFL LRC/ICA */
@@ -11,6 +12,10 @@
 #include <linux/atm.h>		/* ATM stuff */
 #include <linux/atmdev.h>
 #include <linux/atmclip.h>	/* CLIP_*ENCAP */
+#ifdef CONFIG_ATM_IPV6
+#include <linux/atmipv6.h>	/* IPv6 over ATM */
+#include <net/atmipv6.h>	/* IPv6 over ATM */
+#endif /* ifdef CONFIG_ATM_IPV6 */
 #include <linux/atmarp.h>	/* manifest constants */
 #include <linux/sonet.h>	/* for ioctls */
 #include <linux/socket.h>	/* SOL_SOCKET */
@@ -137,7 +142,9 @@ void atm_release_vcc_sk(struct sock *sk,int free_sk)
 	struct sk_buff *skb;
 
 	vcc = sk->protinfo.af_atm;
+	DPRINTK("atm_release_vcc_sk(vcc:0x%08x)\n", (unsigned int)vcc);
 	clear_bit(ATM_VF_READY,&vcc->flags);
+	DPRINTK("atm_release_vcc_sk(dev:0x%08x)\n", (unsigned int)vcc->dev);
 	if (vcc->dev) {
 		if (vcc->dev->ops->close) vcc->dev->ops->close(vcc);
 		if (vcc->push) vcc->push(vcc,NULL); /* atmarpd has no push */
@@ -680,6 +687,32 @@ int atm_ioctl(struct socket *sock,unsigned int cmd,unsigned long arg)
 				ret_val = clip_encap(vcc,arg);
 			goto done;
 #endif
+#ifdef CONFIG_ATM_IPV6
+		case SIOCMKP2PPVC:
+			if (!capable(CAP_NET_ADMIN))
+				ret_val = -EPERM;
+			else 
+				ret_val = clip6_create(arg);
+			goto done;
+		case ATMIPV6_MKIPV6:
+			if (!capable(CAP_NET_ADMIN)) 
+				ret_val = -EPERM;
+			else 
+				ret_val = clip6_mkip(vcc,arg);
+			goto done;
+		case ATMIPV6_SETP2P:
+			if (!capable(CAP_NET_ADMIN)) 
+				ret_val = -EPERM;
+			else
+				ret_val = clip6_set_vcc_netif(sock,arg);
+			goto done;
+		case ATMIPV6_ENCAP:
+			if (!capable(CAP_NET_ADMIN)) 
+				ret_val = -EPERM;
+			else
+				ret_val = clip6_encap(vcc,arg);
+			goto done;
+#endif /* ifdef CONFIG_ATM_IPV6 */
 #if defined(CONFIG_ATM_LANE) || defined(CONFIG_ATM_LANE_MODULE)
                 case ATMLEC_CTRL:
                         if (!capable(CAP_NET_ADMIN)) {

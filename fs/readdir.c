@@ -10,6 +10,7 @@
 #include <linux/stat.h>
 #include <linux/file.h>
 #include <linux/smp_lock.h>
+#include <linux/security.h>
 
 #include <asm/uaccess.h>
 
@@ -19,6 +20,10 @@ int vfs_readdir(struct file *file, filldir_t filler, void *buf)
 	int res = -ENOTDIR;
 	if (!file->f_op || !file->f_op->readdir)
 		goto out;
+
+	if ((res = security_file_permission(file, MAY_READ)))
+		goto out;
+
 	down(&inode->i_sem);
 	down(&inode->i_zombie);
 	res = -ENOENT;

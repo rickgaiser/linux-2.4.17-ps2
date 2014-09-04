@@ -11,11 +11,12 @@
 .S.o:
 	$(CC) $(AFLAGS) -c $< -o $@
 
-EXTRA_AFLAGS = -mips3 -mcpu=r4000
-
 all:	kernel.o head.o init_task.o
 
 O_TARGET := kernel.o
+
+export-objs			= irq.o pci-dma.o setup.o smp.o mips_ksyms.o \
+				  old-irq.o
 
 obj-y				+= branch.o process.o signal.o entry.o \
 				   traps.o ptrace.o vm86.o ioport.o reset.o \
@@ -23,24 +24,34 @@ obj-y				+= branch.o process.o signal.o entry.o \
 				   ipc.o scall_o32.o unaligned.o
 obj-$(CONFIG_MODULES)		+= mips_ksyms.o
 
-ifdef CONFIG_CPU_R3000
-obj-y	+= r2300_misc.o r2300_fpu.o r2300_switch.o
-else
-obj-y	+= r4k_misc.o r4k_switch.o 
-ifdef CONFIG_CPU_R6000
-obj-y	+= r6000_fpu.o
-else
-obj-y	+= r4k_fpu.o
-endif
-endif
+obj-$(CONFIG_CPU_R3000)		+= r2300_fpu.o r2300_switch.o
+obj-$(CONFIG_CPU_LX45XXX)	+= r2300_fpu.o r2300_switch.o
+obj-$(CONFIG_CPU_TX39XX)	+= r2300_fpu.o r2300_switch.o
+obj-$(CONFIG_CPU_RC32300)	+= r2300_fpu.o r2300_switch.o
+obj-$(CONFIG_CPU_TX49XX)	+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_R4000)		+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_VR41XX)	+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_R4300)		+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_R4X00)		+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_R5000)		+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_R5432)		+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_R5500)		+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_RM7000)	+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_NEVADA)	+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_R10000)	+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_SB1)		+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_MIPS32)	+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_MIPS64)	+= r4k_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_R6000)		+= r6000_fpu.o r4k_switch.o
+obj-$(CONFIG_CPU_R5900)		+= r5900_fpu.o r5900_switch.o sys_r5900.o
 
 obj-$(CONFIG_SMP)		+= smp.o
 
 # Old style irq support, going to die in 2.5.
-export-objs			+= old-irq.o
 obj-$(CONFIG_NEW_IRQ)		+= irq.o
 obj-$(CONFIG_ROTTEN_IRQ)	+= old-irq.o
 obj-$(CONFIG_I8259)		+= i8259.o
+obj-$(CONFIG_IRQ_CPU)		+= irq_cpu.o
 
 # transition from old time.c to new time.c
 # some boards uses old-time.c, some use time.c, and some use their own ones
@@ -58,6 +69,8 @@ ifdef CONFIG_PCI
 obj-$(CONFIG_NEW_PCI)          += pci.o
 obj-$(CONFIG_PCI_AUTO)         += pci_auto.o
 endif
+
+obj-$(CONFIG_MIPS_STACKTRACE)  += stacktrace.o
 
 entry.o: entry.S
 head.o: head.S

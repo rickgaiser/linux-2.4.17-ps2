@@ -1,0 +1,37 @@
+Subject: Debugging with NMI
+Date: Mon, 12 Jul 1999 11:28:31 -0500
+From: David Grothe <dave@gcom.com>
+Organization: Gcom, Inc
+To: David Grothe <dave@gcom.com>
+
+Kernel hackers:
+
+Maybe this is old hat, but it is new to me --
+
+On an ISA bus machine, if you short out the A1 and B1 pins of an ISA
+slot you will generate an NMI to the CPU.  This interrupts even a
+machine that is hung in a loop with interrupts disabled.  Used in
+conjunction with kgdb <
+ftp://ftp.gcom.com/pub/linux/src/kgdb-2.3.35/kgdb-2.3.35.tgz > you can
+gain debugger control of a machine that is hung in the kernel!  Even
+without kgdb the kernel will print a stack trace so you can find out
+where it was hung.
+
+The A1/B1 pins are directly opposite one another and the farthest pins
+towards the bracket end of the ISA bus socket.  You can stick a paper
+clip or multi-meter probe between them to short them out.
+
+I had a spare ISA bus to PC104 bus adapter around.  The PC104 end of the
+board consists of two rows of wire wrap pins.  So I wired a push button
+between the A1/B1 pins and now have an ISA board that I can stick into
+any ISA bus slot for debugger entry.
+
+Microsoft has a circuit diagram of a PCI card at
+http://www.microsoft.com/hwdev/DEBUGGING/DMPSW.HTM.  If you want to
+build one you will have to mail them and ask for the PAL equations.
+Nobody makes one comercially.
+
+[THIS TIP COMES WITH NO WARRANTY WHATSOEVER.  It works for me, but if
+your machine catches fire, it is your problem, not mine.]
+
+-- Dave (the kgdb guy)

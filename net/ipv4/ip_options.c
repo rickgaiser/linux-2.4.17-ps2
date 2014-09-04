@@ -1,3 +1,5 @@
+/* $USAGI: ip_options.c,v 1.4 2001/09/24 07:38:44 yoshfuji Exp $ */
+
 /*
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
@@ -18,6 +20,7 @@
 #include <linux/icmp.h>
 #include <linux/netdevice.h>
 #include <linux/rtnetlink.h>
+#include <linux/security.h>
 #include <net/sock.h>
 #include <net/ip.h>
 #include <net/icmp.h>
@@ -220,6 +223,8 @@ void ip_options_fragment(struct sk_buff * skb)
 			optptr++;
 			continue;
 		}
+		if (l < 2)
+		  return;
 		optlen = optptr[1];
 		if (optlen<2 || optlen>l)
 		  return;
@@ -277,6 +282,10 @@ int ip_options_compile(struct ip_options * opt, struct sk_buff * skb)
 			l--;
 			optptr++;
 			continue;
+		}
+		if (l < 2) {
+			pp_ptr = optptr;
+			goto error;
 		}
 		optlen = optptr[1];
 		if (optlen<2 || optlen>l) {
@@ -433,7 +442,11 @@ int ip_options_compile(struct ip_options * opt, struct sk_buff * skb)
 				opt->router_alert = optptr - iph;
 			break;
 		      case IPOPT_SEC:
+		      case IPOPT_CIPSO:
 		      case IPOPT_SID:
+		      	if (security_ip_decode_options(skb, optptr, &pp_ptr))
+				goto error;
+			break;
 		      default:
 			if (!skb && !capable(CAP_NET_RAW)) {
 				pp_ptr = optptr;

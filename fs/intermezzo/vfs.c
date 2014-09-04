@@ -55,7 +55,15 @@
 #ifdef CONFIG_FS_EXT_ATTR
 #include <linux/ext_attr.h>
 
-#ifdef CONFIG_FS_POSIX_ACL
+/* 
+ * CONFIG_FS_POSIX_ACL is used by both the XFS and bestbits
+ * acl implementations, although they are not compatible
+ * yet.  This is a temporary workaround, meaning that
+ * intermezzo will not be able to use posix acls supplied
+ * by XFS
+ */
+#if 0 /* Temporary XFS workaround */
+/* #ifdef CONFIG_FS_POSIX_ACL */
 #include <linux/posix_acl.h>
 #endif
 #endif
@@ -317,7 +325,8 @@ int lento_setattr(const char *name, struct iattr *iattr,
         struct dentry *dentry;
         struct presto_file_set *fset;
         int error;
-#ifdef  CONFIG_FS_POSIX_ACL
+#if 0 /* Temporary XFS workaround */
+/* #ifdef CONFIG_FS_POSIX_ACL */
         int (*set_posix_acl)(struct inode *, int type, posix_acl_t *)=NULL;
 #endif
 
@@ -358,7 +367,8 @@ int lento_setattr(const char *name, struct iattr *iattr,
                                  (dentry->d_inode->i_mode & ~S_IALLUGO);
                 CDEBUG(D_PIOCTL, "chmod: orig %#o, set %#o, result %#o\n",
                        dentry->d_inode->i_mode, set_mode, iattr->ia_mode);
-#ifdef CONFIG_FS_POSIX_ACL
+#if 0 /* Temporary XFS workaround */
+/* #ifdef CONFIG_FS_POSIX_ACL */
                 /* ACl code interacts badly with setattr 
                  * since it tries to modify the ACL using 
                  * set_ext_attr which recurses back into presto.  
@@ -378,7 +388,8 @@ int lento_setattr(const char *name, struct iattr *iattr,
 
         error = presto_do_setattr(fset, dentry, iattr, info);
 
-#ifdef CONFIG_FS_POSIX_ACL
+#if 0 /* Temporary XFS workaround */
+/* #ifdef CONFIG_FS_POSIX_ACL */
         /* restore the inode_operations if we changed them*/
         if (iattr->ia_valid & ATTR_MODE) 
                 dentry->d_inode->i_op->set_posix_acl=set_posix_acl;
@@ -2110,7 +2121,8 @@ exit:
 
 #ifdef CONFIG_FS_EXT_ATTR
 
-#ifdef CONFIG_FS_POSIX_ACL
+#if 0 /* Temporary XFS workaround */
+/* #ifdef CONFIG_FS_POSIX_ACL */
 /* Posix ACL code changes i_mode without using a notify_change (or
  * a mark_inode_dirty!). We need to duplicate this at the reintegrator
  * which is done by this function. This function also takes care of 
@@ -2253,7 +2265,8 @@ int presto_do_set_ext_attr(struct presto_file_set *fset,
                 goto exit;
         }
 
-#ifdef CONFIG_FS_POSIX_ACL
+#if 0 /* Temporary XFS workaround */
+/* #ifdef CONFIG_FS_POSIX_ACL */
         /* Reset mode if specified*/
         /* XXX: when we do native acl support, move this code out! */
         if (mode != NULL) {

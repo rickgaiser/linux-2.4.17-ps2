@@ -2,7 +2,7 @@
              Device driver for Interphase ATM PCI adapter cards 
                     Author: Peter Wang  <pwang@iphase.com>            
                    Interphase Corporation  <www.iphase.com>           
-                               Version: 1.0   
+                               Version: 1.2   
                iphase.h:  This is the header file for iphase.c. 
 *******************************************************************************
       

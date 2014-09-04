@@ -1,0 +1,18 @@
+#
+# Security configuration
+#
+mainmenu_option next_comment
+comment 'Security options'
+bool ' Linux Security Modules (LSM) Support' CONFIG_SECURITY
+if [ "$CONFIG_SECURITY" = "y" ]; then 
+   tristate 'Capabilities Support' CONFIG_SECURITY_CAPABILITIES
+   dep_tristate 'LSM port of Openwall (EXPERIMENTAL)' CONFIG_SECURITY_OWLSM $CONFIG_EXPERIMENTAL
+   if [ "$CONFIG_SECURITY_OWLSM" = "y" -o "$CONFIG_SECURITY_OWLSM" = "m" ]; then
+	bool '  Add RLIMITS_NPROC check to execve' CONFIG_OWLSM_RLIMIT_NPROC
+	bool '  Restricted links in /tmp' CONFIG_OWLSM_LINK
+	bool '  Special handling of fd 0, 1, and 2' CONFIG_OWLSM_FD
+   fi
+   source security/lids/Config.in
+   #dep_tristate 'Linux Intrusion Detection System(EXPERIMENTAL)' CONFIG_LIDS $CONFIG_EXPERIMENTAL
+fi
+endmenu

@@ -289,33 +289,22 @@ static char *usb_dump_device_descriptor(char *start, char *end, const struct usb
  */
 static char *usb_dump_device_strings (char *start, char *end, struct usb_device *dev)
 {
-	char *buf;
-
 	if (start > end)
 		return start;
-	buf = kmalloc(128, GFP_KERNEL);
-	if (!buf)
+	if (dev->manufacturer)
+		start += sprintf(start, format_string_manufacturer,
+				 dev->manufacturer);
+	if (start > end)
 		return start;
-	if (dev->descriptor.iManufacturer) {
-		if (usb_string(dev, dev->descriptor.iManufacturer, buf, 128) > 0)
-			start += sprintf(start, format_string_manufacturer, buf);
-	}				
+	if (dev->product)
+		start += sprintf(start, format_string_product, dev->product);
 	if (start > end)
-		goto out;
-	if (dev->descriptor.iProduct) {
-		if (usb_string(dev, dev->descriptor.iProduct, buf, 128) > 0)
-			start += sprintf(start, format_string_product, buf);
-	}
-	if (start > end)
-		goto out;
+		return start;
 #ifdef ALLOW_SERIAL_NUMBER
-	if (dev->descriptor.iSerialNumber) {
-		if (usb_string(dev, dev->descriptor.iSerialNumber, buf, 128) > 0)
-			start += sprintf(start, format_string_serialnumber, buf);
-	}
+	if (dev->serial)
+		start += sprintf(start, format_string_serialnumber,
+				 dev->serial);
 #endif
- out:
-	kfree(buf);
 	return start;
 }
 
@@ -496,7 +485,9 @@ static ssize_t usb_device_read(struct file *file, char *buf, size_t nbytes, loff
 		/* print devices for this bus */
 		bus = list_entry(buslist, struct usb_bus, bus_list);
 		/* recurse through all children of the root hub */
+		down(&bus->dev_tree_sem);
 		ret = usb_device_dump(&buf, &nbytes, &skip_bytes, ppos, bus->root_hub, bus, 0, 0, 0);
+		up(&bus->dev_tree_sem);
 		if (ret < 0)
 			return ret;
 		total_written += ret;

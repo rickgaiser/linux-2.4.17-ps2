@@ -6,11 +6,23 @@
 #ifndef __ASM_ELF_H
 #define __ASM_ELF_H
 
+#include <linux/config.h>
+#include <linux/types.h>
+
 /* ELF register definitions */
+#ifdef CONFIG_CPU_R5900_CONTEXT
+#define ELF_NGREG	46	/* 45 + SA */
+#define ELF_NFPREG	34	/* 33 + FP_ACC */
+#else
 #define ELF_NGREG	45
 #define ELF_NFPREG	33
+#endif
 
+#ifdef CONFIG_CPU_R5900_CONTEXT
+typedef __u128 elf_greg_t;
+#else
 typedef unsigned long elf_greg_t;
+#endif
 typedef elf_greg_t elf_gregset_t[ELF_NGREG];
 
 typedef double elf_fpreg_t;
@@ -20,6 +32,19 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
  * This is used to ensure we don't load something for the wrong architecture
  * and also rejects IRIX binaries.
  */
+#ifdef CONFIG_CPU_R5900
+
+#define elf_check_arch(hdr)						\
+({									\
+	int __res = 1;							\
+	struct elfhdr *__h = (hdr);					\
+									\
+	if (__h->e_machine != EM_MIPS)					\
+		__res = 0;						\
+	__res;								\
+})
+#else
+
 #define elf_check_arch(hdr)						\
 ({									\
 	int __res = 1;							\
@@ -32,6 +57,8 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
 									\
 	__res;								\
 })
+
+#endif
 
 /* This one accepts IRIX binaries.  */
 #define irix_elf_check_arch(hdr)	((hdr)->e_machine == EM_MIPS)
@@ -50,9 +77,11 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
 #define USE_ELF_CORE_DUMP
 #define ELF_EXEC_PAGESIZE	4096
 
+#ifdef __KERNEL__
+extern void mips_dump_regs(elf_greg_t *r, struct pt_regs *regs);
 #define ELF_CORE_COPY_REGS(_dest,_regs)				\
-	memcpy((char *) &_dest, (char *) _regs,			\
-	       sizeof(struct pt_regs));
+	mips_dump_regs(&(_dest)[0], _regs);
+#endif
 
 /* This yields a mask that user programs can use to figure out what
    instruction set this cpu supports.  This could be done in userspace,

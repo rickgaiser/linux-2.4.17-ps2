@@ -25,6 +25,7 @@
 #include <linux/module.h>
 #include <linux/interrupt.h>			/* For in_interrupt() */
 #include <linux/config.h>
+#include <linux/security.h>
 
 #include <asm/uaccess.h>
 
@@ -167,6 +168,9 @@ int do_syslog(int type, char * buf, int len)
 	int do_clear = 0;
 	char c;
 	int error = 0;
+
+	if ((error = security_syslog(type)))
+		return error;
 
 	switch (type) {
 	case 0:		/* Close log */
@@ -429,6 +433,13 @@ asmlinkage int printk(const char *fmt, ...)
 	 * appropriate log level tags, we insert them here
 	 */
 	for (p = printk_buf; *p; p++) {
+#if 0
+#if defined(CONFIG_DRAGONBALL_SNSC_MPU110) || defined(CONFIG_DRAGONBALL_SCALLOP) || defined(CONFIG_DRAGONBALL_NWRM) || defined(CONFIG_DRAGONBALL_EBOOK)
+            uart2_putc(*p);
+#else defined (CONFIG_DRAGONBALL_DICKTRACY)
+            uart1_putc(*p);
+#endif
+#endif
 		if (log_level_unknown) {
 			if (p[0] != '<' || p[1] < '0' || p[1] > '7' || p[2] != '>') {
 				emit_log_char('<');

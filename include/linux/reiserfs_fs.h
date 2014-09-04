@@ -236,9 +236,9 @@ typedef union {
     __u64 linear;
 } __attribute__ ((__packed__)) offset_v2_esafe_overlay;
 
-static inline __u16 offset_v2_k_type( struct offset_v2 *v2 )
+static inline __u16 offset_v2_k_type( const struct offset_v2 *v2 )
 {
-    offset_v2_esafe_overlay tmp = *(offset_v2_esafe_overlay *)v2;
+    offset_v2_esafe_overlay tmp = *(const offset_v2_esafe_overlay *)v2;
     tmp.linear = le64_to_cpu( tmp.linear );
     return tmp.offset_v2.k_type;
 }
@@ -251,9 +251,9 @@ static inline void set_offset_v2_k_type( struct offset_v2 *v2, int type )
     tmp->linear = le64_to_cpu(tmp->linear);
 }
  
-static inline loff_t offset_v2_k_offset( struct offset_v2 *v2 )
+static inline loff_t offset_v2_k_offset( const struct offset_v2 *v2 )
 {
-    offset_v2_esafe_overlay tmp = *(offset_v2_esafe_overlay *)v2;
+    offset_v2_esafe_overlay tmp = *(const offset_v2_esafe_overlay *)v2;
     tmp.linear = le64_to_cpu( tmp.linear );
     return tmp.offset_v2.k_offset;
 }
@@ -846,8 +846,8 @@ struct reiserfs_de_head
 #define DEH_Statdata 0			/* not used now */
 #define DEH_Visible 2
 
-/* 64 bit systems (and the S/390) need to be aligned explicitly -jdm */
-#if BITS_PER_LONG == 64 || defined(__s390__) || defined(__hppa__)
+/* 64 bit systems (and S/390,HPPA,MIPS) need to be aligned explicitly -jdm */
+#if BITS_PER_LONG == 64 || defined(__s390__) || defined(__hppa__) || defined(__mips__)
 #   define ADDR_UNALIGNED_BITS  (3)
 #endif
 

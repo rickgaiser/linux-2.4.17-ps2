@@ -513,7 +513,9 @@ int dn_neigh_elist(struct net_device *dev, unsigned char *ptr, int n)
 				continue;
 			dn_dn2eth(rs, dn->addr);
 			rs += 6;
+			read_lock(&neigh->lock);
 			*rs = neigh->nud_state & NUD_CONNECTED ? 0x80 : 0x0;
+			read_unlock(&neigh->lock);
 			*rs |= dn->priority;
 			rs++;
 		}

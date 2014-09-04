@@ -287,7 +287,11 @@ int ide_config_drive_speed (ide_drive_t *drive, byte speed)
 
 #if defined(CONFIG_BLK_DEV_IDEDMA) && !defined(CONFIG_DMA_NONPCI)
 	byte unit = (drive->select.b.unit & 0x01);
-	outb(inb(hwif->dma_base+2) & ~(1<<(5+unit)), hwif->dma_base+2);
+	/* Some interfaces would like to use this routine, but don"t have this
+	 * kind of DMA engine. --BenH.
+	 */
+	if (hwif->dma_base)
+		outb(inb(hwif->dma_base+2) & ~(1<<(5+unit)), hwif->dma_base+2);
 #endif /* (CONFIG_BLK_DEV_IDEDMA) && !(CONFIG_DMA_NONPCI) */
 
 	/*
@@ -356,10 +360,15 @@ int ide_config_drive_speed (ide_drive_t *drive, byte speed)
 	drive->id->dma_1word &= ~0x0F00;
 
 #if defined(CONFIG_BLK_DEV_IDEDMA) && !defined(CONFIG_DMA_NONPCI)
-	if (speed > XFER_PIO_4) {
-		outb(inb(hwif->dma_base+2)|(1<<(5+unit)), hwif->dma_base+2);
-	} else {
-		outb(inb(hwif->dma_base+2) & ~(1<<(5+unit)), hwif->dma_base+2);
+	/* Some interfaces would like to use this routine, but don"t have this
+	 * kind of DMA engine. --BenH.
+	 */
+	if (hwif->dma_base) {
+		if (speed > XFER_PIO_4) {
+			outb(inb(hwif->dma_base+2)|(1<<(5+unit)), hwif->dma_base+2);
+		} else {
+			outb(inb(hwif->dma_base+2) & ~(1<<(5+unit)), hwif->dma_base+2);
+		}
 	}
 #endif /* (CONFIG_BLK_DEV_IDEDMA) && !(CONFIG_DMA_NONPCI) */
 

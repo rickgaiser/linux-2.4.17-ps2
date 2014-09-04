@@ -18,9 +18,11 @@
 #define RTC_MINOR 135
 #define EFI_RTC_MINOR		136	/* EFI Time services */
 #define SUN_OPENPROM_MINOR 139
+#define DMAPI_MINOR		140	/* DMAPI */
 #define NVRAM_MINOR 144
 #define I2O_MINOR 166
 #define MICROCODE_MINOR		184
+#define GPIO_MINOR             185  
 #define MWAVE_MINOR	219		/* ACP/Mwave Modem */
 #define MPT_MINOR	220
 #define MISC_DYNAMIC_MINOR 255

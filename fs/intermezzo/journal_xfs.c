@@ -15,6 +15,8 @@
 #include <asm/segment.h>
 #include <asm/uaccess.h>
 #include <linux/string.h>
+#if 0
+/* XFS support not there yet... */
 #ifdef CONFIG_FS_XFS
 #include <linux/xfs_fs.h>
 #endif
@@ -133,5 +135,5 @@ struct journal_ops presto_xfs_journal_ops = {
 };
 
 #endif /* CONFIG_XFS_FS */
-
+#endif /* 0 */
 

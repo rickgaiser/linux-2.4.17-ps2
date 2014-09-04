@@ -1,0 +1,293 @@
+Intel 810/815 Framebuffer driver
+ 	Tony Daplas <adaplas@pol.net>
+	http://i810fb.sourceforge.net
+
+	March 17, 2002
+
+	First Released: July 2001
+================================================================
+
+A. Introduction
+	This is a framebuffer driver for various Intel 810/815 compatible
+graphics devices.  These would include:
+
+	Intel 810
+	Intel 810E
+	Intel 810-DC100
+	Intel 815 Internal graphics only, 100Mhz FSB
+	Intel 815 Internal graphics only
+	Intel 815 Internal graphics and AGP
+
+B.  Problems in writing a framebuffer driver for the Intel 810/815 chipsets.
+
+	First and foremost, these chipsets do not have dedicated video
+memory.  They do have a reserved logical space for graphics memory (up to
+64MB), but this space is empty.  For this space to become usable at all,
+pages of System RAM must be mapped to this space.  However, as with all
+video memory, the space must appear linear to anybody trying to access the
+graphics device.  That's where GART comes in.  GART (which stands for
+Graphics Address Relocation Table) or GTT (Graphics Translation Table) as
+Intel(c) calls it, basically does all the memory address juggling acts such
+that this logical space becomes functional as linear graphics memory.
+
+	Besides this 64MB logical space, the i810/i815 chipsets can access
+"stolen memory" of up to 1 MB.  This memory is typically used for VGA, but
+because this memory is banked, you cannot access more than 16KB at a time
+without some form of bank switching. 
+
+	In the end, some form of GART service must exist in order for the
+i810/i815 to become usable at high resolutions.  For kernels 2.2.19 and
+above, such an entity exists, agpgart written by Jeff Hartmann.
+
+	The present agpgart kernel module currently supports only one user
+at a time.  As we probably all know, the primary user of this module is
+xfree86, whether directly or via the Direct Rendering Manager (DRM).  It is
+relatively easy to write a framebuffer device for the i810/i815, making it
+co-exist with other users of agpgart (like X), is the most difficult part.   
+
+	So how do we approach this problem:
+
+	a.  Use VGA.
+
+	A framebuffer driver already exists for this, VGA16.  However, since
+you can only access 16KB at a time, you will be limited to 640x480 at 8bpp. 
+Most people will not be satisfied with this.
+
+	b.  Use the entire "stolen memory"
+
+	Stolen memory is actually a good idea.  You'll be able to access 1
+MB of memory, enough for 1024x768 at 8bpp or 800x600 at 16bpp.  The downside
+is, the coder must be patient enough to write code for banked switching,
+else, you'll be stuck with 16KB.  (And I do know of someone who successfully
+wrote banked switching for the i810).
+
+	Another downside is lack of accelerated support.  Overall, this is
+the safest option, since it will leave X with exclusive access to agpgart.
+
+	c.  Use customized AGPGART codes.
+
+	This was the first approach of the early versions of the driver.  At
+first glance, this seems to be the correct technique, but actually it isn't. 
+Even though the driver will be able to have it's own AGP memory, at some
+point down the hardware level, contention of critical hardware registers
+cannot be avoided.  Therefore, the framebufer driver must be careful in
+saving and restoring the register states each time X, or any agpgart
+requiring applcation becomes active. This is actually more complicated than
+it sounds.
+
+	d.  Allow AGPGART memory sharing
+
+	I consider this the best method and there are two techniques.  The
+first technique is to have Xfree86 communicate with the kernel framebuffer
+driver whenever it needs to acquire or release agpgart.  This is how the
+current i810/i815 driver works.  Whenever X becomes active, it tells the
+framebuffer driver to release the device, and when X becomes inactive or
+exits, it tells the driver that it can reacquire the device.  The solution
+is simple, and we avoid a lot of hacks/workarounds and code bloat.
+
+	Another novel idea is to make AGP memory shareable.  Shareable means
+it becomes like any other graphics device.  In a few words, more than one
+application will be able to use the same memory space that another
+application is already using.  The very distinct advantage of this method is
+that we save a lot of RAM.  Since the current agpgart does not allow more
+than one user at a time, if an application needs 8 MB of video RAM, and
+another requires another 8MB, then agpgart will allocate a total of 16MB. 
+However, if the AGP memory is shareable, agpgart needs to only allocate 8MB
+of RAM and then let both applications share the same memory block.
+
+C.  Features
+
+	- Supports a range of horizontal resolutions from 640 to 1600 in
+	  multiples of 8 if "NonStandard Video Modes" is enabled.
+        - Supports color depths of 8, 16, 24 and 32 bits per pixel
+        - Supports accelerated (8, 16 and 24 bpp only) and unaccelerated modes
+        - MTRR support 
+	- Utilizes monitor specifications to automatically compute modelines
+	- Can coexist with xfree86 running with native i810 drivers under certain
+	  precautions
+	- hardware cursor support
+	- hardware y-panning support
+	- Supports tiled memory
+	- Resource Manager and Instruction Buffer interface
+ 	- Variable Display Aspect Ratio 
+	- Console Display Rotation
+ 
+E.  Kernel boot parameters
+	
+   a. "video=i810fb"  
+	enables the i810 driver
+ 
+   b. "xres=<value>"  
+	horizontal resolution in pixels 
+	(default = 640)
+
+   c. "yres=<value>"
+	vertical resolution in scanlines. Computed as 3*xres/4.  If 
+	VESA GTF is enabled, this must be specified as well.
+	(default = 480)
+		
+   d. "vyres=<value>" 
+	virtual vertical resolution in scanlines. If greater than "yres",
+	hardware y-panning will be automatically enabled. 
+	(default = 480)
+
+   e. "vram=<value>"
+	amount of system RAM in MB to allocate for the device 
+	(default = 4)
+
+   f. "bpp=<value>"   
+	bits per pixel 
+	(default = 8)
+
+   g. "hsync1/hsync2=<value>" 
+	the minimum and maximum Horizontal Sync Frequency of the monitor KHz
+	hsync1 must be equal to hsync2 if a fixed frequency monitor is to be
+	used.
+	default (30/31)
+
+   h. "vsync1/vsync2=<value>" 
+	the minimum and maximum Vertical Sync Frequency of the monitor in Hz
+	You can also use this to fix/limit the refresh rate of your monitor. 
+	So, if you need fix the refresh rate at 60Hz (no more, no less),
+	then set vsync1=60 and vsync2=60.  (default = 60/60)
+
+   i. "accel" 
+	enable text acceleration 
+	(default = not set) 
+
+   j. "mtrr" 
+	enable MTRR.  This allows data transfers to the framebuffer memory
+	to occur in bursts which can significantly increase performance. 
+	(default = not set) 
+   k. "hwcur"
+	enable hardware cursor 
+	(default = not set)
+
+   l. "extvga"
+	enables secondary/external VGA output 
+	(default = not set)
+	
+   m. "sync_on_pan" 
+ 	Forces display refresh during vsync only.  This may be useful if
+	display panning causes the display to flicker.  Enabling this option
+	will limit the flicker.	(default = not set)
+
+   n. "sync" 
+	Forces the hardware engine to do a "sync" for each accelerated
+	function.  This will produce a more stable setup, but will be slower.	
+	(default = not set)
+
+   o. "render=<value>"
+	This forces the framebuffer memory to be aligned at "value"
+	multiplied by 1024.  At the same time, "memory tiling" will be
+	enabled. Memory tiling is a method to localize graphics data which
+	speeds up hardware access to surface data.  This might be useful for
+	high-bandwidth modes (3D, Video, or just plain high resolution, high
+	bit depth modes).  
+	(default = not set)
+
+   p. "rotate=<value>"
+	This will rotate console display.  "rotate=0" = no rotation;
+	"rotate=1" = rotate to the right; "rotate=2" = rotate 180 degrees;
+	and "rotate=3" = rotate to the left.  Prerequisite: "accel" must be
+	enabled, swap xres value with yres if displaye is rotated by 90
+	degrees.  
+	(default = no rotation)
+		
+##############
+Sample Usage
+##############
+
+In /etc/lilo.conf, add the line:
+
+append="video=i810fb:vram=2:xres=1024:bpp=16:hsync1=30:hsync2=55:vsync1=50:vsync2=85:accel:mtrr"
+
+This will initialize the framebuffer to 1024x768 @ 16bpp.  The framebuffer
+will use 2 MB of System RAM. MTRR support is enabled. The refresh rate will
+be computed based on the hsync1/hsync2 and vsync1/vsync2 values.  REMEMBER:
+you need to include hsync1, hsync2, vsync1 and vsync2 to enable video modes
+better than 640x480 at 60Hz.
+
+G.  Module options
+	
+	The module parameters are essentially similar to kernel parameters. 
+The main difference is that you need to include a Boolean value (1 for TRUE,
+and 0 for FALSE) for those options that does have an assignment.  Example,
+to enable MTRR, include "mtrr=1".
+
+##############
+Sample Usage
+#############
+Using the same setup as described above, load the module like this:
+
+	modprobe i810fb vram=2 xres=1024 bpp=16 hsync1=30 hsync2=55 vsync1=50 vsync2=85 accel=1 mtrr=1
+
+Or just add the following to /etc/modules.conf
+
+	options i810fb vram=2 xres=1024 bpp=16 hsync1=30 hsync2=55 vsync1=50 \
+	vsync2=85 accel=1 mtrr=1
+
+and just do a 
+
+	modprobe i810fb
+
+
+H.  Compilation
+
+  	a.  Get the kernel patches from http://www.sourceforge.net/projects/i810fb.  
+
+	b.  Apply the patch.  Each patch has a version number and the kernel
+version number that has to be patched.  Thus i810fb-2.4.17-0.0.10 will patch
+linux-2.4.17 to add i810 framebuffer support version 0.0.10.
+
+	Assuming your kernel tree is in /usr/src/linux
+
+	cd /usr/src
+	bzip2 -dc /patch/location/patch-i810fb-2.4.17-0.0.10.bz2 | patch -p0
+
+	c.  Configuring the kernel.
+
+ 	Agpgart support is REQUIRED.  How support for the i810 will be added
+depends on how you enabled agpgart. Then just enable i810 Framebuffer
+support in Console->Video->Framebuffer.  If you want to experiment with
+nonstandard modes (like 936x702 at 72 Hz for instance), enable "NonStandard
+Intel Video Timings".  
+  
+	d.  Recompile the kernel as usual.
+	  	
+	e.  In order to use X with the i810/i815 framebuffer driver, you
+must get the patched i810 driver from the Sourceforge site.  Just copy the
+file i810_drv.o to /usr/X11R6/lib/modules/drivers. 
+
+	If you want to do it the hard way by recompiling X, then:
+
+	- Grab the XFree86-4.1 source from http://www.xfree86.org
+	- Untar the package somewhere
+	- cd xc/programs/Xserver/hw/xfree86/drivers
+	- bzip2 -dc patch-xc410-i810fb.bz2 | patch -p0
+	- recompile X
+
+J.  Acknowledgment:
+	
+	1.  Geert Uytterhoeven - his excellent howto and the virtual
+framebuffer driver code makes this possible.
+
+	2.  Jeff Hartmann for his agpgart code.  
+
+	3.  The X developers.  Providing X with a means for a save and
+restore greatly decreased the difficulty in coding.
+
+	4.  Intel(c).  For this value-oriented chipset driver and for
+providing documentation.
+
+	5. Matt Sottek.  His inputs and ideas  helped in making some
+	optimizations possible.
+
+K.  Home Page:
+
+	A more complete, and probably updated information is provided at
+http://i810fb.sourceforge.net.
+
+###########################
+Tony
+

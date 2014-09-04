@@ -65,5 +65,15 @@ static __inline__ int ipsec_sk_policy(struct sock *sk, struct sk_buff *skb)
 }
 #endif /* CONFIG */
 
+#ifdef CONFIG_SYSCTL
+extern  int sysctl_ipsec_replay_window;
+#ifdef CONFIG_IPSEC_DEBUG
+extern  int sysctl_ipsec_debug_ipv6;
+extern  int sysctl_ipsec_debug_pfkey;
+extern  int sysctl_ipsec_debug_sadb;
+extern  int sysctl_ipsec_debug_spd;
+#endif /* CONFIG_IPSEC_DEBUG */
+#endif /* CONFIG_SYSCTL */
+
 #endif	/* __KERNEL__ */
 #endif	/* _LINUX_IPSEC_H */

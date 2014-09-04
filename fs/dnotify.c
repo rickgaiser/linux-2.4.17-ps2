@@ -19,6 +19,7 @@
 #include <linux/init.h>
 #include <linux/spinlock.h>
 #include <linux/slab.h>
+#include <linux/security.h>
 
 extern void send_sigio(struct fown_struct *fown, int fd, int band);
 
@@ -45,6 +46,7 @@ int fcntl_dirnotify(int fd, struct file *filp, unsigned long arg)
 	struct dnotify_struct **prev;
 	struct inode *inode;
 	int turning_off = (arg & ~DN_MULTISHOT) == 0;
+	int error = 0;
 
 	if (!turning_off && !dir_notify_enable)
 		return -EINVAL;
@@ -75,6 +77,8 @@ int fcntl_dirnotify(int fd, struct file *filp, unsigned long arg)
 	}
 	if (turning_off)
 		goto out;
+	if ((error = security_file_set_fowner(filp)))
+		goto out_free;
 	filp->f_owner.pid = current->pid;
 	filp->f_owner.uid = current->uid;
 	filp->f_owner.euid = current->euid;
@@ -87,7 +91,7 @@ int fcntl_dirnotify(int fd, struct file *filp, unsigned long arg)
 	inode->i_dnotify = dn;
 out:
 	write_unlock(&dn_lock);
-	return 0;
+	return error;
 out_free:
 	kmem_cache_free(dn_cache, dn);
 	goto out;

@@ -1,0 +1,23 @@
+dir.o: dir.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/efs_fs.h
+file.o: file.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/efs_fs.h
+inode.o: inode.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/efs_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/efs_fs_sb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h
+namei.o: namei.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/efs_fs.h
+super.o: super.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/efs_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/efs_vh.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/efs_fs_sb.h
+symlink.o: symlink.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/efs_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/pagemap.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h

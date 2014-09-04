@@ -3860,10 +3860,12 @@ int r;
                              &s->sub.trees.tb, z);
       if (t != Z_OK)
       {
-        ZFREE(z, s->sub.trees.blens);
         r = t;
         if (r == Z_DATA_ERROR)
+        {
+          ZFREE(z, s->sub.trees.blens);
           s->mode = BADB;
+        }
         LEAVE
       }
       s->sub.trees.index = 0;

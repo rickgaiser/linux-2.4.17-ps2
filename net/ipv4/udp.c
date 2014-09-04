@@ -1,3 +1,5 @@
+/* $USAGI: udp.c,v 1.45 2002/02/27 12:12:58 yoshfuji Exp $ */
+
 /*
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
@@ -61,6 +63,16 @@
  *					return ENOTCONN for unconnected sockets (POSIX)
  *		Janos Farkas	:	don't deliver multi/broadcasts to a different
  *					bound-to-device socket
+ *		yoshfuji@USAGI	:	Reworked bind(2) behavior, including:
+ *					- Allow ipv6 and ipv4 bind(2) to the
+ *					  same port.
+ *					- Don't allow narrow binding unless
+ *					  later uid is the same as before:
+ *					  CONFIG_NET_MODERATE_REUSE
+ *					- Don't allow binding to the same
+ *					  address unless it is one of multi-
+ *					  cast address even if SO_REUSEADDR 
+ *					  is set.
  *
  *
  *		This program is free software; you can redistribute it and/or
@@ -85,6 +97,7 @@
 #include <linux/netdevice.h>
 #include <net/snmp.h>
 #include <net/ip.h>
+#include <net/ipv6.h>
 #include <net/protocol.h>
 #include <linux/skbuff.h>
 #include <net/sock.h>
@@ -153,18 +166,121 @@ gotit:
 		udp_port_rover = snum = result;
 	} else {
 		struct sock *sk2;
+		int sk_reuse, sk2_reuse;
+		int addr_type2;
+#if defined(CONFIG_NET_MODERATE_REUSE) || defined(CONFIG_IPV6_MODERATE_DOUBLE_BIND)
+		uid_t sk_uid = sock_i_uid_t(sk),
+		      sk2_uid;
+#endif
+
+		sk_reuse = 0;
+#ifdef SO_REUSEPORT
+		if (sk->reuseport)
+			sk_reuse |= 2;
+#endif
+		if (sk->reuse)
+			sk_reuse |= MULTICAST(sk->rcv_saddr) ? 3 : 1;
 
 		for (sk2 = udp_hash[snum & (UDP_HTABLE_SIZE - 1)];
 		     sk2 != NULL;
 		     sk2 = sk2->next) {
-			if (sk2->num == snum &&
-			    sk2 != sk &&
-			    sk2->bound_dev_if == sk->bound_dev_if &&
-			    (!sk2->rcv_saddr ||
-			     !sk->rcv_saddr ||
-			     sk2->rcv_saddr == sk->rcv_saddr) &&
-			    (!sk2->reuse || !sk->reuse))
-				goto fail;
+#if defined(CONFIG_NET_MODERATE_REUSE) || defined(CONFIG_IPV6_MODERATE_DOUBLE_BIND)
+			int uid_ok;
+#endif
+			int both_specified = 0;
+
+			if (sk2->num != snum ||
+			    sk2 == sk ||
+			    (sk2->bound_dev_if && sk->bound_dev_if &&
+			     sk2->bound_dev_if != sk->bound_dev_if))
+				continue;
+#if 0
+			if (sk2->family != AF_INET6 && sk2->family != AF_INET)
+				continue;
+#endif
+
+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+			if (sk2->family == AF_INET6) {
+				if (IN6_IS_ADDR_UNSPECIFIED(&sk2->net_pinfo.af_inet6.rcv_saddr))
+					addr_type2 = IPV6_ADDR_ANY;
+				else if (IN6_IS_ADDR_V4MAPPED(&sk2->net_pinfo.af_inet6.rcv_saddr))
+					addr_type2 = IPV6_ADDR_MAPPED;
+				else
+					addr_type2 = IPV6_ADDR_UNICAST;	/*XXX*/
+			} else
+				addr_type2 = IPV6_ADDR_MAPPED;
+#else
+			addr_type2 = IPV6_ADDR_MAPPED;
+#endif
+#if defined(CONFIG_NET_MODERATE_REUSE) || defined(CONFIG_IPV6_MODERATE_DOUBLE_BIND)
+			sk2_uid = sock_i_uid_t(sk2);
+#endif
+
+			if ((addr_type2 != IPV6_ADDR_MAPPED ? addr_type2 != IPV6_ADDR_ANY : sk2->rcv_saddr) &&
+			    sk->rcv_saddr) {
+				if (sk2->rcv_saddr != sk->rcv_saddr)
+					continue;
+				both_specified = 1;
+			}
+
+#if defined(CONFIG_NET_MODERATE_REUSE) || defined(CONFIG_IPV6_MODERATE_DOUBLE_BIND)
+			uid_ok = sk2_uid == (uid_t) -1 || sk_uid == sk2_uid;
+#endif
+
+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+			if (addr_type2 != IPV6_ADDR_MAPPED && sk2->net_pinfo.af_inet6.ipv6only) {
+#ifdef CONFIG_IPV6_MODERATE_DOUBLE_BIND
+				if (uid_ok)
+					continue;
+#else
+				continue;
+#endif
+			}
+#endif
+
+			sk2_reuse = 0;
+#ifdef SO_REUSEPORT
+			if (sk2->reuseport)
+				sk2_reuse |= 2;
+#endif
+			if (sk2->reuse)
+				sk2_reuse |= addr_type2 != IPV6_ADDR_MAPPED ?
+						((addr_type2 & IPV6_ADDR_MULTICAST) ? 3 : 1) :
+						(MULTICAST(sk2->rcv_saddr) ? 3 : 1);
+
+			if (sk2_reuse & sk_reuse) {	/* NOT && */
+#ifdef CONFIG_NET_MODERATE_REUSE
+				if (!uid_ok)
+					goto fail;
+#endif
+				if (sk2_reuse & sk_reuse & 2) {
+					continue;
+				} else {
+					if (both_specified) {
+						int addr_type2d;
+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+						if (sk2->family == AF_INET6) {
+							if (IN6_IS_ADDR_UNSPECIFIED(&sk2->net_pinfo.af_inet6.daddr))
+								addr_type2d = IPV6_ADDR_ANY;
+							else if (IN6_IS_ADDR_V4MAPPED(&sk2->net_pinfo.af_inet6.daddr))
+								addr_type2d = IPV6_ADDR_MAPPED;
+							else
+								addr_type2d = IPV6_ADDR_UNICAST; /*XXX*/
+						} else
+							addr_type2d = IPV6_ADDR_MAPPED;
+#else
+						addr_type2d = IPV6_ADDR_MAPPED;
+#endif
+						if (addr_type2d != IPV6_ADDR_MAPPED ? addr_type2d != IPV6_ADDR_ANY : sk2->daddr)
+							continue;
+					} else {
+						if ((addr_type2 != IPV6_ADDR_MAPPED ? addr_type2 != IPV6_ADDR_ANY : sk2->rcv_saddr) ||
+						    sk->rcv_saddr)
+							continue;
+					}
+				}
+			}
+			goto fail;
 		}
 	}
 	sk->num = snum;
@@ -213,31 +329,42 @@ struct sock *udp_v4_lookup_longway(u32 saddr, u16 sport, u32 daddr, u16 dport, i
 	struct sock *sk, *result = NULL;
 	unsigned short hnum = ntohs(dport);
 	int badness = -1;
+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+	static const int maxscore = 9;
+#else
+	static const int maxscore = 8;
+#endif
 
 	for(sk = udp_hash[hnum & (UDP_HTABLE_SIZE - 1)]; sk != NULL; sk = sk->next) {
 		if(sk->num == hnum) {
 			int score = 0;
+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+			if(sk->family == PF_INET)
+				score++;
+			else if (sk->net_pinfo.af_inet6.ipv6only)
+				continue;
+#endif
 			if(sk->rcv_saddr) {
 				if(sk->rcv_saddr != daddr)
 					continue;
-				score++;
+				score+=2;
 			}
 			if(sk->daddr) {
 				if(sk->daddr != saddr)
 					continue;
-				score++;
+				score+=2;
 			}
 			if(sk->dport) {
 				if(sk->dport != sport)
 					continue;
-				score++;
+				score+=2;
 			}
 			if(sk->bound_dev_if) {
 				if(sk->bound_dev_if != dif)
 					continue;
-				score++;
+				score+=2;
 			}
-			if(score == 4) {
+			if(score == maxscore) {
 				result = sk;
 				break;
 			} else if(score > badness) {

@@ -1,3 +1,5 @@
+/* $USAGI: sockets.c,v 1.4 2000/11/01 06:12:59 yoshfuji Exp $ */
+
 /*
 
 kHTTPd -- the next generation
@@ -42,14 +44,22 @@ struct socket *MainSocket=NULL;
 int StartListening(const int Port)
 {
 	struct socket *sock;
+#ifdef CONFIG_KHTTPD_IPV6
+	struct sockaddr_in6 sin;
+#else
 	struct sockaddr_in sin;
+#endif
 	int error;
 	
 	EnterFunction("StartListening");
 	
 	/* First create a socket */
 	
+#ifdef CONFIG_KHTTPD_IPV6
+	error = sock_create(PF_INET6,SOCK_STREAM,IPPROTO_TCP,&sock);
+#else
 	error = sock_create(PF_INET,SOCK_STREAM,IPPROTO_TCP,&sock);
+#endif
 	if (error<0) 
 	     (void)printk(KERN_ERR "Error during creation of socket; terminating\n");
 
@@ -57,9 +67,15 @@ int StartListening(const int Port)
 
 	/* Now bind the socket */
 	
+#ifdef CONFIG_KHTTPD_IPV6
+	memset(&sin, 0, sizeof(sin));
+	sin.sin6_family      = AF_INET6;
+	sin.sin6_port        = htons((unsigned short)Port);
+#else
 	sin.sin_family	     = AF_INET;
 	sin.sin_addr.s_addr  = INADDR_ANY;
 	sin.sin_port         = htons((unsigned short)Port);
+#endif
 	
 	error = sock->ops->bind(sock,(struct sockaddr*)&sin,sizeof(sin));
 	if (error<0)

@@ -37,6 +37,7 @@
 #include <linux/nfs_fs.h>
 #include <linux/nfs_fs_sb.h>
 #include <linux/nfs_mount.h>
+#include <linux/security.h>
 
 #include <linux/kmod.h>
 #define __NO_VERSION__
@@ -282,8 +283,10 @@ extern int graft_tree(struct vfsmount *mnt, struct nameidata *nd);
 static inline void __put_super(struct super_block *sb)
 {
 	spin_lock(&sb_lock);
-	if (!--sb->s_count)
+	if (!--sb->s_count) {
+		security_sb_free(sb);
 		kfree(sb);
+	}
 	spin_unlock(&sb_lock);
 }
 
@@ -424,6 +427,11 @@ static struct super_block *alloc_super(void)
 	struct super_block *s = kmalloc(sizeof(struct super_block),  GFP_USER);
 	if (s) {
 		memset(s, 0, sizeof(struct super_block));
+		if (security_sb_alloc(s)) {
+			kfree(s);
+			s = NULL;
+			goto out;
+		}
 		INIT_LIST_HEAD(&s->s_dirty);
 		INIT_LIST_HEAD(&s->s_locked_inodes);
 		INIT_LIST_HEAD(&s->s_files);
@@ -437,7 +445,9 @@ static struct super_block *alloc_super(void)
 		sema_init(&s->s_dquot.dqio_sem, 1);
 		sema_init(&s->s_dquot.dqoff_sem, 1);
 		s->s_maxbytes = MAX_NON_LFS;
+		s->s_qop = sb_generic_quota_ops;
 	}
+out:
 	return s;
 }
 
@@ -1076,9 +1086,9 @@ attach_it:
 	root_nd.mnt = root_vfsmnt;
 	root_nd.dentry = root_vfsmnt->mnt_sb->s_root;
 	graft_tree(vfsmnt, &root_nd);
-
 	set_fs_root(current->fs, vfsmnt, vfsmnt->mnt_root);
 	set_fs_pwd(current->fs, vfsmnt, vfsmnt->mnt_root);
+	security_sb_post_mountroot();
 
 	mntput(vfsmnt);
 }

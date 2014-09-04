@@ -26,10 +26,6 @@ static int freebird_pcmcia_init(struct pcmcia_init *init){
   mdelay(100);
   LINKUP_PRC = 0xc0;
 
-  /* All those are inputs */
-  ////GPDR &= ~(GPIO_CF_CD | GPIO_CF_BVD2 | GPIO_CF_BVD1 | GPIO_CF_IRQ);
-  GPDR &= ~(GPIO_FREEBIRD_CF_CD | GPIO_FREEBIRD_CF_IRQ | GPIO_FREEBIRD_CF_BVD);
-
   /* Set transition detect */
   //set_GPIO_IRQ_edge( GPIO_CF_CD|GPIO_CF_BVD2|GPIO_CF_BVD1, GPIO_BOTH_EDGES );
   //set_GPIO_IRQ_edge( GPIO_CF_IRQ, GPIO_FALLING_EDGE );

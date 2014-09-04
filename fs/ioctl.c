@@ -7,6 +7,9 @@
 #include <linux/mm.h>
 #include <linux/smp_lock.h>
 #include <linux/file.h>
+#include <linux/security.h>
+
+#include <linux/trace.h>
 
 #include <asm/uaccess.h>
 #include <asm/ioctls.h>
@@ -56,6 +59,16 @@ asmlinkage long sys_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg)
 	if (!filp)
 		goto out;
 	error = 0;
+
+	if ((error = security_file_ioctl(filp, cmd, arg))) {
+		fput(filp);
+		goto out;
+	}
+
+	TRACE_FILE_SYSTEM(TRACE_EV_FILE_SYSTEM_IOCTL,
+			  fd,
+			  cmd,
+			  NULL);
 	lock_kernel();
 	switch (cmd) {
 		case FIOCLEX:
@@ -101,6 +114,16 @@ asmlinkage long sys_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg)
 				filp->f_flags &= ~FASYNC;
 			break;
 
+		case FIOQSIZE:
+			if (S_ISDIR(filp->f_dentry->d_inode->i_mode) ||
+			    S_ISREG(filp->f_dentry->d_inode->i_mode) ||
+			    S_ISLNK(filp->f_dentry->d_inode->i_mode)) {
+				loff_t res = inode_get_bytes(filp->f_dentry->d_inode);
+				error = copy_to_user((loff_t *)arg, &res, sizeof(res)) ? -EFAULT : 0;
+			}
+			else
+				error = -ENOTTY;
+			break;
 		default:
 			error = -ENOTTY;
 			if (S_ISREG(filp->f_dentry->d_inode->i_mode))

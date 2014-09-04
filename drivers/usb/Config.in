@@ -4,7 +4,18 @@
 mainmenu_option next_comment
 comment 'USB support'
 
-dep_tristate 'Support for USB' CONFIG_USB $CONFIG_PCI
+# ARM SA1111 chips have a non-PCI based "OHCI-compatible" USB host interface.
+# MPC850/MPC823 processors also have a non-PCI USB controller.
+# "PlayStaion 2" have a non-PCI based "OHCI-compatible" USB host interface.
+if [ "$CONFIG_PCI" = "y" -o "$CONFIG_SA1111" = "y" \
+	-o "$CONFIG_SNSC_MPU200" = "y" \
+	-o "$CONFIG_PS2" = "y" \
+	-o "$CONFIG_8xx" = "y" ]; then
+   tristate 'Support for USB' CONFIG_USB
+else
+   define_bool CONFIG_USB n
+fi
+
 if [ "$CONFIG_USB" = "y" -o  "$CONFIG_USB" = "m" ]; then
    bool '  USB verbose debug messages' CONFIG_USB_DEBUG
 
@@ -21,18 +32,35 @@ fi
 comment 'USB Controllers'
 if [ "$CONFIG_USB_UHCI_ALT" != "y" ]; then
    dep_tristate '  UHCI (Intel PIIX4, VIA, ...) support' CONFIG_USB_UHCI $CONFIG_USB
+   dep_mbool '    Put control packet prior to bulk packet' CONFIG_USB_UHCI_CONTROLFIRST $CONFIG_USB_UHCI
 fi
 if [ "$CONFIG_USB_UHCI" != "y" ]; then
    dep_tristate '  UHCI Alternate Driver (JE) support' CONFIG_USB_UHCI_ALT $CONFIG_USB
 else
    define_bool CONFIG_USB_UHCI_ALT n
 fi
+if [ "$CONFIG_8xx" = "y" ]; then
+   dep_tristate '  MPC850/823 USB HCI support' CONFIG_USB_MPC8xx $CONFIG_USB
+   if [ "$CONFIG_USB_MPC8xx" = "n" ]; then
+      bool '  MPC850/823 USB Function (Client) support' CONFIG_USB_CLIENT_MPC8xx
+   fi
+fi
 dep_tristate '  OHCI (Compaq, iMacs, OPTi, SiS, ALi, ...) support' CONFIG_USB_OHCI $CONFIG_USB
+if [ "$CONFIG_SA1111" = "y" ]; then
+   dep_tristate '    SA1111 OHCI-compatible host interface support' CONFIG_USB_OHCI_SA1111 $CONFIG_USB_OHCI
+fi
+dep_tristate '    Non-PCI OHCI support' CONFIG_USB_NON_PCI_OHCI $CONFIG_USB_OHCI
+if [ "$CONFIG_PS2" = "y" ]; then
+   dep_tristate '    PlayStation 2 OHCI-compatible host interface support' CONFIG_USB_OHCI_PS2 $CONFIG_USB_OHCI
+fi
 
 comment 'USB Device Class drivers'
 dep_tristate '  USB Audio support' CONFIG_USB_AUDIO $CONFIG_USB $CONFIG_SOUND
 dep_tristate '  USB Bluetooth support (EXPERIMENTAL)' CONFIG_USB_BLUETOOTH $CONFIG_USB $CONFIG_EXPERIMENTAL
 dep_tristate '  USB Mass Storage support' CONFIG_USB_STORAGE $CONFIG_USB $CONFIG_SCSI
+   dep_mbool '    USB Mass Storage reuse scsi host number' CONFIG_USB_STORAGE_REUSE_HOST $CONFIG_USB_STORAGE
+   dep_mbool '    Fixed write protect detection' CONFIG_USB_STORAGE_FIXWRITEPROTECT $CONFIG_USB_STORAGE
+   dep_mbool '    TEST_UNIT_READY before every command' CONFIG_USB_STORAGE_CB_WINLIKE $CONFIG_USB_STORAGE
    dep_mbool '    USB Mass Storage verbose debug' CONFIG_USB_STORAGE_DEBUG $CONFIG_USB_STORAGE
    dep_mbool '    Datafab MDCFE-B Compact Flash Reader support' CONFIG_USB_STORAGE_DATAFAB $CONFIG_USB_STORAGE $CONFIG_EXPERIMENTAL
    dep_mbool '    Freecom USB/ATAPI Bridge support' CONFIG_USB_STORAGE_FREECOM  $CONFIG_USB_STORAGE
@@ -93,5 +121,5 @@ source drivers/usb/serial/Config.in
 
 comment 'USB Miscellaneous drivers'
 dep_tristate '  USB Diamond Rio500 support (EXPERIMENTAL)' CONFIG_USB_RIO500 $CONFIG_USB $CONFIG_EXPERIMENTAL
-
+dep_tristate '  USB Network-Walkman, NetMD, VAIO MusicClip support' CONFIG_USB_PD $CONFIG_USB
 endmenu

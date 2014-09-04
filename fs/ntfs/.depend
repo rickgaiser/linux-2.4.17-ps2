@@ -1,0 +1,141 @@
+attr.o: attr.c \
+   ntfstypes.h \
+   struct.h \
+   attr.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ntfs_fs.h \
+   macros.h \
+   support.h \
+   util.h \
+   super.h \
+   inode.h \
+   unistr.h
+attr.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/nls.h
+	@touch attr.h
+dir.o: dir.c \
+   ntfstypes.h \
+   struct.h \
+   dir.h \
+   macros.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   super.h \
+   inode.h \
+   attr.h \
+   support.h \
+   util.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h
+fs.o: fs.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   ntfstypes.h \
+   struct.h \
+   util.h \
+   inode.h \
+   super.h \
+   dir.h \
+   support.h \
+   macros.h \
+   sysctl.h \
+   attr.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/uaccess.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blkdev.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/page.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/nls.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ntfs_fs.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/ntfs/rw.h)
+inode.o: inode.c \
+   ntfstypes.h \
+   ntfsendian.h \
+   struct.h \
+   inode.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   macros.h \
+   attr.h \
+   super.h \
+   dir.h \
+   support.h \
+   util.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ntfs_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+macros.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ntfs_fs_i.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/page.h
+	@touch macros.h
+ntfsendian.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h
+	@touch ntfsendian.h
+ntfstypes.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   ntfsendian.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/posix_types.h
+	@touch ntfstypes.h
+struct.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ntfs_fs.h
+	@touch struct.h
+super.o: super.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ntfs_fs.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/bitops.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   ntfstypes.h \
+   struct.h \
+   super.h \
+   macros.h \
+   inode.h \
+   support.h \
+   util.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h
+support.o: support.c \
+   ntfstypes.h \
+   struct.h \
+   support.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/fs.h \
+   util.h \
+   inode.h \
+   macros.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/nls.h \
+   sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h
+support.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/vmalloc.h
+	@touch support.h
+sysctl.o: sysctl.c \
+   sysctl.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/locks.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sysctl.h
+unistr.o: unistr.c \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/byteorder.h \
+   unistr.h \
+   macros.h
+unistr.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/types.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/nls.h
+	@touch unistr.h
+util.o: util.c \
+   ntfstypes.h \
+   struct.h \
+   util.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/string.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/asm/div64.h \
+   support.h
+.PRECIOUS:	attr.h \
+	macros.h \
+	ntfsendian.h \
+	ntfstypes.h \
+	struct.h \
+	support.h \
+	unistr.h \
+

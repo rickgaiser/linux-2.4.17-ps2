@@ -23,13 +23,13 @@
 /* With some changes from Kyösti Mälkki <kmalkki@cc.hut.fi> and
    Frodo Looijaard <frodol@dds.nl> */
 
-/* $Id: i2c.h,v 1.46 2001/08/31 00:04:07 phil Exp $ */
+/* $Id: i2c.h,v 1.48 2001/11/19 19:01:46 mds Exp $ */
 
 #ifndef I2C_H
 #define I2C_H
 
-#define I2C_DATE "20010830"
-#define I2C_VERSION "2.6.1"
+#define I2C_DATE "20011118"
+#define I2C_VERSION "2.6.2"
 
 #include <linux/i2c-id.h>	/* id values of adapters et. al. 	*/
 #include <linux/types.h>
@@ -123,6 +123,8 @@ extern s32 i2c_smbus_read_block_data(struct i2c_client * client,
 extern s32 i2c_smbus_write_block_data(struct i2c_client * client,
                                       u8 command, u8 length,
                                       u8 *values);
+extern s32 i2c_smbus_read_i2c_block_data(struct i2c_client * client,
+                                         u8 command, u8 *values);
 extern s32 i2c_smbus_write_i2c_block_data(struct i2c_client * client,
                                           u8 command, u8 length,
                                           u8 *values);
@@ -385,6 +387,7 @@ struct i2c_msg {
 	unsigned short flags;		
 #define I2C_M_TEN	0x10	/* we have a ten bit chip address	*/
 #define I2C_M_RD	0x01
+#define I2C_M_WR        0x00    /* For readable code!                   */
 #define I2C_M_NOSTART	0x4000
 #define I2C_M_REV_DIR_ADDR	0x2000
 	short len;		/* msg length				*/
@@ -406,8 +409,10 @@ struct i2c_msg {
 #define I2C_FUNC_SMBUS_PROC_CALL	0x00800000 
 #define I2C_FUNC_SMBUS_READ_BLOCK_DATA	0x01000000 
 #define I2C_FUNC_SMBUS_WRITE_BLOCK_DATA 0x02000000 
-#define I2C_FUNC_SMBUS_READ_I2C_BLOCK	0x04000000 /* New I2C-like block */
-#define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK	0x08000000 /* transfer */
+#define I2C_FUNC_SMBUS_READ_I2C_BLOCK	0x04000000 /* I2C-like block xfer  */
+#define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK	0x08000000 /* w/ 1-byte reg. addr. */
+#define I2C_FUNC_SMBUS_READ_I2C_BLOCK_2	 0x10000000 /* I2C-like block xfer  */
+#define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2 0x20000000 /* w/ 2-byte reg. addr. */
 
 #define I2C_FUNC_SMBUS_BYTE I2C_FUNC_SMBUS_READ_BYTE | \
                             I2C_FUNC_SMBUS_WRITE_BYTE
@@ -419,13 +424,17 @@ struct i2c_msg {
                                   I2C_FUNC_SMBUS_WRITE_BLOCK_DATA
 #define I2C_FUNC_SMBUS_I2C_BLOCK I2C_FUNC_SMBUS_READ_I2C_BLOCK | \
                                   I2C_FUNC_SMBUS_WRITE_I2C_BLOCK
+#define I2C_FUNC_SMBUS_I2C_BLOCK_2 I2C_FUNC_SMBUS_READ_I2C_BLOCK_2 | \
+                                   I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2
 
 #define I2C_FUNC_SMBUS_EMUL I2C_FUNC_SMBUS_QUICK | \
                             I2C_FUNC_SMBUS_BYTE | \
                             I2C_FUNC_SMBUS_BYTE_DATA | \
                             I2C_FUNC_SMBUS_WORD_DATA | \
                             I2C_FUNC_SMBUS_PROC_CALL | \
-                            I2C_FUNC_SMBUS_WRITE_BLOCK_DATA
+                            I2C_FUNC_SMBUS_WRITE_BLOCK_DATA | \
+                            I2C_FUNC_SMBUS_I2C_BLOCK | \
+                            I2C_FUNC_SMBUS_I2C_BLOCK_2
 
 /* 
  * Data for SMBus Messages 

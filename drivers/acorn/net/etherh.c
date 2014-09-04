@@ -251,6 +251,12 @@ etherh_block_output (struct net_device *dev, int count, const unsigned char *buf
 		return;
 	}
 
+	/*
+	 * Make sure we have a round number of bytes if we're in word mode.
+	 */
+	if (count & 1 && ei_local->word16)
+		count++;
+
 	ei_local->dmaing |= 1;
 
 	addr = dev->base_addr;

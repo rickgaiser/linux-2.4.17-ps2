@@ -174,6 +174,8 @@ static int queuecommand( Scsi_Cmnd *srb , void (*done)(Scsi_Cmnd *))
 static int command_abort( Scsi_Cmnd *srb )
 {
 	struct us_data *us = (struct us_data *)srb->host->hostdata[0];
+	int need_wait = 0;
+	int result = FAILED;
 
 	US_DEBUGP("command_abort() called\n");
 
@@ -181,26 +183,34 @@ static int command_abort( Scsi_Cmnd *srb )
 	if (atomic_read(us->ip_wanted)) {
 		US_DEBUGP("-- simulating missing IRQ\n");
 		up(&(us->ip_waitq));
+		need_wait = 1;
+		result = SUCCESS;
 	}
 
 	/* if the device has been removed, this worked */
 	if (!us->pusb_dev) {
 		US_DEBUGP("-- device removed already\n");
-		return SUCCESS;
-	}
-
+		result = SUCCESS;
+	} else
 	/* if we have an urb pending, let's wake the control thread up */
 	if (us->current_urb->status == -EINPROGRESS) {
+		US_DEBUGP("-- cancel URB\n");
 		/* cancel the URB -- this will automatically wake the thread */
 		usb_unlink_urb(us->current_urb);
-
-		/* wait for us to be done */
-		wait_for_completion(&(us->notify));
-		return SUCCESS;
+		need_wait = 1;
+		result = SUCCESS;
 	}
 
-	US_DEBUGP ("-- nothing to abort\n");
-	return FAILED;
+	if (need_wait) {
+		/* wait for us to be done */
+		wait_for_completion(&(us->notify));
+	}
+
+	if (result == FAILED) {
+		US_DEBUGP ("-- nothing to abort\n");
+	}
+
+	return result;
 }
 
 /* This invokes the transport reset mechanism to reset the state of the
@@ -210,6 +220,11 @@ static int device_reset( Scsi_Cmnd *srb )
 	struct us_data *us = (struct us_data *)srb->host->hostdata[0];
 
 	US_DEBUGP("device_reset() called\n" );
+
+	down(&(us->dev_semaphore));
+	us->scsi_err_processed |= SCSI_ERROR_DEVICE_RESET;
+	up(&(us->dev_semaphore));
+
 	return us->transport_reset(us);
 }
 
@@ -225,8 +240,12 @@ static int bus_reset( Scsi_Cmnd *srb )
 	/* we use the usb_reset_device() function to handle this for us */
 	US_DEBUGP("bus_reset() called\n");
 
+	down(&(us->dev_semaphore));
+	us->scsi_err_processed |= SCSI_ERROR_BUS_RESET;
+
 	/* if the device has been removed, this worked */
 	if (!us->pusb_dev) {
+		up(&(us->dev_semaphore));
 		US_DEBUGP("-- device removed already\n");
 		return SUCCESS;
 	}
@@ -241,8 +260,11 @@ static int bus_reset( Scsi_Cmnd *srb )
 	up(&(us->irq_urb_sem));
 
 	/* attempt to reset the port */
-	if (usb_reset_device(us->pusb_dev) < 0)
+	if (usb_reset_device(us->pusb_dev) < 0) {
+		up(&(us->dev_semaphore));
 		return FAILED;
+	}
+	up(&(us->dev_semaphore));
 
 	/* FIXME: This needs to lock out driver probing while it's working
 	 * or we can have race conditions */
@@ -290,7 +312,11 @@ static int bus_reset( Scsi_Cmnd *srb )
 /* FIXME: This doesn't do anything right now */
 static int host_reset( Scsi_Cmnd *srb )
 {
-	printk(KERN_CRIT "usb-storage: host_reset() requested but not implemented\n" );
+	struct us_data *us = (struct us_data *)srb->host->hostdata[0];
+	down(&(us->dev_semaphore));
+	us->scsi_err_processed |= SCSI_ERROR_HOST_RESET;
+	up(&(us->dev_semaphore));
+	//printk(KERN_CRIT "usb-storage: host_reset() requested but not implemented\n" );
 	return FAILED;
 }
 
@@ -398,6 +424,20 @@ unsigned char usb_stor_sense_notready[18] = {
 	[5]	= 0x0a,			    /* additional length */
 	[10]	= 0x04,			    /* not ready */
 	[11]	= 0x03			    /* manual intervention */
+};
+unsigned char usb_stor_sense_nomedia[18] = {
+	[0]	= 0x70,			    /* current error */
+	[2]	= 0x02,			    /* check code NO MEDIUM */
+	[7]	= 15-7,			    /* additional length */
+	[12]	= 0x3a,			    /* asc  for NO MEDIUM */
+	[14]	= 0x00			    /* ascq for NO MEDIUM */
+};
+unsigned char usb_stor_sense_media_changed[18] = {
+	[0]	= 0x70,			    /* current error */ 
+	[2]	= 0x06,			    /* check code MEDIA_CHANGED */
+	[7]	= 15-7,			    /* additional length */
+	[12]	= 0x28,			    /* asc  for MEDIA_CHANGED */
+	[14]	= 0x00			    /* ascq for MEDIA_CHANGED */
 };
 
 #define USB_STOR_SCSI_SENSE_HDRSZ 4

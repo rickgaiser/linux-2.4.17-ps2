@@ -1,0 +1,178 @@
+datafab.o: datafab.c \
+   transport.h \
+   protocol.h \
+   usb.h \
+   debug.h \
+   datafab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h
+debug.o: debug.c \
+   debug.h
+debug.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/kernel.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blk.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/cdrom.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/scsi/scsi.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/debug.h)
+	@touch debug.h
+dpcm.o: dpcm.c \
+   transport.h \
+   protocol.h \
+   usb.h \
+   debug.h \
+   dpcm.h \
+   sddr09.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/sddr09.h)
+freecom.o: freecom.c \
+   transport.h \
+   protocol.h \
+   usb.h \
+   debug.h \
+   freecom.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hdreg.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/debug.h)
+initializers.o: initializers.c \
+   initializers.h \
+   debug.h
+initializers.h: \
+   usb.h
+	@touch initializers.h
+isd200.o: isd200.c \
+   transport.h \
+   protocol.h \
+   usb.h \
+   debug.h \
+   scsiglue.h \
+   isd200.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/hdreg.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/ide.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/debug.h)
+jumpshot.o: jumpshot.c \
+   transport.h \
+   protocol.h \
+   usb.h \
+   debug.h \
+   jumpshot.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h
+protocol.o: protocol.c \
+   protocol.h \
+   usb.h \
+   debug.h \
+   scsiglue.h \
+   transport.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/reuse/host.h)
+protocol.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blk.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/scsi/scsi.h \
+   usb.h
+	@touch protocol.h
+scsiglue.o: scsiglue.c \
+   scsiglue.h \
+   usb.h \
+   debug.h \
+   transport.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h
+scsiglue.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blk.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/scsi/scsi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/scsi/hosts.h
+	@touch scsiglue.h
+sddr09.o: sddr09.c \
+   transport.h \
+   protocol.h \
+   usb.h \
+   debug.h \
+   sddr09.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h
+shuttle_usbat.o: shuttle_usbat.c \
+   transport.h \
+   protocol.h \
+   usb.h \
+   debug.h \
+   shuttle_usbat.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h
+transport.o: transport.c \
+   transport.h \
+   protocol.h \
+   usb.h \
+   debug.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/cb/winlike.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/debug.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/fixwriteprotect.h)
+transport.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blk.h \
+   usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/scsi/scsi.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/hp8200e.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/sddr09.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/freecom.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/datafab.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/jumpshot.h)
+	@touch transport.h
+unusual_devs.h: \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/hp8200e.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/dpcm.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/sddr09.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/isd200.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/jumpshot.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/freecom.h) \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/datafab.h)
+	@touch unusual_devs.h
+usb.o: usb.c \
+   usb.h \
+   scsiglue.h \
+   transport.h \
+   protocol.h \
+   debug.h \
+   initializers.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/hp8200e.h) \
+   shuttle_usbat.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/sddr09.h) \
+   sddr09.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/dpcm.h) \
+   dpcm.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/freecom.h) \
+   freecom.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/isd200.h) \
+   isd200.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/datafab.h) \
+   datafab.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/jumpshot.h) \
+   jumpshot.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/module.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/sched.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/errno.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/init.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/slab.h \
+   unusual_devs.h \
+   unusual_devs.h \
+   $(wildcard /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/config/usb/storage/reuse/host.h)
+usb.h: \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/usb.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/blk.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/smp_lock.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/include/linux/completion.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/scsi/scsi.h \
+   /export/tmp/kernel/usr/src/linux-2.4.17_ps2/drivers/scsi/hosts.h
+	@touch usb.h
+.PRECIOUS:	debug.h \
+	initializers.h \
+	protocol.h \
+	scsiglue.h \
+	transport.h \
+	unusual_devs.h \
+	usb.h \
+

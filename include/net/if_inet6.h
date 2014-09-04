@@ -1,3 +1,5 @@
+/* $USAGI: if_inet6.h,v 1.19 2002/03/13 13:39:47 yoshfuji Exp $ */
+
 /*
  *	inet6 interface/address list definitions
  *	Linux INET6 implementation 
@@ -15,8 +17,10 @@
 #ifndef _NET_IF_INET6_H
 #define _NET_IF_INET6_H
 
-#define IF_RA_RCVD	0x20
-#define IF_RS_SENT	0x10
+#include <net/snmp.h>
+
+#define IF_RA_RCVD	0x20	/* for inet6_dev.if_flags */
+#define IF_RS_SENT	0x10	/* for inet6_dev.if_flags */
 
 #ifdef __KERNEL__
 
@@ -42,6 +46,13 @@ struct inet6_ifaddr
 
 	struct inet6_ifaddr	*lst_next;      /* next addr in addr_lst */
 	struct inet6_ifaddr	*if_next;       /* next addr in inet6_dev */
+
+#ifdef CONFIG_IPV6_PRIVACY
+	struct inet6_ifaddr	*tmp_next;	/* next addr in tempaddr_lst */
+	struct inet6_ifaddr	*ifpub;
+
+	int			regen_count;
+#endif
 
 	int			dead;
 };
@@ -69,6 +80,25 @@ struct ifmcaddr6
 	spinlock_t		mca_lock;
 };
 
+/* Anycast stuff */
+
+struct ipv6_ac_socklist
+{
+	struct in6_addr		acl_addr;
+	int			acl_ifindex;
+	struct ipv6_ac_socklist	*acl_next;
+};
+
+struct ifacaddr6
+{
+	struct in6_addr		aca_addr;
+	struct inet6_dev	*aca_idev;
+	struct ifacaddr6	*aca_next;
+	int			aca_users;
+	atomic_t		aca_refcnt;
+	spinlock_t		aca_lock;
+};
+
 #define	IFA_HOST	IPV6_ADDR_LOOPBACK
 #define	IFA_LINK	IPV6_ADDR_LINKLOCAL
 #define	IFA_SITE	IPV6_ADDR_SITELOCAL
@@ -86,8 +116,39 @@ struct ipv6_devconf
 	int		rtr_solicits;
 	int		rtr_solicit_interval;
 	int		rtr_solicit_delay;
+	int		bindv6only;
+#ifdef CONFIG_IPV6_NODEINFO
+	int		accept_ni;
+#endif
+#ifdef CONFIG_IPV6_PRIVACY
+	int		use_tempaddr;
+	int		temp_valid_lft;
+	int		temp_prefered_lft;
+	int		regen_max_retry;
+	int		max_desync_factor;
+#endif
 
 	void		*sysctl;
+};
+
+/* XXX: put this into include/linux/in6.h (or so) as in6_prefix{} ? */
+struct ipv6_prefix {
+	struct in6_addr		ip6p_prefix;	/* prefix */
+	__u32			ip6p_len;	/* prefix length */
+};
+
+struct inet6_prefix {
+	struct 	list_head	list;		/* list of prefixes */
+	struct in6_addr		prefix;		/* prefix */
+	__u32			prefix_len;	/* prefix length */
+	__u32			lifetime;	/* lifetime for prefix */
+	unsigned long		timestamp;	/* last jiffies updated */
+};
+
+struct ipv6_devstat{
+	struct proc_dir_entry *	proc_dir_entry;
+	struct ipv6_mib		ipv6[NR_CPUS*2];	/* RFC 2465 */
+	struct icmpv6_mib	icmpv6[NR_CPUS*2];	/* RFC 2466 */
 };
 
 struct inet6_dev 
@@ -96,14 +157,27 @@ struct inet6_dev
 
 	struct inet6_ifaddr	*addr_list;
 	struct ifmcaddr6	*mc_list;
+#ifdef CONFIG_IPV6_ANYCAST
+	struct ifacaddr6	*ac_list;
+#endif
+	struct list_head	prefix_list;
+	spinlock_t		prefix_lock;
 	rwlock_t		lock;
 	atomic_t		refcnt;
 	__u32			if_flags;
 	int			dead;
 
+#ifdef CONFIG_IPV6_PRIVACY
+	u8			rndid[8];
+	u8			entropy[8];
+	struct timer_list	regen_timer;
+	struct inet6_ifaddr	*tempaddr_list;
+#endif
+
 	struct neigh_parms	*nd_parms;
 	struct inet6_dev	*next;
 	struct ipv6_devconf	cnf;
+	struct ipv6_devstat	stats;
 };
 
 extern struct ipv6_devconf ipv6_devconf;
@@ -174,6 +248,11 @@ static inline void ipv6_tr_mc_map(struct in6_addr *addr, char *buf)
 		buf[4]=0x00;
 		buf[5]=0x00;
 	}
+}
+
+static inline void ipv6_arcnet_mc_map(struct in6_addr *addr, char *buf)
+{
+	buf[0] = 0x00;
 }
 #endif
 #endif

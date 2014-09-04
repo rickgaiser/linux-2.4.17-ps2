@@ -12,6 +12,7 @@
 #include <linux/fs.h>
 #include <linux/adfs_fs.h>
 #include <linux/spinlock.h>
+#include <linux/sched.h>
 
 #include "adfs.h"
 

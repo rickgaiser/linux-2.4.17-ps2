@@ -1,0 +1,173 @@
+MontaVista(tm) Net driver for 21554 Embedded Bridge (Drawbridge)
+MontaVista Software, Inc.
+03/12/2001
+
+
+INTRODUCTION
+    This distribution contains MontaVista Net, our network driver for the
+    21554 embedded bridge. MontaVista Net has been tested with the
+    following hardware:
+
+	Force   - PowerCore 680 (System Master)
+                  Powercore 6750 (Peripheral Master)
+	MCG     - MCP750 (System Master)
+                  MCPN750 & MCPN765 (Peripheral Masters)
+	MEN     - MENF001 (System Master)
+	SBS     - K2 (System Master only)
+	Ziatech - 5541 (Peripheral Master)
+
+
+HARDWARE CONFIGURATION
+21554 Configuration:
+    Designs based on the 21554 generally include a serial ROM which can
+    be used to preload selected chip registers (See the 21554 Manual for
+    more information). MontaVista Net requires a specific 21554 configuration
+    for proper operation. The required configuration sets the Downstream
+    Memory 2 window to 1 MB and sets the page size of the Upstream Memory 2
+    window to 1 MB as well.
+
+Programming the Serial ROM
+    Most 21554-based boards to not arrive with the required configuration
+    as the default. Therefore, the SROM contents must be modified by the user.
+    Depending on the vendor, there are different methods available.
+
+
+    Motorola Computer Group (MCG) Hardware:
+    In addition to the utilities above, the debugger provided on MCG hardware
+    has the ability to display and edit the 21554 SROM contents using the
+    'SROM' command as follows:
+
+	PPC1-Bug>srom;d
+
+	Device Address =$0000A000 (N/Y)? y
+	Reading SROM into Local Buffer.....
+	$00 (&000) 80?
+	$01 (&001) 00?
+	$02 (&002) 00?
+	.
+	.
+	.
+	$1A (&026) 00? 00
+	$1B (&027) 00? 00
+	$1C (&028) 00? f0
+	$1D (&029) 00? ff
+	.
+	.
+	.
+	$30 (&048) 00?
+	$31 (&049) 04? 0
+	$32 (&050) 00?
+	$33 (&051) 00? d
+	$34 (&052) .
+	Update SROM (Y/N)? y
+	Writing SROM from Local Buffer.....
+	Verifying SROM with Local Buffer...
+
+    At this point you should halt the system and reset it to cause the
+    21554 to load the values from the serial ROM.
+
+
+    Force 6750
+    The Force 6750 can program the 21554 SROM from firmware as well using
+    the following sequence which reads the SROM contents into RAM at
+    0x40000 and displays it from RAM. The dump shown below contains the
+    proper SROM configuration.
+
+        PowerBoot> eeprom_read srom_dec21554_0 0 50 4000
+
+        PowerBoot> md 40000,50
+ 
+	00040000:  80 00 00 00 00 80 06 46  11 50 67 00 00 00 80 06
+	00040010:  00 00 00 00 00 00 00 00  00 00 00 00 f0 ff 00 00
+	00040020:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+	00040030:  00 00 00 0d 20 00 ff ff  00 00 00 00 00 00 00 00
+	00040040:  06 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+
+    If the SROM contents require alteration, follow the example below as
+    a guideline for editing the SROM contents:
+
+        PowerBoot> m 40000,b
+
+        40000  00 : 80
+        40001  00 : 00
+        40002  00 : . <- enter a single '.' to terminate input.
+
+    Once the RAM buffer contains the proper contents, write the buffer to
+    the 21554 SROM as follows:
+
+        PowerBoot> eeprom_write srom_dec21554_0 0 50 40000
+
+    The board should now be reset to force a re-load of the 21554
+    configuration. Note that once this configuration has been set, the
+    netload command cannot be used to load new firmware. If a new
+    firmware image must be loaded, perform the following sequence to
+    disable 21554 pre-loading:
+
+        PowerBoot> m 40000,b
+	00040000  00 : 00
+	00040001  00 : .
+	PowerBoot> eeprom_write srom_dec21554_0 0 1 40000
+
+    Reset the board to force the 21554 into the power-on default and load
+    the new image. To re-enable the 21554 SROM, perform the following
+    sequence:
+
+        PowerBoot> m 40000,b
+	00040000  00 : 80
+	00040001  00 : .
+	PowerBoot> eeprom_write srom_dec21554_0 0 1 40000
+   
+
+
+USING THE NETWORK DRIVER
+    The 21554 network driver emulates an Ethernet driver, and it can
+    be configured and used just like an Ethernet device in most respects.
+
+    On a MontaVista Linux system, the "pci0" device can be configured by
+    creating a file called /etc/sysconfig/network-scripts/ifcfg-pci0
+    with contents such as the following:
+
+	DEVICE=pci0
+	IPADDR=10.3.0.3
+	NETMASK=255.255.0.0
+	NETWORK=10.3.0.0
+	BROADCAST=10.3.255.255
+	MACADDR=40:80:42:0F:1F:C9
+	ONBOOT=yes
+
+    Perhaps the only difference between the 21554 driver and an Ethernet
+    device is that the drawbridge driver has no default hardware Ethernet
+    (MAC) address.  A unique address must be assigned, as in the MACADDR
+    statement above, or via a command such as:
+
+	ifconfig pci0 hw ether 40:80:42:0F:1F:C9
+
+    If your company owns a block of Ethernet addresses, you can assign
+    values from this block to the 21554 driver.  Each board should be
+    configured with a different MAC address.  Another convenient method
+    is to take the hardware address of an onboard Ethernet controller
+    and replace the first octet with "40", as above.  Such an address
+    is not guaranteed to be unique (since it is not assigned to you),
+    but we know of no public assignments with this value at this time.
+
+    In order to associate the "pci0" device with the MontaVista Net Ethernet
+    driver, add the following line to /etc/conf.modules:
+
+	alias pci0 hhnet_eth
+
+    At this point, "modprobe pci0" should correctly locate and load
+    the network driver.  If the driver is loaded correctly, "ifconfig -a"
+    should show the "pci0" network device.
+
+    All boards on a single backplane constitute a single subnet, and
+    IP addresses and masks should be assigned accordingly.  A MontaVista
+    Linux system can be configured to forward packets between an
+    external network and a backplane network by placing the following
+    line in /etc/sysconfig/network:
+
+	FORWARD_IPV4=true
+
+    Routes to and from external hosts can then be configured as you
+    would for a normal gateway device.
+
+

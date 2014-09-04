@@ -40,6 +40,7 @@
  * v0.1 Jan 14 2000 Ollie Lho <ollie@sis.com.tw> 
  *	Isolated from trident.c to support multiple ac97 codec
  */
+#include <linux/config.h>
 #include <linux/module.h>
 #include <linux/version.h>
 #include <linux/kernel.h>
@@ -120,9 +121,11 @@ static const struct {
 	{0x43525931, "Cirrus Logic CS4299 rev A", &crystal_digital_ops},
 	{0x43525933, "Cirrus Logic CS4299 rev C", &crystal_digital_ops},
 	{0x43525934, "Cirrus Logic CS4299 rev D", &crystal_digital_ops},
+	{0x4352594d, "Cirrus Logic CS4201"	, &null_ops},
 	{0x45838308, "ESS Allegro ES1988",	&null_ops},
 	{0x49434511, "ICE1232",			&null_ops}, /* I hope --jk */
 	{0x4e534331, "National Semiconductor LM4549", &null_ops},
+	{0x50534304, "Philips UCB1400",		&default_ops},
 	{0x53494c22, "Silicon Laboratory Si3036", &null_ops},
 	{0x53494c23, "Silicon Laboratory Si3038", &null_ops},
 	{0x545200FF, "TriTech TR?????",		&tritech_m_ops},
@@ -141,6 +144,7 @@ static const struct {
 	{0x83847609, "SigmaTel STAC9721/23",	&sigmatel_9721_ops},
 	{0x83847644, "SigmaTel STAC9744/45",	&sigmatel_9744_ops},
 	{0x83847656, "SigmaTel STAC9756/57",	&sigmatel_9744_ops},
+	{0x83847666, "SigmaTel STAC9766/67",    &null_ops},
 	{0x83847684, "SigmaTel STAC9783/84?",	&null_ops},
 	{0x57454301, "Winbond 83971D",		&null_ops},
 };
@@ -835,6 +839,7 @@ static int sigmatel_9744_init(struct ac97_codec * codec)
 
 static int wolfson_init(struct ac97_codec * codec)
 {
+#ifndef CONFIG_DDB5477 
 	codec->codec_write(codec, 0x72, 0x0808);
 	codec->codec_write(codec, 0x74, 0x0808);
 
@@ -846,6 +851,7 @@ static int wolfson_init(struct ac97_codec * codec)
 		codec->codec_read(codec, AC97_PCMOUT_VOL));
 
 	codec->codec_write(codec, AC97_SURROUND_MASTER, 0x0000);
+#endif
 	return 0;
 }
 

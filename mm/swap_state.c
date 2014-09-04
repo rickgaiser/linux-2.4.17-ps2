@@ -14,6 +14,7 @@
 #include <linux/init.h>
 #include <linux/pagemap.h>
 #include <linux/smp_lock.h>
+#include <linux/trace.h>
 
 #include <asm/pgtable.h>
 
@@ -27,6 +28,9 @@ static int swap_writepage(struct page *page)
 		UnlockPage(page);
 		return 0;
 	}
+
+	TRACE_MEMORY(TRACE_EV_MEMORY_SWAP_OUT, (unsigned long) page);
+
 	rw_swap_page(WRITE, page);
 	return 0;
 }

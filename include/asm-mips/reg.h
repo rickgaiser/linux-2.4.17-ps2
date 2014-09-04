@@ -11,6 +11,8 @@
 #ifndef __ASM_MIPS_REG_H
 #define __ASM_MIPS_REG_H
 
+#include <linux/config.h>
+
 /*
  * This defines/structures correspond to the register layout on stack -
  * if the order here is changed, it needs to be updated in
@@ -59,8 +61,14 @@
 #define EF_CP0_EPC		40
 #define EF_CP0_BADVADDR		41
 #define EF_CP0_STATUS		42
-#define EF_CP0_CAUSE		44
+#define EF_CP0_CAUSE		43
 
 #define EF_SIZE			180	/* size in bytes */
+
+#ifdef CONFIG_CPU_R5900_CONTEXT
+#define EF_SA			45
+#undef  EF_SIZE
+#define EF_SIZE			(46*16)
+#endif
 
 #endif /* __ASM_MIPS_REG_H */

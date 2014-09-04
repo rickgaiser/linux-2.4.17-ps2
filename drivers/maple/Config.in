@@ -1,0 +1,10 @@
+#
+# Sega Dreamcast Maple Bus device configuration
+#
+
+mainmenu_option next_comment
+comment 'Maple Bus support'
+
+tristate 'Maple Bus support' CONFIG_MAPLE
+
+endmenu
